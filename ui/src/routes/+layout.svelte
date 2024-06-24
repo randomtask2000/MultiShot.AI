@@ -29,7 +29,7 @@
 		<!-- App Bar -->
 		<AppBar>
 			<svelte:fragment slot="lead">
-				<strong class="text-xl uppercase">Multi-Shot AI</strong>
+				<strong class="text-xl">MultiShot.AI</strong>
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
 				<a

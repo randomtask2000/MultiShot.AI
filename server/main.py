@@ -17,7 +17,7 @@ from langchain_openai import ChatOpenAI
 from starlette.staticfiles import StaticFiles
 
 # local imports
-from utils.history import ChatHistory, Message
+from server.utils.history import ChatHistory, Message
 
 load_dotenv()
 API_KEY = os.getenv('OPENAI_API_KEY', 'default_value_if_not_found')
