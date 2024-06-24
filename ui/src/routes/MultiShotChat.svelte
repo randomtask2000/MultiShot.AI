@@ -27,7 +27,7 @@
         const token = getToken();
         tokenHistory.push({ role: "user", content: token });
 
-        let divIdUser = addAiResponseDivUser("user");
+        let divIdUser = addBubble("User", "user");
         await printMessage(divIdUser, token).then(() => {
             // console.log(divIdUser + "- is the id");
         });
@@ -39,7 +39,7 @@
         }
 
         await printResponse(response.body.getReader()
-            , new TextDecoder('utf-8'), addAiResponseDiv("computer")).then(content => {
+            , new TextDecoder('utf-8'), addBubble("AI", "ai")).then(content => {
                 tokenHistory.push({ role: "assistant", content });
         });
         
@@ -88,46 +88,32 @@
         return lastResponse;
     }
 
-    const addAiResponseDivUser = (person: string) => {
-      const parentDiv = document.createElement('div');
-      let bubbleData = {
-        color: 'variant-soft-primary', 
-        name: person, 
-        timestamp: new Date().toLocaleTimeString(), 
-        message: "", 
-        avatar: `https://i.pravatar.cc/?img=14`, 
-        pid: `pid${Date.now()}`
-      };
-      let bubbleUser = new BubbleUser({
-        target: parentDiv,
-        props: {
-          bubble: bubbleData
-        }
-      });
-      bubbleUser.id = `div${Date.now()}`;
-      resultDiv!.appendChild(parentDiv);
-      return bubbleData.pid;
-    };
+    const addBubble = (person: string, type: "user" | "ai") => {
+        const parentDiv = document.createElement('div');
+        let bubbleData = {
+            color: 'variant-soft-primary',
+            name: person,
+            timestamp: new Date().toLocaleTimeString(),
+            message: "",
+            avatar: `https://i.pravatar.cc/?img=${type === "user" ? 14 : 47}`,
+            pid: `pid${Date.now()}`
+        };
+        let bubble;
 
-    const addAiResponseDiv = (person: string) => {
-      const parentDiv = document.createElement('div');
-      let bubbleData = {
-        color: 'variant-soft-primary', 
-        name: person, 
-        timestamp: new Date().toLocaleTimeString(), 
-        message: "", 
-        avatar: `https://i.pravatar.cc/?img=47`, 
-        pid: `pid${Date.now()}`
-      };
-      let bubbleSystem = new BubbleSystem({
-        target: parentDiv,
-        props: {
-          bubble: bubbleData
+        switch (type) {
+            case "user":
+                bubble = new BubbleUser({ target: parentDiv, props: { bubble: bubbleData } });
+                break;
+            case "ai":
+                bubble = new BubbleSystem({ target: parentDiv, props: { bubble: bubbleData } });
+                break;
+            default:
+                throw new Error("Unsupported type");
         }
-      });
-      bubbleSystem.id = `div${Date.now()}`;
-      resultDiv!.appendChild(parentDiv);
-      return bubbleData.pid;
+
+        bubble.id = `div${Date.now()}`;
+        resultDiv!.appendChild(parentDiv);
+        return bubbleData.pid;
     };
 
     interface Bubble {
