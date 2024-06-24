@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
     // https://www.skeleton.dev/elements/chat
     import BubbleSystem from "./BubbleSystem.svelte";
     import BubbleUser from "./BubbleUser.svelte";
@@ -124,11 +123,11 @@
         avatar: string;
         pid: string
     }
-    interface BubbleComponent {
-        id: string;
-        bubble: Bubble;
-        $set: (props: { bubble: Bubble }) => void;
-    }
+    // interface BubbleComponent {
+    //     id: string;
+    //     bubble: Bubble;
+    //     $set: (props: { bubble: Bubble }) => void;
+    // }
     
     async function scrollToBottom() {
       return new Promise<void>((resolve) => {
@@ -155,13 +154,13 @@
         <button class="input-group-shim" on:click={sendUserTokenAiHistory}>+</button>
         <textarea
                 bind:value={tokenVar}
-                class="bg-transparent border-0 ring-0"
+                class="font-nunito bg-transparent border-0 ring-0"
                 name="tokenInput"
                 id="tokenInput"
                 placeholder="Write a message..."
                 rows="1"
                 on:keydown={checkForReturnKey}
         />
-        <button class="variant-filled-primary" on:click={sendUserTokenAiHistory}>Send</button>
+        <button class="font-nunito variant-filled-primary" on:click={sendUserTokenAiHistory}>Send</button>
     </div>
 </div>

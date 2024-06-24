@@ -21,7 +21,7 @@
             <p class="font-bold">{bubble.name}</p>
             <small class="opacity-50">{bubble.timestamp}</small>
         </header>
-        <p id="{bubble.pid}" class="text-align-right">{bubble.message}</p>
+        <p id="{bubble.pid}" class="font-nunito text-align-right">{bubble.message}</p>
     </div>
 </div>
 <br />

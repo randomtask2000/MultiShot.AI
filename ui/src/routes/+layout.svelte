@@ -29,11 +29,11 @@
 		<!-- App Bar -->
 		<AppBar>
 			<svelte:fragment slot="lead">
-				<strong class="text-xl">MultiShot.AI</strong>
+				<strong class="font-nunito text-xl">MultiShot.AI</strong>
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
 				<a
-					class="btn btn-sm variant-ghost-surface"
+					class="font-nunito btn btn-sm variant-ghost-surface"
 					href="https://twitter.com/cronuser"
 					target="_blank"
 					rel="noreferrer"
@@ -41,7 +41,7 @@
 					Twitter
 				</a>
 				<a
-					class="btn btn-sm variant-ghost-surface"
+					class="font-nunito btn btn-sm variant-ghost-surface"
 					href="https://github.com/randomtask2000/OpenAI-FastAPI-Svelte-Static"
 					target="_blank"
 					rel="noreferrer"

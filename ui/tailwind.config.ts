@@ -9,7 +9,20 @@ export default {
 	darkMode: 'class',
 	content: ['./src/**/*.{html,js,svelte,ts}', join(require.resolve('@skeletonlabs/skeleton'), '../**/*.{html,js,svelte,ts}')],
 	theme: {
-		extend: {},
+		extend: {
+			fontFamily: {
+				roboto: ['Roboto', 'sans-serif'],
+				openSans: ['Open Sans', 'sans-serif'],
+				lato: ['Lato', 'sans-serif'],
+				montserrat: ['Montserrat', 'sans-serif'],
+				raleway: ['Raleway', 'sans-serif'],
+				poppins: ['Poppins', 'sans-serif'],
+				ubuntu: ['Ubuntu', 'sans-serif'],
+				nunito: ['Nunito', 'sans-serif'],
+				merriweather: ['Merriweather', 'serif'],
+				notoSans: ['Noto Sans', 'sans-serif'],
+			},
+		},
 	},
 	plugins: [
 		forms,
