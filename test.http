@@ -1,0 +1,53 @@
+# curl -X POST "http://localhost:8000/stream_history/"
+#-H "accept: application/json"
+#-H "Content-Type: application/json"
+#-d '[{"user": "exampleUser1", "message": "exampleMessage1"}, {"user": "exampleUser2", "message": "exampleMessage2"}]'
+POST http://localhost:8000/stream_history/
+accept: application/json
+Content-Type: application/json
+
+[{"user": "exampleUser1", "message": "exampleMessage1"}, {"user": "exampleUser2", "message": "exampleMessage2"}]
+
+###
+
+# curl https://api.openai.com/v1/chat/completions
+#  -H "Content-Type: application/json"
+#  -H "Authorization: Bearer YOUR_API_KEY"
+#  -d '{
+#    "model": "gpt-4",
+#    "messages": [
+#      {"role": "system", "content": "You are a helpful assistant."},
+#      {"role": "user", "content": "Tell me a joke."}
+#    ],
+#    "temperature": 0.7
+#  }'
+POST http://localhost:8000/stream_history/
+Authorization: Bearer my_key
+Content-Type: application/json
+
+{
+    "messages": [
+      {"role": "system", "content": "You are a helpful assistant."},
+      {"role": "user", "content": "Tell me a joke."}
+    ]
+  }
+
+###
+
+
+POST http://localhost:8000/stream_history/
+Authorization: Bearer my_key
+Content-Type: application/json
+
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "how are you"
+    },
+    {
+      "role": "user",
+      "content": "how are you"
+    }
+  ]
+}

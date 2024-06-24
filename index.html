@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f2f2f2;
+        }
+
+        .chat-container {
+            border-radius: 5px;
+            background-color: #f8f8f8;
+            padding: 20px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #result {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 3px;
+            background-color: #fafafa;
+        }
+
+        .chatAiBubble {
+            padding: 10px 20px;
+            margin-right: 50px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #53b639;
+            background-image: linear-gradient(to top, #53b639, #82d96e);
+            color: white;
+            position: relative;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .outer-chatAiBubble {
+            border-radius: 0px;
+            background-color: #f8f8f8;
+            padding: 0px;
+            display: flex;
+            justify-content: left; /* Centers horizontally */
+        }
+
+        .chatTokenBubble {
+            padding: 10px 20px;
+            margin-left: 50px;
+            margin-right: 0;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            background-image: linear-gradient(to top, #007BFF, #7ab1ec);
+            color: white;
+            position: relative;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            text-align: right;  /* Align text to the right */
+            display: inline-block;  /* Make the width as small as needed */
+        }
+
+        .outer-chatTokenBubble {
+            border-radius: 0px;
+            background-color: #f8f8f8;
+            padding: 0px;
+            display: flex;
+            justify-content: right; /* Centers horizontally */
+        }
+
+        #tokenInput {
+            width: 70%;
+            padding: 10px;
+            margin-right: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="chat-container">
+        <h1>Chat with your AI</h1>
+        <div id="result"></div>
+        <label for="tokenInput"></label><input type="text" id="tokenInput" placeholder="Type your message here" />
+        <button onclick="sendTokens()">Send Message</button>
+        <button onclick="sendUserTokenHistory()">Send Message History</button>
+        <button onclick="sendUserTokenAiHistory()">Send Message AI History</button>
+    </div>
+
+    <script>
+        // An array to store the history of tokens
+        let tokenHistory = [];
+
+        // Classes for styling chat bubbles
+        let chatAiBubbleClass = 'chatAiBubble';
+        let chatTokenBubbleClass = 'chatTokenBubble'
+
+        // Adding an event listener on 'Enter' keyup event on the token input field
+        // If 'Enter' is pressed, the sendUserTokenAiHistory function is called
+        document.getElementById('tokenInput').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                sendUserTokenAiHistory();
+            }
+        });
+
+        // Function to get the token message from the input field,
+        // clear the input field, and then return the token
+        function getToken() {
+            const token =  document.getElementById('tokenInput').value;
+            document.getElementById('tokenInput').value = '';
+            return token;
+        }
+
+        // Function to send the entered tokens for further processing
+        // Fetches the token with getToken() and then sends it to a
+        // remote server for AI processing
+        // The response from the server is printed in the chat area
+        async function sendTokens() {
+            const token = getToken();
+            await printMessage(addAiResponseDiv(chatTokenBubbleClass), token);
+            const response = await fetchAi([{ role: 'user', content: token }]);
+            await printMessage(addAiResponseDiv(chatTokenBubbleClass), response);
+        }
+        //This function fetches the user's token and sends it to the AI assistant.
+        // It also pushes the token details into the token history.
+        async function sendUserTokenHistory() {
+            const token = getToken();
+            tokenHistory.push({ role: 'user', content: token });
+            await printMessage(addAiResponseDiv(chatTokenBubbleClass), token);
+            const response = await fetchAi(tokenHistory);
+            await printResponse(response.body.getReader(), new TextDecoder('utf-8'), addAiResponseDiv(chatAiBubbleClass));
+        }
+        // Similar to `sendUserTokenHistory()`, but this function also pushes the
+        // AI assistant's response into the token history.
+        async function sendUserTokenAiHistory() {
+            const token = getToken();
+            tokenHistory.push({role: "user", content: token});
+            await printMessage(addAiResponseDiv(chatTokenBubbleClass), token);
+            const response = await fetchAi(tokenHistory);
+            await printResponse(response.body.getReader(), new TextDecoder('utf-8'), addAiResponseDiv(chatAiBubbleClass)).then(content => {
+                tokenHistory.push({role: "assistant", content});
+            });
+        }
+        // This function sends a POST request to a local server with the chat
+        // history as a payload. It returns a promise that resolves
+        // to the response of that request.
+        async function fetchAi(history) {
+            let content = JSON.stringify({messages: history});
+            return await fetch('http://localhost:8000/stream_history/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: content
+            });
+        }
+        // This function reads from the response of the AI assistant, decodes it,
+        // and outputs it into an HTML div. It returns the entire response as a string.
+        async function printResponse(reader, decoder, responseDiv) {
+            let lastResponse = '';
+            await reader.read().then(function processResult(result) {
+                if (result.done) { return; }
+                let token = decoder.decode(result.value);
+                lastResponse += token;
+                if (token.endsWith('.') || token.endsWith('!') || token.endsWith('?')) {
+                    document.getElementById(responseDiv).innerHTML += `${token}</br>`;
+                } else {
+                    document.getElementById(responseDiv).innerHTML += `${token}`;
+                }
+                scrollToBottom();
+                return reader.read().then(processResult);
+            });
+            return lastResponse;
+        }
+        // This function takes a list of tokens and outputs them into a specified HTML div.
+        async function printMessage(responseDiv, tokens) {
+            document.getElementById(responseDiv).innerHTML = tokens;
+            await scrollToBottom();
+        }
+        // This function creates a new HTML div, assigns it a certain CSS class,
+        // appends it to a parent div, and returns its ID.
+        const addAiResponseDiv = cssClass => {
+            const newOuterDiv = document.createElement('div');
+            const newDiv = document.createElement('div');
+
+            newOuterDiv.classList.add(`outer-${cssClass}`);
+            newDiv.id = `div${Date.now()}`;
+            newDiv.classList.add(cssClass);
+
+            newOuterDiv.appendChild(newDiv);
+            document.getElementById('result').appendChild(newOuterDiv);
+
+            return newDiv.id;
+        };
+        // This function scrolls to the bottom of a specific HTML element ('result').
+        async function scrollToBottom() {
+            return new Promise((resolve) => {
+                let element = document.getElementById('result');
+                element.scrollTop = element.scrollHeight;
+                resolve();
+            });
+        }
+    </script>
+
+</body>
+
+</html>
