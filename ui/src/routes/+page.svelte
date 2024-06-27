@@ -7,12 +7,11 @@
 <script>
 	import MyJsChat from './MultiShotChat.svelte'
 </script>
-<div class="container h-full mx-auto flex justify-center items-center">
-	<div class="space-y-10 text-center flex flex-col items-center">
-		<h2 class="font-nunito text-2xl">Welcome to MultiShot.AI</h2>
-		<div class="flex justify-center space-x-2">
-			<MyJsChat />
-		</div>
+
+<div class="container mx-auto flex justify-center items-center w-[100%]">
+	<div class="text-center flex flex-col items-center w-[100%]">
+		<h2 class="p-5 font-nunito text-2xl bg-gradient-to-br from-pink-500 to-violet-500 bg-clip-text text-transparent box-decoration-clone">Welcome to MultiShot.AI</h2>
+		<MyJsChat />
 	</div>
 </div>
 

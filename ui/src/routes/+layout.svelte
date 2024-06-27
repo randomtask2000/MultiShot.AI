@@ -21,6 +21,17 @@
 	import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
 	import { storePopup } from '@skeletonlabs/skeleton';
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
+
+	import ItemList from './ItemList.svelte';
+	import type { Item } from './types';
+
+	let showList = false;
+	const items: Item[] = [
+		{ name: 'Item 1' },
+		{ name: 'Item 2' },
+		{ name: 'Item 3' },
+		{ name: 'Item 4' },
+	];
 </script>
 
 <!-- App Shell -->
@@ -29,9 +40,12 @@
 		<!-- App Bar -->
 		<AppBar>
 			<svelte:fragment slot="lead">
-				<strong class="font-nunito text-xl">MultiShot.AI</strong>
+				<strong class="font-nunito text-xl bg-gradient-to-br from-pink-500 to-violet-500 bg-clip-text text-transparent box-decoration-clone">MultiShot.AI</strong>
 			</svelte:fragment>
 			<svelte:fragment slot="trail">
+				<button class="font-nunito btn btn-sm variant-ghost-surface" on:click={() => (showList = !showList)}>
+					{showList ? 'Hide List' : 'Show List'}
+				</button>
 				<a
 					class="font-nunito btn btn-sm variant-ghost-surface"
 					href="https://twitter.com/cronuser"
@@ -51,6 +65,7 @@
 			</svelte:fragment>
 		</AppBar>
 	</svelte:fragment>
+	<ItemList {items} isVisible={showList} />
 	<!-- Page Route Content -->
 	<slot />
 </AppShell>
