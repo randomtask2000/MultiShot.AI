@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="Python 3.9 (OpenAI-FastAPI-Svelte-Static)" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.9 (OpenAI-FastAPI-Svelte-Static)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.11 (svelte-chat)" project-jdk-type="Python SDK" />
 </project>

@@ -1,13 +1,14 @@
 <script lang="ts">
-  import type { Item } from './types';
+  import { createEventDispatcher } from 'svelte';
+  import type { llmProvider } from './types';
 
-  export let items: Item[] = [];
+  export let items: llmProvider[] = [];
   export let isVisible = false;
 
-  let selectedItem: Item | null = null;
+  const dispatch = createEventDispatcher();
 
-  function handleItemClick(item: Item) {
-    selectedItem = item;
+  function handleItemClick(item: llmProvider) {
+    dispatch('selectItem', item);
   }
 </script>
 
@@ -16,23 +17,28 @@
     <h2>Item List</h2>
     <ul>
       {#each items as item}
-        <li
-          on:click={() => handleItemClick(item)}
-          class:selected={selectedItem === item}
-        >
-          {item.name}
+        <li on:click={() => handleItemClick(item)}>
+          {item.title}
         </li>
       {/each}
     </ul>
-    {#if selectedItem}
-      <p>Selected Item: {selectedItem.name}</p>
-    {/if}
   </div>
 {/if}
 
 <style>
-  .selected {
-    font-weight: bold;
-    color: red;
+  ul {
+    list-style-type: none;
+    padding: 0;
+  }
+
+  li {
+    cursor: pointer;
+    padding: 8px;
+    border-bottom: 1px solid #ccc;
+  }
+
+  li:hover {
+    text-decoration: underline;
+    background: #f0f0f0;
   }
 </style>

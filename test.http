@@ -1,3 +1,37 @@
+# curl http://localhost:11434/v1/chat/completions
+#    -H "Content-Type: application/json"
+#    -d '{
+#        "model": "llama2",
+#        "messages": [
+#            {
+#                "role": "system",
+#                "content": "You are a helpful assistant."
+#            },
+#            {
+#                "role": "user",
+#                "content": "Hello!"
+#            }
+#        ]
+#    }'
+POST http://10.0.6.5:11434/v1/chat/completions
+Content-Type: application/json
+
+{
+        "model": "codestral:22b",
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are a helpful assistant."
+            },
+            {
+                "role": "user",
+                "content": "Hello!"
+            }
+        ]
+    }
+
+###
+
 # curl -X POST "http://localhost:8000/stream_history/"
 #-H "accept: application/json"
 #-H "Content-Type: application/json"
@@ -49,5 +83,7 @@ Content-Type: application/json
       "role": "user",
       "content": "how are you"
     }
-  ]
+  ],
+  "llm": "codestral:22b"
 }
+

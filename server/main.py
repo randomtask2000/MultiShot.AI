@@ -10,18 +10,21 @@ from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from langchain.callbacks.streaming_aiter import AsyncIteratorCallbackHandler
+from langchain.callbacks.manager import CallbackManager
 
 # local application/library specific imports
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
+from langchain_anthropic import ChatAnthropic
+from langchain_community.llms import Ollama
 from starlette.staticfiles import StaticFiles
 
 # local imports
 from server.utils.history import ChatHistory, Message
+import logging
 
 load_dotenv()
-API_KEY = os.getenv('OPENAI_API_KEY', 'default_value_if_not_found')
-MODEL = os.getenv('MODEL', 'gpt-3.5-turbo')
+
 
 app = FastAPI()
 app.add_middleware(
@@ -33,6 +36,10 @@ app.add_middleware(
 )
 
 app.mount("/static", StaticFiles(directory=".", html=True), name="static")
+logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger("requests").setLevel(logging.DEBUG)
+logging.getLogger("urllib3").setLevel(logging.DEBUG)
 
 
 @app.get("/hi")
@@ -51,7 +58,7 @@ async def verify_authorization(authorization: Optional[str] = Header(None)):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 
-async def process_tokens_history(tokens: List[Message]) -> AsyncIterable[str]:
+async def process_tokens_history(llm: str, tokens: List[Message]) -> AsyncIterable[str]:
     """
     Async function to process and generate responses for a list of given tokens.
 
@@ -65,13 +72,9 @@ async def process_tokens_history(tokens: List[Message]) -> AsyncIterable[str]:
     AsyncIterable[str]: Asynchronously generated responses from the model for each token in the input list.
     """
     callback = AsyncIteratorCallbackHandler()
-    model = ChatOpenAI(
-        streaming=True,
-        verbose=True,
-        callbacks=[callback],
-        openai_api_key=API_KEY,
-        model_name=MODEL,
-    )
+
+    model = await get_llm(callback, llm)
+
     new_token_list: List[BaseMessage] = []
     system_message = SystemMessage(content="""
                 You are a helpful assistant named Buddy.
@@ -103,6 +106,107 @@ async def process_tokens_history(tokens: List[Message]) -> AsyncIterable[str]:
     await task
 
 
+# from typing import List, AsyncIterable
+# from langchain.schema import SystemMessage, HumanMessage, AIMessage, BaseMessage
+# from langchain.callbacks import AsyncIteratorCallbackHandler
+# import asyncio
+
+async def process_tokens_history2(llm: str, tokens: List[Message]) -> AsyncIterable[str]:
+    callback = AsyncIteratorCallbackHandler()
+    model = await get_llm(callback, llm)
+
+    messages = [
+        SystemMessage(content="You are a helpful assistant named Buddy."),
+        *[convert_to_langchain_message(token) for token in tokens]
+    ]
+
+    task = asyncio.create_task(model.agenerate(messages=[messages]))
+
+    try:
+        async for token in callback.aiter():
+            yield token
+    except Exception as e:
+        print(f"Caught exception: {e}")
+    finally:
+        callback.done.set()
+
+    await task
+
+def convert_to_langchain_message(token: Message) -> BaseMessage:
+    if token.role in ["human", "user"]:
+        return HumanMessage(content=token.content)
+    elif token.role in ["assistant", "ai"]:
+        return AIMessage(content=token.content)
+    else:
+        return HumanMessage(content=token.content)  # Default to HumanMessage
+
+
+
+async def get_llm(callback, llm):
+    match llm:
+        case "gpt-3.5-turbo":
+            model = ChatOpenAI(
+                streaming=True,
+                verbose=True,
+                callbacks=[callback],
+                openai_api_key=os.getenv('MODEL_LLM_OPENAI_GPT35_API_KEY', 'nokey'),
+                model_name=os.getenv('MODEL_LLM_OPENAI_GPT35_ENUM', 'gpt-3.5-turbo'),
+            )
+        case "gpt-4o":
+            model = ChatOpenAI(
+                streaming=True,
+                verbose=True,
+                callbacks=[callback],
+                openai_api_key=os.getenv('MODEL_LLM_OPENAI_GPT4O_API_KEY', 'nokey'),
+                model_name=os.getenv('MODEL_LLM_OPENAI_GPT4O_ENUM', 'gpt-4o'),
+            )
+        case "claude-3-5-sonnet-20240620":
+            model = ChatAnthropic(
+                streaming=True,
+                verbose=True,
+                callbacks=[callback],
+                openai_api_key=os.getenv('MODEL_LLM_ANTHROPIC_CLAUD35SONNET_API_KEY', 'nokey'),
+                model_name=os.getenv('MODEL_LLM_ANTHROPIC_CLAUD35SONNET_ENUM', 'claude-3-5-sonnet-20240620')
+            )
+        case "llama3-70b-8192":
+            model = ChatOpenAI(
+                base_url="https://api.groq.com/openai/v1/",
+                streaming=True,
+                verbose=True,
+                callbacks=[callback],
+                openai_api_key=os.getenv('MODEL_LLM_GROQ_LLAMA370B_API_KEY', 'nokey'),
+                model_name="llama3-70b-8192"
+            )
+        case "codestral:22b":
+            model = ChatOpenAI(
+                base_url="http://10.0.6.5:11434/v1/",
+                streaming=True,
+                verbose=True,
+                callbacks=[callback],
+                openai_api_key=os.getenv('MODEL_LLM_OLLAMA_CODESTRAL222B_API_KEY', 'nokey'),
+                model_name="codestral:22b"
+            )
+            # model = Ollama(
+            #     base_url="http://10.0.6.5:11434",
+            #     # streaming=True,
+            #     # verbose=True,
+            #     model="codestral:22b",  # Or any other model you're using
+            #     # callback_manager=CallbackManager([StreamingStdOutCallbackHandler()])
+            #     # callbacks=[callback]
+            #     # callback_manager=CallbackManager([callback])
+            #     callbacks=[callback]
+            # )
+        case _:
+            model = ChatOpenAI(
+                streaming=True,
+                verbose=True,
+                callbacks=[callback],
+                openai_api_key=os.getenv('MODEL_LLM_OPENAI_GPT35_API_KEY', 'nokey'),
+                model_name=os.getenv('MODEL_LLM_OPENAI_GPT35_ENUM', 'gpt-3.5-turbo'),
+            )
+    return model
+
+
 @app.post("/stream_history/")
 async def stream_history(chat_history: ChatHistory):
     #  , authorization: Optional[str] = Depends(verify_authorization)
@@ -128,7 +232,7 @@ async def stream_history(chat_history: ChatHistory):
         "temperature": 0.7
         }'
     """
-    generator = process_tokens_history(chat_history.messages)
+    generator = process_tokens_history2(chat_history.llm, chat_history.messages)
     return StreamingResponse(generator, media_type="text/event-stream")
 
 

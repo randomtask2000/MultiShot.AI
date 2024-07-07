@@ -1,71 +1,68 @@
 <script lang="ts">
-	import '../app.postcss';
-	import { AppShell, AppBar } from '@skeletonlabs/skeleton';
-
-	// Highlight JS
-	import hljs from 'highlight.js/lib/core';
-	import 'highlight.js/styles/github-dark.css';
-	import { storeHighlightJs } from '@skeletonlabs/skeleton';
-	import xml from 'highlight.js/lib/languages/xml'; // for HTML
-	import css from 'highlight.js/lib/languages/css';
-	import javascript from 'highlight.js/lib/languages/javascript';
-	import typescript from 'highlight.js/lib/languages/typescript';
-
-	hljs.registerLanguage('xml', xml); // for HTML
-	hljs.registerLanguage('css', css);
-	hljs.registerLanguage('javascript', javascript);
-	hljs.registerLanguage('typescript', typescript);
-	storeHighlightJs.set(hljs);
-
-	// Floating UI for Popups
-	import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
-	import { storePopup } from '@skeletonlabs/skeleton';
-	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
-
-	import ItemList from './ItemList.svelte';
-	import type { Item } from './types';
-
-	let showList = false;
-	const items: Item[] = [
-		{ name: 'Item 1' },
-		{ name: 'Item 2' },
-		{ name: 'Item 3' },
-		{ name: 'Item 4' },
-	];
+  import { writable } from 'svelte/store';
+  import ItemList from './ItemList.svelte';
+  import type { llmProvider } from './types';
+  import MyJsChat from './MultiShotChat.svelte';
+  import '../app.postcss';
+  import { AppShell, AppBar } from '@skeletonlabs/skeleton';
+  import hljs from 'highlight.js/lib/core';
+  import 'highlight.js/styles/github-dark.css';
+  import { storeHighlightJs } from '@skeletonlabs/skeleton';
+  import xml from 'highlight.js/lib/languages/xml';
+  import css from 'highlight.js/lib/languages/css';
+  import javascript from 'highlight.js/lib/languages/javascript';
+  import typescript from 'highlight.js/lib/languages/typescript';
+  hljs.registerLanguage('xml', xml);
+  hljs.registerLanguage('css', css);
+  hljs.registerLanguage('javascript', javascript);
+  hljs.registerLanguage('typescript', typescript);
+  storeHighlightJs.set(hljs);
+  import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
+  import { storePopup } from '@skeletonlabs/skeleton';
+  storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
+  let showList = false;
+  let items: llmProvider[] = [
+    { selector: 'gpt-4o', title: 'GPT-4o', provider: 'openai', model: 'gpt-4o' },
+    { selector: 'gpt-3.5-turbo', title: 'GPT-3.5 Turbo', provider: 'openai', model: 'gpt-3.5-turbo' },
+    { selector: 'claude-3-5-sonnet-20240620', title: 'Claude 3.5 Sonnet', provider: 'anthropic', model: 'claude-3-5-sonnet-20240620' },
+    { selector: 'llama3-70b-8192', title: 'Llama 70b', provider: 'groq', model: 'llama3-70b-8192' },
+    { selector: 'codestral:22b', title: 'ollama - codestral:22b', provider: 'ollama', model: 'codestral:22b' },
+  ];
+  export let selectedItem: llmProvider | null = null;
+  function handleSelectItem(event: CustomEvent<llmProvider>): void {
+    selectedItem = event.detail;
+    console.log("+layout: event.detail:", event.detail);
+  }
+  $: if (!selectedItem) {
+    const desiredSelector = 'gpt-4o';
+    const matchedItem = items.find(item => item.selector === desiredSelector);
+    if (matchedItem) {
+      selectedItem = matchedItem;
+    } else {
+      console.log(`No item with selector "${desiredSelector}" was found.`);
+    }
+  }
 </script>
-
 <!-- App Shell -->
 <AppShell>
-	<svelte:fragment slot="header">
-		<!-- App Bar -->
-		<AppBar>
-			<svelte:fragment slot="lead">
-				<strong class="font-nunito text-xl bg-gradient-to-br from-pink-500 to-violet-500 bg-clip-text text-transparent box-decoration-clone">MultiShot.AI</strong>
-			</svelte:fragment>
-			<svelte:fragment slot="trail">
-				<button class="font-nunito btn btn-sm variant-ghost-surface" on:click={() => (showList = !showList)}>
-					{showList ? 'Hide List' : 'Show List'}
-				</button>
-				<a
-					class="font-nunito btn btn-sm variant-ghost-surface"
-					href="https://twitter.com/cronuser"
-					target="_blank"
-					rel="noreferrer"
-				>
-					Twitter
-				</a>
-				<a
-					class="font-nunito btn btn-sm variant-ghost-surface"
-					href="https://github.com/randomtask2000/OpenAI-FastAPI-Svelte-Static"
-					target="_blank"
-					rel="noreferrer"
-				>
-					GitHub
-				</a>
-			</svelte:fragment>
-		</AppBar>
-	</svelte:fragment>
-	<ItemList {items} isVisible={showList} />
-	<!-- Page Route Content -->
-	<slot />
+  <svelte:fragment slot="header">
+    <!-- App Bar -->
+    <AppBar>
+      <svelte:fragment slot="lead">
+        <strong class="font-nunito text-xl bg-gradient-to-br from-pink-500 to-violet-500 bg-clip-text text-transparent box-decoration-clone">MultiShot.AI</strong>
+      </svelte:fragment>
+      <svelte:fragment slot="trail">
+        <button class="font-nunito btn btn-sm variant-ghost-surface" on:click={() => (showList = !showList)}>
+          {showList ? 'Hide List' : 'Show List'}
+        </button>
+        <a class="font-nunito btn btn-sm variant-ghost-surface" href="https://twitter.com/cronuser" target="_blank" rel="noreferrer"> Twitter </a>
+        <a class="font-nunito btn btn-sm variant-ghost-surface" href="https://github.com/randomtask2000/OpenAI-FastAPI-Svelte-Static" target="_blank" rel="noreferrer"> GitHub </a>
+      </svelte:fragment>
+    </AppBar>
+  </svelte:fragment>
+  {#if showList}
+    <ItemList {items} isVisible={showList} on:selectItem={handleSelectItem} />
+  {/if}
+  <slot />
+  <MyJsChat {selectedItem} />
 </AppShell>

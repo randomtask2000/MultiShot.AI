@@ -10,3 +10,4 @@ class Message(BaseModel):
 
 class ChatHistory(BaseModel):
     messages: List[Message]
+    llm: str
