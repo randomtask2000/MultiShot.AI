@@ -218,9 +218,6 @@
   .hide-on-small {
     display: none;
   }
-  .custom-min-width {
-    min-width: 150px;
-  }
   @media (min-width: 601px) {
     .hide-on-small {
       display: block;
