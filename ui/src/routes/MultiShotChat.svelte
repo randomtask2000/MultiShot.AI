@@ -2,17 +2,11 @@
   // https://www.skeleton.dev/elements/chat
   import BubbleSystem from "./BubbleSystem.svelte";
   import BubbleUser from "./BubbleUser.svelte";
-  //import { readable, writable } from 'svelte/store';
-  //import selectedItem from './+layout.svelte';
-  //import test from './+layout.svelte';
   import { onMount } from 'svelte';
   import type { llmProvider } from './types';
   import { listStore, type ListItem } from './store';
-
-  //import { onMount } from 'svelte';
   import { marked } from 'marked';
   import hljs from 'highlight.js';
-
 
   let listItems: ListItem[];
 
