@@ -31,7 +31,7 @@
   export let selectedItem: llmProvider | null = null;
   function handleSelectItem(event: CustomEvent<llmProvider>): void {
     selectedItem = event.detail;
-    console.log("+layout: event.detail:", event.detail);
+    console.log("+layout: selectedItem:", selectedItem);
   }
   $: if (!selectedItem) {
     const desiredSelector = 'gpt-4o';
@@ -48,6 +48,19 @@
   <svelte:fragment slot="header">
     <!-- App Bar -->
     <AppBar>
+      <div class="relative">
+        <select
+          class="font-nunito select w-[175px]"
+          on:change={(e) => handleSelectItem({ detail: items.find(item => item.selector === e.target.value) })}
+        >
+          <option value="" disabled selected={!selectedItem}>Select an LLM</option>
+          {#each items as item}
+            <option value={item.selector} selected={selectedItem?.selector === item.selector}>
+              {item.title}
+            </option>
+          {/each}
+        </select>
+      </div>
       <svelte:fragment slot="lead">
         <strong class="font-nunito text-xl bg-gradient-to-br from-pink-500 to-violet-500 bg-clip-text text-transparent box-decoration-clone">MultiShot.AI</strong>
       </svelte:fragment>
@@ -60,9 +73,6 @@
       </svelte:fragment>
     </AppBar>
   </svelte:fragment>
-  {#if showList}
-    <ItemList {items} isVisible={showList} on:selectItem={handleSelectItem} />
-  {/if}
   <slot />
   <MyJsChat {selectedItem} />
 </AppShell>
