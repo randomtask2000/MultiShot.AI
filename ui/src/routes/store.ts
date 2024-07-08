@@ -1,9 +1,9 @@
-// store.ts
 import { writable } from 'svelte/store';
 
 export interface ListItem {
   id: number;
   text: string;
+  tokenHistory: { role: string, content: string }[];
 }
 
 function createListStore() {
@@ -23,13 +23,9 @@ function createListStore() {
 
   return {
     subscribe,
-    addItem: (text: string) => {
+    addItem: (item: ListItem) => {
       update(items => {
-        const newItem: ListItem = {
-          id: items.length > 0 ? Math.max(...items.map(item => item.id)) + 1 : 1,
-          text
-        };
-        const updatedItems = [...items, newItem];
+        const updatedItems = [...items, item];
         if (typeof window !== 'undefined') {
           localStorage.setItem('listItems', JSON.stringify(updatedItems));
         }

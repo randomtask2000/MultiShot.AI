@@ -9,11 +9,13 @@
         pid: 'pid1',
     };
 </script>
+
 <style>
     .text-align-right {
       text-align: left;
     }
 </style>
+
 <div class="grid grid-cols-[auto_1fr] gap-2">
     <Avatar src="{bubble.avatar}" width="w-12" />
     <div class="card p-4 variant-soft rounded-tl-none space-y-2">

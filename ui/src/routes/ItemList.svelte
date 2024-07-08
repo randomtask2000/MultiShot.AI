@@ -10,6 +10,13 @@
   function handleItemClick(item: llmProvider) {
     dispatch('selectItem', item);
   }
+
+  function handleKeyDown(event: KeyboardEvent, item: llmProvider) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleItemClick(item);
+    }
+  }
 </script>
 
 {#if isVisible}
@@ -17,8 +24,14 @@
     <h2>Item List</h2>
     <ul>
       {#each items as item}
-        <li on:click={() => handleItemClick(item)}>
-          {item.title}
+        <li>
+          <button
+            type="button"
+            on:click={() => handleItemClick(item)}
+            on:keydown={(event) => handleKeyDown(event, item)}
+          >
+            {item.title}
+          </button>
         </li>
       {/each}
     </ul>
@@ -32,12 +45,20 @@
   }
 
   li {
-    cursor: pointer;
-    padding: 8px;
+    padding: 0;
     border-bottom: 1px solid #ccc;
   }
 
-  li:hover {
+  button {
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+  }
+
+  button:hover {
     text-decoration: underline;
     background: #f0f0f0;
   }
