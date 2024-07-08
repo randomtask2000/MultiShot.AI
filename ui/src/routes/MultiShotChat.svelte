@@ -5,10 +5,35 @@
   //import { readable, writable } from 'svelte/store';
   //import selectedItem from './+layout.svelte';
   //import test from './+layout.svelte';
-
   import { onMount } from 'svelte';
+  import type { llmProvider } from './types';
+  import { listStore, type ListItem } from './store';
+
+  //import { onMount } from 'svelte';
   import { marked } from 'marked';
   import hljs from 'highlight.js';
+
+
+  let listItems: ListItem[];
+
+  const unsubscribe = listStore.subscribe(value => {
+    listItems = value;
+  });
+
+  onMount(() => {
+    listStore.init();
+    return () => {
+      unsubscribe();
+    };
+  });
+
+  function handleAddItem() {
+    listStore.addItem("New Item " + (listItems.length + 1));
+  }
+
+  function handleClearList() {
+    listStore.clearList();
+  }
 
   // Configure marked to use highlight.js for code syntax highlighting
   marked.setOptions({
@@ -18,7 +43,7 @@
     },
   });
 
-  import type { llmProvider } from './types';
+
   export let selectedItem: llmProvider;
   let tokenVar: string = '';
   let tokenHistory: { role: string, content: string }[] = [];
@@ -140,6 +165,8 @@
     return lastResponse;
   }
 
+  const random14 = Math.floor(Math.random() * 11) + 10; // generate a random number between 10 and 20
+  const random47 = Math.floor(Math.random() * 11) + 10; // generate another random number between 10 and 20
   const addBubble = (person: string, type: "user" | "ai") => {
     if (!person) person = "person";
     const parentDiv = document.createElement('div');
@@ -148,7 +175,7 @@
       name: person,
       timestamp: new Date().toLocaleTimeString(),
       message: "",
-      avatar: `https://i.pravatar.cc/?img=${type === "user" ? 14 : 47}`,
+      avatar: `https://i.pravatar.cc/?img=${type === "user" ? random14 : random47 }`,
       pid: `pid${Date.now()}`
     };
     let bubble;
@@ -183,6 +210,7 @@
 </script>
 
 <svelte:head>
+  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.max.css" as="style">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.max.css">
 </svelte:head>
 
@@ -208,18 +236,18 @@
     font-family: 'Courier New', Courier, monospace;
   }
 </style>
-
-{#if selectedItem }
-<!--  <p>Name (MultiShotChat.svelte): "{$selectedItem.selector}"</p>-->
-  <p>Name (MultiShotChat.svelte): "{selectedItem.selector}"</p>
-{:else}
-  <p>!!!!!nothing here 2</p>
-{/if}
 <div class="container p-4 w-full min-w-350 bg-surface-500/30">
   <div class="grid grid-cols-[150px_1fr] h-full">
     <div id="search" class="grid grid-rows-[1fr_auto] gap-0 hide-on-small">
       <div class="bg-surface-600/30 p-4">(search)</div>
-      <div class="bg-surface-600/30 p-4">(list)</div>
+      <div class="bg-surface-600/30 p-4">
+        {#each listItems as item (item.id)}
+          <div>{item.text}</div>
+        {/each}
+      </div>
+      <div class="bg-surface-600/30 p-4">
+        <button on:click={handleClearList}>Clear List</button>
+      </div>
       <div class="bg-surface-600/30 p-4">(footer)</div>
     </div>
     <div id="chat" class="grid grid-rows-[1fr_auto] gap-0">
@@ -227,7 +255,7 @@
         <div id="result" bind:this={resultDiv} class="h-full" />
       </div>
       <div class="bg-surface-500/30 p-4">
-        <div class="input-group input-group-divider grid-cols-[auto_1fr_auto] rounded-container-token">
+        <div class="input-group input-group-divider grid-cols-[auto_1fr_auto_auto] rounded-container-token">
           <button class="input-group-shim" on:click={sendUserTokenAiHistory}>+</button>
           <textarea
             bind:value={tokenVar}
@@ -238,6 +266,7 @@
             rows="1"
             on:keydown={checkForReturnKey}
           />
+          <button class="font-nunito variant-filled-secondary" on:click={handleAddItem}>New</button>
           <button class="font-nunito variant-filled-primary" on:click={sendUserTokenAiHistory}>Send</button>
         </div>
       </div>

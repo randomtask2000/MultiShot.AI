@@ -7,12 +7,11 @@
 <script lang="ts">
 
 </script>
-<div class="container mx-auto flex justify-center items-center w-[100%]">
-	<div class="text-center flex flex-col items-center w-[100%]">
-		<h2 class="p-5 font-nunito text-2xl bg-gradient-to-br from-pink-500 to-violet-500 bg-clip-text text-transparent box-decoration-clone">Welcome to MultiShot.AI</h2>
-	</div>
-</div>
-
+<!--<div class="container mx-auto flex justify-center items-center w-[100%]">-->
+<!--	<div class="text-center flex flex-col items-center w-[100%]">-->
+<!--		<h2 class="p-5 font-nunito text-2xl bg-gradient-to-br from-pink-500 to-violet-500 bg-clip-text text-transparent box-decoration-clone">Welcome to MultiShot.AI</h2>-->
+<!--	</div>-->
+<!--</div>-->
 <style lang="postcss">
 	figure {
 		@apply flex relative flex-col;
