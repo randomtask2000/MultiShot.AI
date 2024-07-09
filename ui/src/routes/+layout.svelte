@@ -18,7 +18,7 @@
   import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
   import { storePopup } from '@skeletonlabs/skeleton';
   storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
-  let showList = false;
+
   let items: llmProvider[] = [
     { selector: 'gpt-4o', title: 'GPT-4o', provider: 'openai', model: 'gpt-4o' },
     { selector: 'gpt-3.5-turbo', title: 'GPT-3.5 Turbo', provider: 'openai', model: 'gpt-3.5-turbo' },
@@ -65,7 +65,7 @@
       </svelte:fragment>
       <svelte:fragment slot="trail">
         <a class="font-nunito btn btn-sm variant-ghost-surface" href="https://twitter.com/cronuser" target="_blank" rel="noreferrer"> Twitter </a>
-        <a class="font-nunito btn btn-sm variant-ghost-surface" href="https://github.com/randomtask2000/OpenAI-FastAPI-Svelte-Static" target="_blank" rel="noreferrer"> GitHub </a>
+        <a class="font-nunito btn btn-sm variant-ghost-surface" href="https://github.com/randomtask2000/MultiShot.AI" target="_blank" rel="noreferrer"> GitHub </a>
       </svelte:fragment>
     </AppBar>
   </svelte:fragment>
