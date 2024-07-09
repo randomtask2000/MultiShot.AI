@@ -8,7 +8,7 @@ import { marked } from 'marked';
 import hljs from 'highlight.js';
 import type { ReadableStreamReadResult } from 'stream/web';
 //import type { ScrollBehavior } from 'csstype';
-import type { ComponentProps } from 'svelte';
+//import type { ComponentProps } from 'svelte';
 
 type ScrollIntoViewOptions = NonNullable<Parameters<Element['scrollIntoView']>[0]>;
 type ScrollBehavior = ScrollIntoViewOptions['behavior'];
@@ -284,7 +284,7 @@ $: if (selectedItem != null) {
       <div class="bg-surface-600/30 p-4 text-gray-500">(search)</div>
       <div class="bg-surface-600/30 p-4">
         {#each listItems as item (item.id)}
-          <button class="font-nunito variant-filled-secondary p-1"
+          <button class="font-nunito variant-filled-secondary p-1 rounded-md"
                   on:click={() => restoreChat(item)}
                   on:keydown={(e) => e.key === 'Enter' && restoreChat(item)}
                   title={item.tokenHistory[0].content.substring(0, 30)}>
@@ -313,7 +313,7 @@ $: if (selectedItem != null) {
                     placeholder="Write a message..."
                     rows="1"
                     on:keydown={checkForReturnKey} />
-          <button class="font-nunito variant-filled-secondary" on:click={handleAddItem}>New</button>
+          <button class="font-nunito variant-filled-secondary text-black" on:click={handleAddItem}>New</button>
           <button class="font-nunito variant-filled-primary" on:click={sendUserTokenAiHistory}>Send</button>
         </div>
       </div>

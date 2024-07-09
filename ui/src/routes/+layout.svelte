@@ -40,6 +40,7 @@
       console.log(`No item with selector "${desiredSelector}" was found.`);
     }
   }
+
 </script>
 <!-- App Shell -->
 <AppShell>
@@ -63,9 +64,6 @@
         <strong class="font-nunito text-xl bg-gradient-to-br from-pink-500 to-violet-500 bg-clip-text text-transparent box-decoration-clone">MultiShot.AI</strong>
       </svelte:fragment>
       <svelte:fragment slot="trail">
-        <button class="font-nunito btn btn-sm variant-ghost-surface" on:click={() => (showList = !showList)}>
-          {showList ? 'Hide List' : 'Show List'}
-        </button>
         <a class="font-nunito btn btn-sm variant-ghost-surface" href="https://twitter.com/cronuser" target="_blank" rel="noreferrer"> Twitter </a>
         <a class="font-nunito btn btn-sm variant-ghost-surface" href="https://github.com/randomtask2000/OpenAI-FastAPI-Svelte-Static" target="_blank" rel="noreferrer"> GitHub </a>
       </svelte:fragment>
