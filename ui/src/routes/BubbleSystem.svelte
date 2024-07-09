@@ -1,5 +1,9 @@
 <script>
     import { Avatar } from '@skeletonlabs/skeleton';
+    import {
+        renderMarkdown
+    } from './tokenUtils';
+
     export let bubble = {
         color: 'variant-soft-primary',
         name: 'system|user',
@@ -23,7 +27,7 @@
             <p class="font-bold capitalize">{bubble.name}</p>
             <small class="opacity-50">{bubble.timestamp}</small>
         </header>
-        <p id="{bubble.pid}" class="font-nunito text-align-right">{bubble.message}</p>
+        <p id="{bubble.pid}" class="font-nunito text-align-right">{renderMarkdown(bubble.message)}</p>
     </div>
 </div>
 <br />
