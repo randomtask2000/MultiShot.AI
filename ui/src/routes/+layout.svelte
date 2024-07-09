@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { writable } from 'svelte/store';
-  import ItemList from './ItemList.svelte';
   import type { llmProvider } from './types';
   import MyJsChat from './MultiShotChat.svelte';
   import '../app.postcss';
@@ -76,3 +74,4 @@
   <slot />
   <MyJsChat {selectedItem} />
 </AppShell>
+
