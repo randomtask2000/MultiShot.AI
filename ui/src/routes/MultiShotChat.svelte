@@ -122,22 +122,7 @@ $: if (selectedItem != null) {
 </svelte:head>
 
 <style>
-.hide-on-small {
-  display: none;
-}
-@media (min-width: 601px) {
-  .hide-on-small {
-    display: block;
-  }
-}
-:global(.output pre) {
-  background-color: #e4e4e4;
-  padding: 0.5em;
-  border-radius: 2px;
-}
-:global(.output code) {
-  font-family: 'Courier New', Courier, monospace;
-}
+
 </style>
 
 <div class="max-w-screen">
@@ -150,7 +135,7 @@ $: if (selectedItem != null) {
                   on:click={() => restoreChat(item)}
                   on:keydown={(e) => e.key === 'Enter' && restoreChat(item)}
                   title={item.tokenHistory[0].content.substring(0, 30)}>
-            {renderMarkdown(item.text)}
+            {@html renderMarkdown(item.text)}
           </button>
         {/each}
       </div>

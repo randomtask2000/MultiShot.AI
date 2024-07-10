@@ -99,24 +99,32 @@ export async function fetchAi(history: { role: string, content: string }[], sele
     });
 }
 
-// Function to safely render markdown
-export function renderMarkdown(content: string) {
-    return marked.parse(content);
-}
+// Configure marked with highlight.js and custom renderer
+const renderer = new marked.Renderer();
+renderer.code = (code, language) => {
+    const validLanguage = hljs.getLanguage(language) ? language : 'python';
+    const highlightedCode = hljs.highlight(code, { language: validLanguage || 'plaintext' }).value;
+    return `<pre><code class="hljs.highlightBlock ${validLanguage || 'python'}">${highlightedCode}</code></pre>`;
+};
 
-// Configure marked with highlight.js
 marked.setOptions({
-  highlight: function(code, lang) {
-    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-    return hljs.highlight(code, { language }).value;
-  },
-  langPrefix: 'hljs language-'
+    renderer: renderer,
+    highlight: function(code, lang) {
+        const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+        return hljs.highlight(code, { language: language || 'plaintext' }).value;
+    },
+    langPrefix: 'hljs language-',
+    breaks: true,
+    gfm: true
 });
+
+export function renderMarkdown(content: string) {
+    return marked(content);
+}
 
 export class StreamParser {
     private outputElement: HTMLElement;
     private buffer: string = '';
-    private codeBlock: string | null = null;
 
     constructor(outputElement: HTMLElement) {
         this.outputElement = outputElement;
@@ -124,30 +132,14 @@ export class StreamParser {
 
     processChunk(chunk: string): void {
         this.buffer += chunk;
-        this.processBuffer();
-    }
-
-    private processBuffer(): void {
         const lines = this.buffer.split('\n');
-        for (let i = 0; i < lines.length - 1; i++) {
-            this.processLine(lines[i]);
-        }
-        this.buffer = lines[lines.length - 1];
-    }
-
-    private processLine(line: string): void {
-        if (this.codeBlock !== null) {
-            if (line.trim() === '```') {
-                this.renderCodeBlock();
-                this.codeBlock = null;
-            } else {
-                this.codeBlock += line + '\n';
+        while (lines.length > 1) {
+            const line = lines.shift();
+            if (line !== undefined) {
+                this.renderMarkdown(line + '\n');
             }
-        } else if (line.startsWith('```')) {
-            this.codeBlock = line.slice(3) + '\n';
-        } else {
-            this.renderMarkdown(line);
         }
+        this.buffer = lines[0];
     }
 
     private renderMarkdown(line: string): void {
@@ -159,25 +151,11 @@ export class StreamParser {
         }
     }
 
-    private renderCodeBlock(): void {
-        if (this.codeBlock) {
-            const html = marked('```' + this.codeBlock + '```');
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = html;
-            while (tempDiv.firstChild) {
-                this.outputElement.appendChild(tempDiv.firstChild);
-            }
-        }
-    }
-
     finish(): void {
-        if (this.codeBlock !== null) {
-            this.renderCodeBlock();
-        } else if (this.buffer) {
+        if (this.buffer) {
             this.renderMarkdown(this.buffer);
+            this.buffer = '';
         }
-        this.buffer = '';
-        this.codeBlock = null;
     }
 }
 
@@ -211,6 +189,4 @@ export async function printResponse(
     await reader.read().then(processResult);
     return lastResponse;
 }
-
-// ... rest of the code ...
 
