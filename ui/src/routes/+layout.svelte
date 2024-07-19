@@ -20,6 +20,7 @@
   storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 
   let items: llmProvider[] = [
+    { selector: 'gpt-4o-mini', title: 'GPT-4o-mini', provider: 'openai', model: 'gpt-4o-mini' },
     { selector: 'gpt-4o', title: 'GPT-4o', provider: 'openai', model: 'gpt-4o' },
     { selector: 'gpt-3.5-turbo', title: 'GPT-3.5 Turbo', provider: 'openai', model: 'gpt-3.5-turbo' },
     { selector: 'claude-3-5-sonnet-20240620', title: 'Claude 3.5 Sonnet', provider: 'anthropic', model: 'claude-3-5-sonnet-20240620' },

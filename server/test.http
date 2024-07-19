@@ -48,7 +48,7 @@ Content-Type: application/json
 #  -H "Content-Type: application/json"
 #  -H "Authorization: Bearer YOUR_API_KEY"
 #  -d '{
-#    "model": "gpt-4",
+#    "model": "gpt-4o",
 #    "messages": [
 #      {"role": "system", "content": "You are a helpful assistant."},
 #      {"role": "user", "content": "Tell me a joke."}
@@ -60,11 +60,12 @@ Authorization: Bearer my_key
 Content-Type: application/json
 
 {
+    "model": "gpt-4o",
     "messages": [
       {"role": "system", "content": "You are a helpful assistant."},
       {"role": "user", "content": "Tell me a joke."}
     ]
-  }
+}
 
 ###
 
