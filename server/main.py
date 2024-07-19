@@ -57,7 +57,11 @@ async def verify_authorization(authorization: Optional[str] = Header(None)):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 
-async def stream_chat_history_old(llm: str, tokens: List[Message]) -> AsyncIterable[str]:
+async def get_llm(callback, llm):
+    return await LLMFactory.get_llm(callback, llm)
+
+
+async def stream_chat_history(llm: str, tokens: List[Message]) -> AsyncIterable[str]:
     """
     Async function to process and generate responses for a list of given tokens.
 
@@ -71,44 +75,6 @@ async def stream_chat_history_old(llm: str, tokens: List[Message]) -> AsyncItera
     Returns:
     AsyncIterable[str]: Asynchronously generated responses from the model for each token in the input list.
     """
-    callback = AsyncIteratorCallbackHandler()
-
-    model = await get_llm(callback, llm)
-
-    new_token_list: List[BaseMessage] = []
-    system_message = SystemMessage(content="You are a helpful assistant named Buddy running model " + llm)
-
-    new_token_list.append(system_message)
-
-    for token in tokens:
-        if token.role in ["human", "user"]:
-            msg = HumanMessage(content=token.content)
-        elif token.role in ["assistant", "ai"]:
-            msg = AIMessage(content=token.content)
-        else:
-            msg = HumanMessage(content=token.content)  # Default to HumanMessage
-        new_token_list.append(msg)
-
-    task = asyncio.create_task(
-        model.agenerate(messages=[new_token_list])
-    )
-
-    try:
-        async for token in callback.aiter():
-            yield token
-    except Exception as e:
-        print(f"Caught exception: {e}")
-    finally:
-        callback.done.set()
-
-    await task
-
-
-async def get_llm(callback, llm):
-    return await LLMFactory.get_llm(callback, llm)
-
-
-async def stream_chat_history(llm: str, tokens: List[Message]) -> AsyncIterable[str]:
     callback = AsyncIteratorCallbackHandler()
     model = await get_llm(callback, llm)
 
