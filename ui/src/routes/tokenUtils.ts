@@ -90,7 +90,7 @@ export function printMessage(pid: string, tokens: string): void {
 
 export async function fetchAi(history: { role: string, content: string }[], selectedItem: { selector: string }) {
     const content = JSON.stringify({ messages: history, llm: selectedItem.selector });
-    return await fetch('http://localhost:8000/stream_history/', {
+    return await fetch('http://localhost:8000/chat/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

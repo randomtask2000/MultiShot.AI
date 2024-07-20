@@ -168,7 +168,7 @@
         // to the response of that request.
         async function fetchAi(history) {
             let content = JSON.stringify({messages: history});
-            return await fetch('http://localhost:8000/stream_history/', {
+            return await fetch('http://localhost:8000/chat/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: content

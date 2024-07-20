@@ -48,7 +48,7 @@ async def test_stream_chat_history():
 
 
 @pytest.mark.asyncio
-async def test_stream_history():
+async def test_chat():
     chat_history = ChatHistory(
         llm="test_model",
         messages=[
@@ -60,7 +60,7 @@ async def test_stream_history():
     with patch('server.main.stream_chat_history') as mock_stream_chat_history:
         mock_stream_chat_history.return_value = iter(["Test", "response"])
 
-        response = await client.post("/stream_history/", json=chat_history.dict())
+        response = await client.post("/chat/", json=chat_history.dict())
 
         assert response.status_code == 200
         assert response.text == "Testresponse"

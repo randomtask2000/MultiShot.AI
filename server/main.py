@@ -104,8 +104,8 @@ def convert_to_langchain_message(token: Message) -> BaseMessage:
         return HumanMessage(content=token.content)  # Default to HumanMessage
 
 
-@app.post("/stream_history/")
-async def stream_history(chat_history: ChatHistory):
+@app.post("/chat/")
+async def chat(chat_history: ChatHistory):
     """
      #  , authorization: Optional[str] = Depends(verify_authorization)
     This method processes the chat history and returns a streaming response.
