@@ -10,7 +10,6 @@ from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from langchain.callbacks.streaming_aiter import AsyncIteratorCallbackHandler
-# from langchain.callbacks.manager import CallbackManager
 
 # local application/library specific imports
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
