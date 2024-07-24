@@ -24,6 +24,7 @@
     { selector: 'gpt-4o', title: 'GPT-4o', provider: 'openai', model: 'gpt-4o' },
     { selector: 'gpt-3.5-turbo', title: 'GPT-3.5 Turbo', provider: 'openai', model: 'gpt-3.5-turbo' },
     { selector: 'claude-3-5-sonnet-20240620', title: 'Claude 3.5 Sonnet', provider: 'anthropic', model: 'claude-3-5-sonnet-20240620' },
+    { selector: 'llama-3.1-405b-reasoning', title: 'Llama 405b', provider: 'groq', model: 'llama-3.1-405b-reasoning' },
     { selector: 'llama3-70b-8192', title: 'Llama 70b', provider: 'groq', model: 'llama3-70b-8192' },
     { selector: 'codestral:22b', title: 'ollama - codestral:22b', provider: 'ollama', model: 'codestral:22b' },
   ];
@@ -33,7 +34,7 @@
     console.log("+layout: selectedItem:", selectedItem);
   }
   $: if (!selectedItem) {
-    const desiredSelector = 'gpt-4o';
+    const desiredSelector = 'gpt-4o-mini';
     const matchedItem = items.find(item => item.selector === desiredSelector);
     if (matchedItem) {
       selectedItem = matchedItem;

@@ -25,6 +25,11 @@ async def test_get_llm():
 
     # Test OpenAI URL models
     with patch('server.utils.llm_factory.LLMFactory.get_openai_url') as mock_get_openai_url:
+        await LLMFactory.get_llm(callback, "llama-3.1-405b-reasoning")
+        mock_get_openai_url.assert_called_once_with(callback, "llama-3.1-405b-reasoning", 'MODEL_LLM_GROQ_LLAMA370B_API_KEY',
+                                                    "https://api.groq.com/openai/v1/")
+
+    with patch('server.utils.llm_factory.LLMFactory.get_openai_url') as mock_get_openai_url:
         await LLMFactory.get_llm(callback, "llama3-70b-8192")
         mock_get_openai_url.assert_called_once_with(callback, "llama3-70b-8192", 'MODEL_LLM_GROQ_LLAMA370B_API_KEY',
                                                     "https://api.groq.com/openai/v1/")

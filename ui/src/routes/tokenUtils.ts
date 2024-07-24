@@ -99,19 +99,58 @@ export async function fetchAi(history: { role: string, content: string }[], sele
     });
 }
 
-// Configure marked with highlight.js and custom renderer
-const renderer = new marked.Renderer();
-renderer.code = (code, language) => {
-    const validLanguage = hljs.getLanguage(language) ? language : 'python';
-    const highlightedCode = hljs.highlight(code, { language: validLanguage || 'plaintext' }).value;
-    return `<pre><code class="hljs.highlightBlock ${validLanguage || 'python'}">${highlightedCode}</code></pre>`;
-};
+class CustomRenderer extends marked.Renderer {
+  // codeStart(language: string): string {
+  //   const validLanguage = language && hljs.getLanguage(language) ? language : 'python';
+  //   return `<pre><code class="hljs language-${validLanguage}">`;
+  // }
+  //
+  codeStart(language: string): string {
+    const validLanguage = language && hljs.getLanguage(language) ? language : 'python';
+    return `<pre style="background-color: black;"><code class="hljs language-${validLanguage}" style="background-color: black; color: white">`;
+  }
+
+  codeEnd(): string {
+    return `</code></pre>`;
+  }
+
+  code(code: string, language: string): string {
+    const validLanguage = language && hljs.getLanguage(language) ? language : 'python';
+    const highlightedCode = hljs.highlight(code, { language: validLanguage }).value;
+    //return `<div class="bg-black p-4 rounded-md">` + this.codeStart(validLanguage) + highlightedCode + this.codeEnd() + `</div>`;
+    return this.codeStart(validLanguage) + highlightedCode + this.codeEnd();
+  }
+}
+
+const customRenderer = new CustomRenderer();
 
 marked.setOptions({
-    renderer: renderer,
+  renderer: customRenderer,
+  highlight: function(code, lang) {
+    const language = lang && hljs.getLanguage(lang) ? lang : 'python';
+    return hljs.highlight(code, { language }).value;
+  },
+  langPrefix: 'language-',
+  breaks: true,
+  gfm: true
+});
+
+// // Configure marked with highlight.js and custom renderer
+// const renderer = new marked.Renderer();
+// renderer.code = (code, language) => {
+//     const validLanguage = language && hljs.getLanguage(language) ? language : 'python';
+//     const highlightedCode = hljs.highlight(code, { language: validLanguage || 'plaintext' }).value;
+//     return `<pre>${highlightedCode}</pre>`;
+//     //return `<div class="bg-black p-4 rounded-md"><pre>${highlightedCode}</pre></div>`;
+//     //return `<pre><code class="hljs.highlightBlock ${validLanguage || 'python'}">${highlightedCode}</code></pre>`;
+//     //return `<code class="hljs language-${validLanguage || 'python'}">${highlightedCode}</code>`;
+// };
+
+marked.setOptions({
+    //renderer: renderer,
     highlight: function(code, lang) {
-        const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-        return hljs.highlight(code, { language: language || 'plaintext' }).value;
+        const language = hljs.getLanguage(lang) ? lang : 'python';
+        return hljs.highlight(code, { language: language || 'python' }).value;
     },
     langPrefix: 'hljs language-',
     breaks: true,
@@ -122,41 +161,78 @@ export function renderMarkdown(content: string) {
     return marked(content);
 }
 
+export function renderMarkdownHistory(content: string) {
+    return marked(content);
+}
+
 export class StreamParser {
-    private outputElement: HTMLElement;
-    private buffer: string = '';
+  private outputElement: HTMLElement;
+  private buffer: string = '';
+  private inCodeBlock: boolean = false;
+  private currentLanguage: string = '';
 
-    constructor(outputElement: HTMLElement) {
-        this.outputElement = outputElement;
-    }
+  constructor(outputElement: HTMLElement) {
+    this.outputElement = outputElement;
+  }
 
-    processChunk(chunk: string): void {
-        this.buffer += chunk;
-        const lines = this.buffer.split('\n');
-        while (lines.length > 1) {
-            const line = lines.shift();
-            if (line !== undefined) {
-                this.renderMarkdown(line + '\n');
-            }
-        }
-        this.buffer = lines[0];
+  processChunk(chunk: string): void {
+    this.buffer += chunk;
+    const lines = this.buffer.split('\n');
+    while (lines.length > 1) {
+      const line = lines.shift();
+      if (line !== undefined) {
+        this.renderMarkdown(line + '\n');
+      }
     }
+    this.buffer = lines[0];
+  }
 
-    private renderMarkdown(line: string): void {
-        const html = marked(line);
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-        while (tempDiv.firstChild) {
-            this.outputElement.appendChild(tempDiv.firstChild);
-        }
+  private renderMarkdown(line: string): void {
+  if (line.startsWith('```')) {
+    if (this.inCodeBlock) {
+      // End of code block
+      this.codeBlockContent += customRenderer.codeEnd();
+      const codeDiv = document.createElement('div');
+      codeDiv.className = 'bg-black p-4 rounded-md';
+      codeDiv.style.backgroundColor = 'black'; // Add this line
+      codeDiv.innerHTML = this.codeBlockContent;
+      this.outputElement.appendChild(codeDiv);
+      this.inCodeBlock = false;
+      this.codeBlockContent = '';
+    } else {
+      // Start of code block
+      const language = line.slice(3).trim();
+      this.currentLanguage = language;
+      this.codeBlockContent = customRenderer.codeStart(language);
+      this.inCodeBlock = true;
     }
+  } else if (this.inCodeBlock) {
+    // Inside code block
+    const highlightedCode = hljs.highlight(line, { language: this.currentLanguage }).value;
+    this.codeBlockContent += highlightedCode;
+  } else {
+    // Regular markdown content
+    const html = marked(line);
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    while (tempDiv.firstChild) {
+      this.outputElement.appendChild(tempDiv.firstChild);
+    }
+  }
+}
 
-    finish(): void {
-        if (this.buffer) {
-            this.renderMarkdown(this.buffer);
-            this.buffer = '';
-        }
+
+
+  finish(): void {
+    if (this.buffer) {
+      this.renderMarkdown(this.buffer);
+      this.buffer = '';
     }
+    if (this.inCodeBlock) {
+      this.outputElement.innerHTML += customRenderer.codeEnd();
+      this.inCodeBlock = false;
+    }
+  }
 }
 
 export async function printResponse(

@@ -17,6 +17,11 @@ class LLMFactory:
                 model = await LLMFactory.get_anthropic(callback,
                                                        llm,
                                                        'MODEL_LLM_ANTHROPIC_CLAUD35SONNET_API_KEY')
+            case "llama-3.1-405b-reasoning":
+                model = await LLMFactory.get_openai_url(callback,
+                                                        llm,
+                                                        'MODEL_LLM_GROQ_LLAMA370B_API_KEY',
+                                                        "https://api.groq.com/openai/v1/")
             case "llama3-70b-8192":
                 model = await LLMFactory.get_openai_url(callback,
                                                         llm,

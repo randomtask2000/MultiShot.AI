@@ -14,7 +14,7 @@ import {
   fetchAi,
   printResponse,
   type GenericReader,
-  renderMarkdown
+  renderMarkdown, renderMarkdownHistory
 } from './tokenUtils';
 
 let listItems: ListItem[];
@@ -45,7 +45,7 @@ function restoreChat(item: ListItem): void {
     const type: 'user' | 'ai' = token.role === 'user' ? 'user' : 'ai';
     const { bubbleId, pid } = addBubble(resultDiv, type, type);
     if (bubbleId !== undefined && pid !== undefined) {
-      const renderedContent = renderMarkdown(token.content);
+      const renderedContent = renderMarkdownHistory(token.content);
       printMessage(pid, renderedContent);
       setTimeout(() => {
         scrollChatBottom(resultDiv, 'smooth');
@@ -54,13 +54,13 @@ function restoreChat(item: ListItem): void {
   });
 }
 
-marked.setOptions({
-  highlight: function(code, lang) {
-    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-    return hljs.highlight(code, { language }).value;
-  },
-  langPrefix: 'hljs language-'
-});
+// marked.setOptions({
+//   highlight: function(code, lang) {
+//     const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+//     return hljs.highlight(code, { language }).value;
+//   },
+//   langPrefix: 'hljs language-'
+// });
 
 
 export let selectedItem: llmProvider;
@@ -117,12 +117,21 @@ $: if (selectedItem != null) {
 </script>
 
 <svelte:head>
-<link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css" as="style">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+<!--<link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css" as="style">-->
+<!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">-->
+<!--  -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js"></script>
+
 </svelte:head>
 
 <style>
-
+pre .language-python {
+  background-color: blue;
+}
+.bg-black {
+  background-color: black !important;
+}
 </style>
 
 <div class="max-w-screen">
@@ -135,7 +144,7 @@ $: if (selectedItem != null) {
                   on:click={() => restoreChat(item)}
                   on:keydown={(e) => e.key === 'Enter' && restoreChat(item)}
                   title={item.tokenHistory[0].content.substring(0, 30)}>
-            {@html renderMarkdown(item.text)}
+            {@html item.text}
           </button>
         {/each}
       </div>
