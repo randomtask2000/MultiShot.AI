@@ -3,6 +3,7 @@ import { marked } from 'marked';
 import hljs from 'highlight.js';
 import BubbleUser from './BubbleUser.svelte';
 import BubbleSystem from './BubbleSystem.svelte';
+import CodeBlock from './CodeBlock.svelte';
 
 export interface Token {
     role: string;
@@ -107,7 +108,7 @@ class CustomRenderer extends marked.Renderer {
   //
   codeStart(language: string): string {
     const validLanguage = language && hljs.getLanguage(language) ? language : 'python';
-    return `<pre style="background-color: black;"><code class="hljs language-${validLanguage}" style="background-color: black; color: white">`;
+    return `<pre><code class="hljs language-${validLanguage}" style="background-color: black; color: white">`;
   }
 
   codeEnd(): string {
@@ -170,9 +171,52 @@ export class StreamParser {
   private buffer: string = '';
   private inCodeBlock: boolean = false;
   private currentLanguage: string = '';
+  private codeBlockComponent: CodeBlock | null = null;
+  private codeBlockContent: string = '';
 
   constructor(outputElement: HTMLElement) {
     this.outputElement = outputElement;
+  }
+
+  private renderMarkdown(line: string): void {
+    if (line.startsWith('```')) {
+      if (this.inCodeBlock) {
+        // End of code block
+        if (this.codeBlockComponent) {
+          this.codeBlockComponent.$set({ content: this.codeBlockContent.trim() });
+          this.codeBlockComponent = null;
+        }
+        this.inCodeBlock = false;
+        this.codeBlockContent = '';
+      } else {
+        // Start of code block
+        this.currentLanguage = line.slice(3).trim() || 'python';
+        this.inCodeBlock = true;
+        const wrapper = document.createElement('div');
+        this.outputElement.appendChild(wrapper);
+        this.codeBlockComponent = new CodeBlock({
+          target: wrapper,
+          props: {
+            content: '',
+            language: this.currentLanguage
+          }
+        });
+      }
+    } else if (this.inCodeBlock) {
+      // Inside code block
+      this.codeBlockContent += line;
+      if (this.codeBlockComponent) {
+        this.codeBlockComponent.$set({ content: this.codeBlockContent });
+      }
+    } else {
+      // Regular markdown content
+      const html = marked(line);
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+      while (tempDiv.firstChild) {
+        this.outputElement.appendChild(tempDiv.firstChild);
+      }
+    }
   }
 
   processChunk(chunk: string): void {
@@ -187,53 +231,19 @@ export class StreamParser {
     this.buffer = lines[0];
   }
 
-  private renderMarkdown(line: string): void {
-  if (line.startsWith('```')) {
-    if (this.inCodeBlock) {
-      // End of code block
-      this.codeBlockContent += customRenderer.codeEnd();
-      const codeDiv = document.createElement('div');
-      codeDiv.className = 'bg-black p-4 rounded-md';
-      codeDiv.style.backgroundColor = 'black'; // Add this line
-      codeDiv.innerHTML = this.codeBlockContent;
-      this.outputElement.appendChild(codeDiv);
-      this.inCodeBlock = false;
-      this.codeBlockContent = '';
-    } else {
-      // Start of code block
-      const language = line.slice(3).trim();
-      this.currentLanguage = language;
-      this.codeBlockContent = customRenderer.codeStart(language);
-      this.inCodeBlock = true;
-    }
-  } else if (this.inCodeBlock) {
-    // Inside code block
-    const highlightedCode = hljs.highlight(line, { language: this.currentLanguage }).value;
-    this.codeBlockContent += highlightedCode;
-  } else {
-    // Regular markdown content
-    const html = marked(line);
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = html;
-    while (tempDiv.firstChild) {
-      this.outputElement.appendChild(tempDiv.firstChild);
-    }
-  }
-}
-
-
-
   finish(): void {
     if (this.buffer) {
       this.renderMarkdown(this.buffer);
       this.buffer = '';
     }
     if (this.inCodeBlock) {
-      this.outputElement.innerHTML += customRenderer.codeEnd();
-      this.inCodeBlock = false;
+      this.renderMarkdown('```');
     }
+    this.codeBlockComponent = null;
+    this.codeBlockContent = '';
   }
 }
+
 
 export async function printResponse(
     resultDiv: HTMLDivElement,
