@@ -8,4 +8,5 @@ langchain-core
 langchain-openai
 pydantic
 starlette
+langchain_anthropic
 # pip install -r requirements.txt
