@@ -18,16 +18,8 @@
   import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
   import { storePopup } from '@skeletonlabs/skeleton';
   storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
+  import { Items } from './types';
 
-  let items: llmProvider[] = [
-    { selector: 'gpt-4o-mini', title: 'GPT-4o-mini', provider: 'openai', model: 'gpt-4o-mini' },
-    { selector: 'gpt-4o', title: 'GPT-4o', provider: 'openai', model: 'gpt-4o' },
-    { selector: 'gpt-3.5-turbo', title: 'GPT-3.5 Turbo', provider: 'openai', model: 'gpt-3.5-turbo' },
-    { selector: 'claude-3-5-sonnet-20240620', title: 'Claude 3.5 Sonnet', provider: 'anthropic', model: 'claude-3-5-sonnet-20240620' },
-    { selector: 'llama-3.1-405b-reasoning', title: 'Llama 405b', provider: 'groq', model: 'llama-3.1-405b-reasoning' },
-    { selector: 'llama3-70b-8192', title: 'Llama 70b', provider: 'groq', model: 'llama3-70b-8192' },
-    { selector: 'codestral:22b', title: 'ollama - codestral:22b', provider: 'ollama', model: 'codestral:22b' },
-  ];
   export let selectedItem: llmProvider | null = null;
   function handleSelectItem(event: CustomEvent<llmProvider>): void {
     selectedItem = event.detail;
@@ -35,7 +27,7 @@
   }
   $: if (!selectedItem) {
     const desiredSelector = 'gpt-4o-mini';
-    const matchedItem = items.find(item => item.selector === desiredSelector);
+    const matchedItem = Items.find(item => item.model === desiredSelector);
     if (matchedItem) {
       selectedItem = matchedItem;
     } else {
@@ -52,11 +44,11 @@
       <div class="relative">
         <select
           class="font-nunito select w-[175px]"
-          on:change={(e) => handleSelectItem({ detail: items.find(item => item.selector === e.target.value) })}
+          on:change={(e) => handleSelectItem({ detail: Items.find(item => item.model === e.target.value) })}
         >
           <option value="" disabled selected={!selectedItem}>Select an LLM</option>
-          {#each items as item}
-            <option value={item.selector} selected={selectedItem?.selector === item.selector}>
+          {#each Items as item}
+            <option value={item.model} selected={selectedItem?.model === item.model}>
               {item.title}
             </option>
           {/each}

@@ -1,9 +1,7 @@
 <script lang="ts">
 import { onMount } from 'svelte';
-import type { llmProvider } from './types';
+import { type llmProvider, Items } from './types';
 import { listStore, type ListItem } from './store';
-import { marked } from 'marked';
-import hljs from 'highlight.js';
 import { afterUpdate } from 'svelte';
 import {
   storeTokenHistory,
@@ -14,7 +12,7 @@ import {
   fetchAi,
   printResponse,
   type GenericReader,
-  renderMarkdown, renderMarkdownHistory, renderMarkdownWithCodeBlock
+  renderMarkdownWithCodeBlock
 } from './tokenUtils';
 
 let listItems: ListItem[];
