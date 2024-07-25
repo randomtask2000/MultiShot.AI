@@ -14,7 +14,7 @@ import {
   fetchAi,
   printResponse,
   type GenericReader,
-  renderMarkdown, renderMarkdownHistory
+  renderMarkdown, renderMarkdownHistory, renderMarkdownWithCodeBlock
 } from './tokenUtils';
 
 let listItems: ListItem[];
@@ -45,23 +45,16 @@ function restoreChat(item: ListItem): void {
     const type: 'user' | 'ai' = token.role === 'user' ? 'user' : 'ai';
     const { bubbleId, pid } = addBubble(resultDiv, type, type);
     if (bubbleId !== undefined && pid !== undefined) {
-      const renderedContent = renderMarkdownHistory(token.content);
-      printMessage(pid, renderedContent);
+      const contentElement = document.getElementById(pid);
+      if (contentElement) {
+        renderMarkdownWithCodeBlock(token.content, contentElement);
+      }
       setTimeout(() => {
         scrollChatBottom(resultDiv, 'smooth');
       }, 500);
     }
   });
 }
-
-// marked.setOptions({
-//   highlight: function(code, lang) {
-//     const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-//     return hljs.highlight(code, { language }).value;
-//   },
-//   langPrefix: 'hljs language-'
-// });
-
 
 export let selectedItem: llmProvider;
 let tokenVar: string = '';
@@ -126,12 +119,8 @@ $: if (selectedItem != null) {
 </svelte:head>
 
 <style>
-pre .language-python {
-  background-color: blue;
-}
-.bg-black {
-  background-color: black !important;
-}
+
+
 </style>
 
 <div class="max-w-screen">

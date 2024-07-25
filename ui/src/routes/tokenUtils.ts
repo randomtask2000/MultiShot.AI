@@ -108,11 +108,12 @@ class CustomRenderer extends marked.Renderer {
   //
   codeStart(language: string): string {
     const validLanguage = language && hljs.getLanguage(language) ? language : 'python';
-    return `<pre><code class="hljs language-${validLanguage}" style="background-color: black; color: white">`;
+    //return `<pre><code class="hljs language-${validLanguage}" style="background-color: black; color: white">`;
+    return ``;
   }
 
   codeEnd(): string {
-    return `</code></pre>`;
+    return ``;
   }
 
   code(code: string, language: string): string {
@@ -136,17 +137,6 @@ marked.setOptions({
   gfm: true
 });
 
-// // Configure marked with highlight.js and custom renderer
-// const renderer = new marked.Renderer();
-// renderer.code = (code, language) => {
-//     const validLanguage = language && hljs.getLanguage(language) ? language : 'python';
-//     const highlightedCode = hljs.highlight(code, { language: validLanguage || 'plaintext' }).value;
-//     return `<pre>${highlightedCode}</pre>`;
-//     //return `<div class="bg-black p-4 rounded-md"><pre>${highlightedCode}</pre></div>`;
-//     //return `<pre><code class="hljs.highlightBlock ${validLanguage || 'python'}">${highlightedCode}</code></pre>`;
-//     //return `<code class="hljs language-${validLanguage || 'python'}">${highlightedCode}</code>`;
-// };
-
 marked.setOptions({
     //renderer: renderer,
     highlight: function(code, lang) {
@@ -158,12 +148,19 @@ marked.setOptions({
     gfm: true
 });
 
+export function renderMarkdownWithCodeBlock(content: string, outputElement: HTMLElement) {
+  const parser = new StreamParser(outputElement);
+  parser.processChunk(content);
+  parser.finish();
+}
 export function renderMarkdown(content: string) {
-    return marked(content);
+  const tempDiv = document.createElement('div');
+  renderMarkdownWithCodeBlock(content, tempDiv);
+  return tempDiv.innerHTML;
 }
 
 export function renderMarkdownHistory(content: string) {
-    return marked(content);
+  return renderMarkdown(content);
 }
 
 export class StreamParser {
