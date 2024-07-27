@@ -1,6 +1,7 @@
 {
   "name": "ui-skeleton",
   "version": "0.0.1",
+  "type": "module",
   "engines": {
     "node": "22.5.0"
   },
@@ -42,7 +43,6 @@
     "vite": "^5.3.5",
     "vite-plugin-tailwind-purgecss": "0.3.3"
   },
-  "type": "module",
   "dependencies": {
     "@floating-ui/dom": "1.6.5",
     "deep-chat": "^1.4.11",

@@ -40,6 +40,6 @@
       {copyText}
     </button>
   </div>
-  <pre><code class="hljs language-{language} !bg-surface-900/95 !text-white">{@html highlighted}</code></pre>
+  <pre><code class="hljs language-{language} !bg-surface-900/95 !text-white text-xs">{@html highlighted}</code></pre>
   <div class="pr-2 text-sm text-surface-300/70 text-right">language: {language}</div>
 </div>
