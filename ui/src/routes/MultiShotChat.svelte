@@ -147,7 +147,7 @@ $: if (selectedItem != null) {
         <div id="result" bind:this={resultDiv}></div>
       </div>
       <div class="bg-surface-500/30 p-4">
-        <div class="input-group input-group-divider grid-cols-[auto_auto_1fr_auto] rounded-full overflow-hidden">
+        <div class="input-group input-group-divider grid-cols-[auto_auto_1fr_auto] rounded-full overflow-hidden pr-0">
           <button class="input-group-shim" on:click={sendUserTokenAiHistory}>+</button>
           <button class="w-full h-full p-0 bg-transparent border-none" on:click={handleAddItem} name="save">
             <Icon icon="ic:twotone-save-alt" class="w-2/3 h-2/3" />
@@ -161,7 +161,7 @@ $: if (selectedItem != null) {
                     on:keydown={checkForReturnKey} />
 
           <button class="w-full h-full p-0 bg-transparent border-none" on:click={sendUserTokenAiHistory} name="send">
-            <Icon icon="ph:arrow-circle-up-fill" class="w-full h-full" />
+            <Icon icon="ph:arrow-circle-up-fill" class="w-4/5 h-4/5" />
           </button>
         </div>
       </div>
