@@ -50,6 +50,15 @@ export function handleScroll(elemChat: HTMLDivElement): boolean {
     return false;
 }
 
+/**
+ * Creates and appends a new bubble to the resultDiv based on the given person and type.
+ *
+ * @param {HTMLDivElement} resultDiv - The div element to append the bubble to.
+ * @param {string} person - The name of the person associated with the bubble.
+ * @param {"user" | "ai"} type - The type of bubble, either "user" or "ai".
+ * @returns {{ bubbleId: string, pid: string }} - An object containing the bubbleId and pid of the newly created bubble.
+ * @throws {Error} - If an unsupported type is provided.
+ */
 export function addBubble(resultDiv: HTMLDivElement, person: string, type: "user" | "ai"): { bubbleId: string, pid: string } {
     if (!resultDiv) {
         console.error('resultDiv is not initialized');
@@ -90,6 +99,14 @@ export function printMessage(pid: string, tokens: string): void {
 }
 
 
+/**
+ * Fetches AI response from the server by sending a chat history and selected item model
+ *
+ * @param {Token[]} history - The chat history as an array of Token objects
+ * @param {llmProvider} selectedItem - The selected item model for AI chat
+ *
+ * @returns {Promise<Response>} - The response from the server
+ */
 export async function fetchAi(history: Token[], selectedItem: llmProvider) {
     const content = JSON.stringify({ messages: history, llm: selectedItem.model });
     return await fetch('http://localhost:8000/chat/', {
