@@ -150,7 +150,7 @@ $: if (selectedItem != null) {
         <div class="input-group input-group-divider grid-cols-[auto_auto_1fr_auto] rounded-full overflow-hidden">
           <button class="input-group-shim" on:click={sendUserTokenAiHistory}>+</button>
           <button class="w-full h-full p-0 bg-transparent border-none" on:click={handleAddItem} name="save">
-            <Icon icon="ic:twotone-save-alt" class="w-full h-full" />
+            <Icon icon="ic:twotone-save-alt" class="w-2/3 h-2/3" />
           </button>
           <textarea bind:value={tokenVar}
                     class="font-nunito bg-transparent border-0 ring-0"
