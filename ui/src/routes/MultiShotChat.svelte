@@ -14,6 +14,7 @@ import {
   type GenericReader,
   renderMarkdownWithCodeBlock
 } from './tokenUtils';
+  import Icon from '@iconify/svelte'
 
 let listItems: ListItem[];
 const unsubscribe = listStore.subscribe(value => {
@@ -146,8 +147,11 @@ $: if (selectedItem != null) {
         <div id="result" bind:this={resultDiv}></div>
       </div>
       <div class="bg-surface-500/30 p-4">
-        <div class="input-group input-group-divider grid-cols-[auto_1fr_auto_auto] rounded-container-token">
+        <div class="input-group input-group-divider grid-cols-[auto_auto_1fr_auto] rounded-full overflow-hidden">
           <button class="input-group-shim" on:click={sendUserTokenAiHistory}>+</button>
+          <button class="w-full h-full p-0 bg-transparent border-none" on:click={handleAddItem} name="save">
+            <Icon icon="ic:twotone-save-alt" class="w-full h-full" />
+          </button>
           <textarea bind:value={tokenVar}
                     class="font-nunito bg-transparent border-0 ring-0"
                     name="tokenInput"
@@ -155,8 +159,10 @@ $: if (selectedItem != null) {
                     placeholder="Write a message..."
                     rows="1"
                     on:keydown={checkForReturnKey} />
-          <button class="font-nunito variant-filled-secondary text-black" on:click={handleAddItem}>New</button>
-          <button class="font-nunito variant-filled-primary" on:click={sendUserTokenAiHistory}>Send</button>
+
+          <button class="w-full h-full p-0 bg-transparent border-none" on:click={sendUserTokenAiHistory} name="send">
+            <Icon icon="ph:arrow-circle-up-fill" class="w-full h-full" />
+          </button>
         </div>
       </div>
     </div>
