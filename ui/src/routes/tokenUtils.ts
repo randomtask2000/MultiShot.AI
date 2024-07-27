@@ -4,6 +4,7 @@ import hljs from 'highlight.js';
 import BubbleUser from './BubbleUser.svelte';
 import BubbleSystem from './BubbleSystem.svelte';
 import CodeBlock from './CodeBlock.svelte';
+import type { llmProvider } from './types';
 
 export interface Token {
     role: string;
@@ -89,8 +90,8 @@ export function printMessage(pid: string, tokens: string): void {
 }
 
 
-export async function fetchAi(history: { role: string, content: string }[], selectedItem: { selector: string }) {
-    const content = JSON.stringify({ messages: history, llm: selectedItem.selector });
+export async function fetchAi(history: Token[], selectedItem: llmProvider) {
+    const content = JSON.stringify({ messages: history, llm: selectedItem.model });
     return await fetch('http://localhost:8000/chat/', {
         method: 'POST',
         headers: {
@@ -107,7 +108,7 @@ class CustomRenderer extends marked.Renderer {
   // }
   //
   codeStart(language: string): string {
-    const validLanguage = language && hljs.getLanguage(language) ? language : 'python';
+    //const validLanguage = language && hljs.getLanguage(language) ? language : 'python';
     //return `<pre><code class="hljs language-${validLanguage}" style="background-color: black; color: white">`;
     return ``;
   }
