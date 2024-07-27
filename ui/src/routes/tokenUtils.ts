@@ -108,7 +108,7 @@ class CustomRenderer extends marked.Renderer {
   // }
   //
   codeStart(language: string): string {
-    //const validLanguage = language && hljs.getLanguage(language) ? language : 'python';
+    const validLanguage = language && hljs.getLanguage(language) ? language : 'python';
     //return `<pre><code class="hljs language-${validLanguage}" style="background-color: black; color: white">`;
     return ``;
   }
