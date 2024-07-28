@@ -16,7 +16,7 @@ from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, System
 from starlette.staticfiles import StaticFiles
 
 # local imports
-from server.utils.history import ChatHistory, Message
+from server.utils.history import ChatHistory, Message, LlmProvider
 import logging
 from server.utils.llm_factory import LLMFactory
 
@@ -56,11 +56,11 @@ async def verify_authorization(authorization: Optional[str] = Header(None)):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 
-async def get_llm(callback, llm):
+async def get_llm(callback, llm: LlmProvider):
     return await LLMFactory.get_llm(callback, llm)
 
 
-async def stream_chat_history(llm: str, tokens: List[Message]) -> AsyncIterable[str]:
+async def stream_chat_history(llm: LlmProvider, tokens: List[Message]) -> AsyncIterable[str]:
     """
     Async function to process and generate responses for a list of given tokens.
 
@@ -78,7 +78,9 @@ async def stream_chat_history(llm: str, tokens: List[Message]) -> AsyncIterable[
     model = await get_llm(callback, llm)
 
     messages = [
-        SystemMessage(content="You are a helpful assistant named Buddy running model " + llm),
+        SystemMessage(
+            content=f"You are a helpful assistant named Buddy running model {llm.model}. {llm.systemMessage}"
+        ),
         *[convert_to_langchain_message(token) for token in tokens]
     ]
 

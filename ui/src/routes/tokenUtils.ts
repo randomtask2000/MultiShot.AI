@@ -4,7 +4,7 @@ import hljs from 'highlight.js';
 import BubbleUser from './BubbleUser.svelte';
 import BubbleSystem from './BubbleSystem.svelte';
 import CodeBlock from './CodeBlock.svelte';
-import type { llmProvider } from './types';
+import type { LlmProvider } from './types';
 
 export interface Token {
     role: string;
@@ -22,7 +22,7 @@ export function storeTokenHistory(
     clearResult: () => void
 ): void {
     if (tokenHistory.length > 0) {
-        const rawTitle = tokenHistory[0].content.substring(0, 30);
+        const rawTitle = tokenHistory[tokenHistory.length - 1].content.substring(0, 30);
         const title = marked.parse(rawTitle).replace(/<[^>]*>/g, ''); // Strip HTML tags
         const newItem: ListItem = {
             id: Date.now(),
@@ -103,12 +103,12 @@ export function printMessage(pid: string, tokens: string): void {
  * Fetches AI response from the server by sending a chat history and selected item model
  *
  * @param {Token[]} history - The chat history as an array of Token objects
- * @param {llmProvider} selectedItem - The selected item model for AI chat
+ * @param {LlmProvider} selectedItem - The selected item model for AI chat
  *
  * @returns {Promise<Response>} - The response from the server
  */
-export async function fetchAi(history: Token[], selectedItem: llmProvider) {
-    const content = JSON.stringify({ messages: history, llm: selectedItem.model });
+export async function fetchAi(history: Token[], selectedItem: LlmProvider) {
+    const content = JSON.stringify({ messages: history, llm: selectedItem });
     return await fetch('http://localhost:8000/chat/', {
         method: 'POST',
         headers: {
@@ -119,25 +119,17 @@ export async function fetchAi(history: Token[], selectedItem: llmProvider) {
 }
 
 class CustomRenderer extends marked.Renderer {
-  // codeStart(language: string): string {
-  //   const validLanguage = language && hljs.getLanguage(language) ? language : 'python';
-  //   return `<pre><code class="hljs language-${validLanguage}">`;
-  // }
-  //
   codeStart(language: string): string {
-    const validLanguage = language && hljs.getLanguage(language) ? language : 'python';
+    //const validLanguage = language && hljs.getLanguage(language) ? language : 'python';
     //return `<pre><code class="hljs language-${validLanguage}" style="background-color: black; color: white">`;
     return ``;
   }
-
   codeEnd(): string {
     return ``;
   }
-
   code(code: string, language: string): string {
     const validLanguage = language && hljs.getLanguage(language) ? language : 'python';
     const highlightedCode = hljs.highlight(code, { language: validLanguage }).value;
-    //return `<div class="bg-black p-4 rounded-md">` + this.codeStart(validLanguage) + highlightedCode + this.codeEnd() + `</div>`;
     return this.codeStart(validLanguage) + highlightedCode + this.codeEnd();
   }
 }

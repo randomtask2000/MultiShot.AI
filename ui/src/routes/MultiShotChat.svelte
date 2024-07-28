@@ -1,7 +1,7 @@
 <!-- MultiShotChat.svelte -->
 <script lang="ts">
 import { onMount } from 'svelte';
-import { type llmProvider, Items } from './types';
+import { type LlmProvider, Items } from './types';
 import { listStore, type ListItem } from './store';
 import { afterUpdate } from 'svelte';
 import {
@@ -60,7 +60,7 @@ function restoreChat(item: ListItem): void {
   });
 }
 
-export let selectedItem: llmProvider;
+export let selectedItem: LlmProvider;
 let tokenVar: string = '';
 let tokenHistory: Token[] = [];
 let resultDiv: HTMLDivElement;
@@ -89,7 +89,7 @@ function getToken() {
 
 async function sendUserTokenAiHistory() {
   const token = getToken();
-  tokenHistory.push({ role: "user", content: token });
+  tokenHistory.push({ role: "user", content: token }); //TODO: should be Token
   let { pid: divIdUser } = addBubble(resultDiv, "User", "user");
   printMessage(divIdUser, token);
   const response = await fetchAi(tokenHistory, selectedItem);
@@ -148,7 +148,7 @@ $: if (selectedItem != null) {
       <div class="bg-surface-500/30 p-4">
         <div class="input-group input-group-divider grid-cols-[auto_auto_1fr_auto] rounded-full overflow-hidden pr-11 relative">
           <button class="input-group-shim" on:click={sendUserTokenAiHistory}>+</button>
-          <button class="w-10 h-full bg-transparent border-none" on:click={handleAddItem} name="save">
+          <button class="w-12 h-8 bg-transparent border-none pt-2" on:click={handleAddItem} name="save">
             <Icon icon="ic:twotone-save-alt" class="w-full h-full" />
           </button>
           <textarea bind:value={tokenVar}

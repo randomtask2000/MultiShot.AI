@@ -1,15 +1,15 @@
 <!-- AppBarContent.svelte -->
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type { llmProvider } from './types';
+  import type { LlmProvider } from './types';
   import { Items } from './types';
   import Icon from '@iconify/svelte';
   import { ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
   import { fade } from 'svelte/transition';
 
-  export let selectedItem: llmProvider | null = null;
+  export let selectedItem: LlmProvider | null = null;
 
-  function handleSelectItem(event: CustomEvent<llmProvider> | { detail: llmProvider }): void {
+  function handleSelectItem(event: CustomEvent<LlmProvider> | { detail: LlmProvider }): void {
     selectedItem = event.detail;
     console.log("AppBarContent: selectedItem:", selectedItem);
     isListBoxVisible = false;

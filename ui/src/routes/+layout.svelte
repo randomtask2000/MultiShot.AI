@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type { llmProvider } from './types';
+  import type { LlmProvider } from './types';
   import MyJsChat from './MultiShotChat.svelte';
   import '../app.postcss';
   import { AppShell } from '@skeletonlabs/skeleton';
@@ -20,7 +20,7 @@
   import { storePopup } from '@skeletonlabs/skeleton';
   storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 
-  let selectedItem: llmProvider | null = null;
+  let selectedItem: LlmProvider | null = null;
 </script>
 
 <!-- App Shell -->

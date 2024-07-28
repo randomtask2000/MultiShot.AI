@@ -1,41 +1,32 @@
 import os
 from langchain_community.chat_models import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
+from server.utils.history import LlmProvider
 
 
 class LLMFactory:
     @staticmethod
-    async def get_llm(callback, llm):
+    async def get_llm(callback, llm_settings: LlmProvider):
+        llm = llm_settings.provider
         match llm:
-            case "gpt-4o-mini":
-                model = await LLMFactory.get_openai(callback, llm, 'MODEL_LLM_OPENAI_GPT4O_API_KEY')
-            case "gpt-3.5-turbo":
-                model = await LLMFactory.get_openai(callback, llm, 'MODEL_LLM_OPENAI_GPT4O_API_KEY')
-            case "gpt-4o":
-                model = await LLMFactory.get_openai(callback, llm, 'MODEL_LLM_OPENAI_GPT4O_API_KEY')
-            case "claude-3-5-sonnet-20240620":
+            case "openai":
+                model = await LLMFactory.get_openai(callback, llm_settings.model, llm_settings.apiKeyName)
+            case "anthropic":
                 model = await LLMFactory.get_anthropic(callback,
-                                                       llm,
-                                                       'MODEL_LLM_ANTHROPIC_CLAUD35SONNET_API_KEY')
-            case "llama-3.1-405b-reasoning":
+                                                       llm_settings.model,
+                                                       llm_settings.apiKeyName)
+            case "groq":
                 model = await LLMFactory.get_openai_url(callback,
-                                                        llm,
-                                                        'MODEL_LLM_GROQ_LLAMA370B_API_KEY',
+                                                        llm_settings.model,
+                                                        llm_settings.apiKeyName,
                                                         "https://api.groq.com/openai/v1/")
-            case "llama3-70b-8192":
+            case "ollama":
                 model = await LLMFactory.get_openai_url(callback,
-                                                        llm,
-                                                        'MODEL_LLM_GROQ_LLAMA370B_API_KEY',
-                                                        "https://api.groq.com/openai/v1/")
-            case "codestral:22b":
-                model = await LLMFactory.get_openai_url(callback,
-                                                        llm,
-                                                        'MODEL_LLM_OLLAMA_CODESTRAL222B_API_KEY',
+                                                        llm_settings.model,
+                                                        llm_settings.apiKeyName,
                                                         "http://10.0.6.5:11434/v1/")
             case _:
-                model = await LLMFactory.get_openai(callback,
-                                                    "gpt-3.5-turbo",
-                                                    'MODEL_LLM_OPENAI_GPT4O_API_KEY')
+                model = await LLMFactory.get_openai(callback, "gpt-3.5-turbo", "OPENAI_API_KEY")
         return model
 
     @staticmethod

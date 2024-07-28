@@ -1,17 +1,17 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
-  import type { llmProvider } from './types';
+  import type { LlmProvider } from './types';
 
-  export let items: llmProvider[] = [];
+  export let items: LlmProvider[] = [];
   export let isVisible = false;
 
   const dispatch = createEventDispatcher();
 
-  function handleItemClick(item: llmProvider) {
+  function handleItemClick(item: LlmProvider) {
     dispatch('selectItem', item);
   }
 
-  function handleKeyDown(event: KeyboardEvent, item: llmProvider) {
+  function handleKeyDown(event: KeyboardEvent, item: LlmProvider) {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       handleItemClick(item);

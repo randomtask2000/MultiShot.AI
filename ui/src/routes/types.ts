@@ -1,12 +1,12 @@
 
-export interface llmProvider {
+export interface LlmProvider {
   model: string;
   provider: string;
   title: string;
   icon: string;
   subtitle: string;
   systemMessage: string;
-  apiKey: string;
+  apiKeyName: string;
 }
 
 export interface DataObject {
@@ -15,7 +15,7 @@ export interface DataObject {
 
 // unplugin-icons  https://github.com/unplugin/unplugin-icons
 // icons can be found here: https://icon-sets.iconify.design/
-export const Items: llmProvider[] = [
+export const Items: LlmProvider[] = [
     {
       "provider": "openai",
       "model": "gpt-4o-mini",
@@ -23,7 +23,7 @@ export const Items: llmProvider[] = [
       "icon": "simple-icons:openai",
       "subtitle": "Faster for everyday tasks",
       "systemMessage": "You are a highly skilled AI assistant specializing in Svelte, JavaScript, Python, LangChain, LangGraph, and TypeScript. Your role involves guiding developers in setting up and configuring projects, creating and optimizing code, debugging issues, and providing best practices. You offer well-commented and formatted code snippets, in baby language for someone that doesn't like to read, and relevant references.",
-      "apiKey": "OPENAI_API_KEY"
+      "apiKeyName": "OPENAI_API_KEY"
     },
     {
       "provider": "openai",
@@ -32,7 +32,7 @@ export const Items: llmProvider[] = [
       "icon": "simple-icons:openai",
       "subtitle": "Best for complex tasks",
       "systemMessage": "You are a highly skilled AI assistant specializing in Svelte, JavaScript, Python, LangChain, LangGraph, and TypeScript. Your role involves guiding developers in setting up and configuring projects, creating and optimizing code, debugging issues, and providing best practices. You offer well-commented and formatted code snippets, in baby language for someone that doesn't like to read, and relevant references.",
-      "apiKey": "OPENAI_API_KEY"
+      "apiKeyName": "OPENAI_API_KEY"
     },
     {
       "provider": "openai",
@@ -41,7 +41,7 @@ export const Items: llmProvider[] = [
       "icon": "simple-icons:openai",
       "subtitle": "Legacy model",
       "systemMessage": "You are a highly skilled AI assistant specializing in Svelte, JavaScript, Python, LangChain, LangGraph, and TypeScript. Your role involves guiding developers in setting up and configuring projects, creating and optimizing code, debugging issues, and providing best practices. You offer well-commented and formatted code snippets, in baby language for someone that doesn't like to read, and relevant references.",
-      "apiKey": "OPENAI_API_KEY"
+      "apiKeyName": "OPENAI_API_KEY"
     },
     {
       "provider": "anthropic",
@@ -50,7 +50,7 @@ export const Items: llmProvider[] = [
       "icon": "simple-icons:anthropic",
       "subtitle": "Best for coding tasks",
       "systemMessage": "You are a highly skilled AI assistant specializing in Svelte, JavaScript, Python, LangChain, LangGraph, and TypeScript. Your role involves guiding developers in setting up and configuring projects, creating and optimizing code, debugging issues, and providing best practices. You offer well-commented and formatted code snippets, in baby language for someone that doesn't like to read, and relevant references.",
-      "apiKey": "ANTHROPIC_API_KEY"
+      "apiKeyName": "ANTHROPIC_API_KEY"
     },
     {
       "provider": "groq",
@@ -59,7 +59,7 @@ export const Items: llmProvider[] = [
       "icon": "fluent-emoji-high-contrast:llama",
       "subtitle": "Not provided yet",
       "systemMessage": "You are a highly skilled AI assistant specializing in Svelte, JavaScript, Python, LangChain, LangGraph, and TypeScript. Your role involves guiding developers in setting up and configuring projects, creating and optimizing code, debugging issues, and providing best practices. You offer well-commented and formatted code snippets, in baby language for someone that doesn't like to read, and relevant references.",
-      "apiKey": "GROQ_API_KEY"
+      "apiKeyName": "GROQ_API_KEY"
     },
     {
       "provider": "groq",
@@ -68,7 +68,7 @@ export const Items: llmProvider[] = [
       "icon": "fluent-emoji-high-contrast:llama",
       "subtitle": "Best for complex tasks",
       "systemMessage": "You are a highly skilled AI assistant specializing in Svelte, JavaScript, Python, LangChain, LangGraph, and TypeScript. Your role involves guiding developers in setting up and configuring projects, creating and optimizing code, debugging issues, and providing best practices. You offer well-commented and formatted code snippets, in baby language for someone that doesn't like to read, and relevant references.",
-      "apiKey": "GROQ_API_KEY"
+      "apiKeyName": "GROQ_API_KEY"
     },
     {
       "provider": "ollama",
@@ -77,6 +77,6 @@ export const Items: llmProvider[] = [
       "icon": "material-symbols:skull",
       "subtitle": "Best for private tasks",
       "systemMessage": "You are a highly skilled AI assistant specializing in Svelte, JavaScript, Python, LangChain, LangGraph, and TypeScript. Your role involves guiding developers in setting up and configuring projects, creating and optimizing code, debugging issues, and providing best practices. You offer well-commented and formatted code snippets, in baby language for someone that doesn't like to read, and relevant references.",
-      "apiKey": "OLLAMA_API_KEY"
+      "apiKeyName": "OLLAMA_API_KEY"
     }
   ];
