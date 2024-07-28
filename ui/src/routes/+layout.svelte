@@ -22,6 +22,7 @@
   import { Items } from './types';
   import Icon from '@iconify/svelte' // unplugin-icons  https://github.com/unplugin/unplugin-icons
   // icons can be found here: https://icon-sets.iconify.design/
+  // components https://www.shadcn-svelte.com/
   import { ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
   import { fade } from 'svelte/transition';
 
