@@ -1,9 +1,5 @@
 <script>
     import { Avatar } from '@skeletonlabs/skeleton';
-    import {
-        renderMarkdown
-    } from './tokenUtils';
-
     export let bubble = {
         color: 'variant-soft-primary',
         name: 'system|user',
@@ -13,13 +9,6 @@
         pid: 'pid1',
     };
 </script>
-
-<style>
-    .text-align-right {
-      text-align: left;
-    }
-</style>
-
 <div class="grid grid-cols-[auto_1fr] gap-2">
     <Avatar src="{bubble.avatar}" width="w-12" />
     <div class="card p-4 variant-soft rounded-tl-none space-y-2">
@@ -27,7 +16,7 @@
             <p class="font-bold capitalize">{bubble.name}</p>
             <small class="opacity-50">{bubble.timestamp}</small>
         </header>
-        <p id="{bubble.pid}" class="font-nunito text-align-right">{bubble.message}</p>
+        <p id="{bubble.pid}" class="font-nunito text-left">{bubble.message}</p>
     </div>
 </div>
 <br />
