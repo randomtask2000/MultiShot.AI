@@ -159,8 +159,15 @@ $: if (selectedItem != null) {
                     placeholder="Write a message..."
                     rows="1"
                     on:keydown={checkForReturnKey} />
-          <button class="absolute -right-2.5 top-1 bottom-1  bg-transparent flex items-center justify-center" on:click={sendUserTokenAiHistory} name="send">
-            <Icon icon="ph:arrow-circle-up-fill" class="w-full h-full" />
+          <button
+            class="absolute -right-2.5 top-1 bottom-1 bg-transparent flex items-center justify-center transition-all duration-300 ease-in-out hover:scale-110"
+            on:click={sendUserTokenAiHistory}
+            name="send"
+          >
+            <Icon
+              icon="ph:arrow-circle-up-fill"
+              class="w-full h-full transition-all duration-300 ease-in-out hover:text-blue-400 hover:drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+            />
           </button>
         </div>
       </div>
