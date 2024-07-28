@@ -79,7 +79,7 @@
             <span class="font-nunito  bg-gradient-to-br from-pink-500 to-violet-500 bg-clip-text text-transparent box-decoration-clone">{selectedItem ? selectedItem.title : 'Select Model'}</span>
           </button>
           {#if isListBoxVisible}
-            <div transition:fade class="absolute top-full right-0 mt-2 z-50 min-w-[200px] w-max bg-surface-900/50 rounded-md p-3">
+            <div transition:fade class="absolute top-full right-0 mt-2 z-50 min-w-[200px] w-max bg-surface-700/30 rounded-md p-3">
               <ListBox class="w-full">
                 {#each Items as item}
                   <ListBoxItem
