@@ -147,21 +147,20 @@ $: if (selectedItem != null) {
         <div id="result" bind:this={resultDiv}></div>
       </div>
       <div class="bg-surface-500/30 p-4">
-        <div class="input-group input-group-divider grid-cols-[auto_auto_1fr_auto] rounded-full overflow-hidden pr-0">
+        <div class="input-group input-group-divider grid-cols-[auto_auto_1fr_auto] rounded-full overflow-hidden pr-11 relative">
           <button class="input-group-shim" on:click={sendUserTokenAiHistory}>+</button>
-          <button class="w-full h-full p-0 bg-transparent border-none" on:click={handleAddItem} name="save">
-            <Icon icon="ic:twotone-save-alt" class="w-2/3 h-2/3" />
+          <button class="w-2/3 h-full bg-transparent border-none" on:click={handleAddItem} name="save">
+            <Icon icon="ic:twotone-save-alt" class="w-full h-full" />
           </button>
           <textarea bind:value={tokenVar}
-                    class="font-nunito bg-transparent border-0 ring-0"
+                    class="w-full font-nunito bg-transparent border-0 ring-0 right-5"
                     name="tokenInput"
                     id="tokenInput"
                     placeholder="Write a message..."
                     rows="1"
                     on:keydown={checkForReturnKey} />
-
-          <button class="w-full h-full p-0 bg-transparent border-none" on:click={sendUserTokenAiHistory} name="send">
-            <Icon icon="ph:arrow-circle-up-fill" class="w-4/5 h-4/5" />
+          <button class="absolute -right-2.5 top-1 bottom-1  bg-transparent flex items-center justify-center" on:click={sendUserTokenAiHistory} name="send">
+            <Icon icon="ph:arrow-circle-up-fill" class="w-full h-full" />
           </button>
         </div>
       </div>
