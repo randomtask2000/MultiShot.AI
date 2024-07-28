@@ -1,3 +1,4 @@
+<!-- MultiShotChat.svelte -->
 <script lang="ts">
 import { onMount } from 'svelte';
 import { type llmProvider, Items } from './types';
@@ -14,7 +15,11 @@ import {
   type GenericReader,
   renderMarkdownWithCodeBlock
 } from './tokenUtils';
-  import Icon from '@iconify/svelte'
+import Icon from '@iconify/svelte';
+import { AppBar } from '@skeletonlabs/skeleton';
+import ChatHistorySidebar from './ChatHistorySidebar.svelte';
+import AppBarContent from './AppBarContent.svelte';
+import { fade, fly } from 'svelte/transition';
 
 let listItems: ListItem[];
 const unsubscribe = listStore.subscribe(value => {
@@ -38,7 +43,7 @@ function handleClearList() {
 }
 
 function restoreChat(item: ListItem): void {
-  let tokenHistory: { role: string; content: string }[] = [...item.tokenHistory];
+  tokenHistory = [...item.tokenHistory];
   clearResult();
   tokenHistory.forEach((token) => {
     const type: 'user' | 'ai' = token.role === 'user' ? 'user' : 'ai';
@@ -59,6 +64,7 @@ export let selectedItem: llmProvider;
 let tokenVar: string = '';
 let tokenHistory: Token[] = [];
 let resultDiv: HTMLDivElement;
+let sidebarVisible = true;
 
 const clearToken = () => {
   tokenVar = '';
@@ -102,6 +108,10 @@ afterUpdate(() => {
   scrollChatBottom(resultDiv);
 });
 
+function toggleSidebar() {
+  sidebarVisible = !sidebarVisible;
+}
+
 $: if (selectedItem != null) {
   console.log("MultiShotChat: selectedItem has changed:", selectedItem);
 }
@@ -109,47 +119,36 @@ $: if (selectedItem != null) {
 </script>
 
 <svelte:head>
-<!--<link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css" as="style">-->
-<!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">-->
-<!--  -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/default.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js"></script>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js"></script>
 </svelte:head>
 
-<style>
-
-
-</style>
-
-<div class="max-w-screen">
-  <div class="grid grid-cols-[150px_1fr] h-[calc(100vh-74px)]">
-    <div id="search" class="grid grid-rows-[1fr_auto] gap-0 hide-on-small">
-      <div class="bg-surface-600/30 p-4 text-gray-500">(search)</div>
-      <div class="bg-surface-600/30 p-4">
-        {#each listItems as item (item.id)}
-          <button class="font-nunito variant-filled-secondary p-1 rounded-md"
-                  on:click={() => restoreChat(item)}
-                  on:keydown={(e) => e.key === 'Enter' && restoreChat(item)}
-                  title={item.tokenHistory[0].content.substring(0, 30)}>
-            {@html item.text}
-          </button>
-        {/each}
+<div class="max-w-screen h-screen flex flex-col">
+  <AppBar>
+    <svelte:fragment slot="lead">
+      <button class="btn btn-sm variant-ghost-surface" on:click={toggleSidebar}>
+        <Icon icon={sidebarVisible ? "mdi:menu-open" : "mdi:menu"} />
+      </button>
+    </svelte:fragment>
+    <svelte:fragment slot="trail">
+      <AppBarContent bind:selectedItem />
+    </svelte:fragment>
+  </AppBar>
+  <div class="flex-1 flex overflow-hidden">
+    {#if sidebarVisible}
+      <div transition:fly={{ x: -250, opacity: 1, duration: 300 }}>
+        <ChatHistorySidebar onRestoreChat={restoreChat} onClearList={handleClearList} />
       </div>
-      <div class="bg-surface-600/30 p-4">
-        <button class="btn variant-filled-primary" on:click={handleClearList} title="clear the list">Clear List</button>
-      </div>
-      <div class="bg-surface-600/30 p-4 text-gray-500">(footer)</div>
-    </div>
-    <div id="chat" class="grid grid-rows-[1fr_auto] gap-0">
+    {/if}
+    <div id="chat" class="flex-1 flex flex-col">
       <div id="resultOuter" bind:this={elemChat}
-           class="bg-surface-800/30 p-4 h-[calc(100vh-148px)] overflow-y-auto">
+           class="flex-1 bg-surface-800/30 p-4 overflow-y-auto">
         <div id="result" bind:this={resultDiv}></div>
       </div>
       <div class="bg-surface-500/30 p-4">
         <div class="input-group input-group-divider grid-cols-[auto_auto_1fr_auto] rounded-full overflow-hidden pr-11 relative">
           <button class="input-group-shim" on:click={sendUserTokenAiHistory}>+</button>
-          <button class="w-2/3 h-full bg-transparent border-none" on:click={handleAddItem} name="save">
+          <button class="w-10 h-full bg-transparent border-none" on:click={handleAddItem} name="save">
             <Icon icon="ic:twotone-save-alt" class="w-full h-full" />
           </button>
           <textarea bind:value={tokenVar}
@@ -166,7 +165,7 @@ $: if (selectedItem != null) {
           >
             <Icon
               icon="ph:arrow-circle-up-fill"
-              class="w-full h-full transition-all duration-300 ease-in-out hover:text-blue-400 hover:drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+              class="w-8 h-8 transition-all duration-300 ease-in-out hover:text-variant-filled-primary hover:drop-shadow-[0_0_10px_rgba(59,130,246,0.5)] "
             />
           </button>
         </div>
