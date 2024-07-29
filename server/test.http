@@ -91,7 +91,7 @@ Content-Type: application/json
 ###
 
 POST https://api.openai.com/v1/chat/completions
-Authorization: Bearer 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
+Authorization: Bearer nokey
 Content-Type: application/json
 
 {

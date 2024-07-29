@@ -44,10 +44,6 @@ class LLMFactory:
 
     @staticmethod
     async def get_openai(callback, llm, env_key):
-        print("Function parameters:")
-        print(f"llm: {llm}")
-        print(f"env_key: {env_key}")
-
         model = ChatOpenAI(
             streaming=True,
             verbose=True,
@@ -55,10 +51,6 @@ class LLMFactory:
             openai_api_key=os.getenv(env_key, 'nokey'),
             model_name=llm
         )
-        print("\nModel parameters:")
-        print(f"openai_api_key: {model.openai_api_key}")
-        print(f"model_name: {model.model_name}")
-
         return model
 
     @staticmethod
