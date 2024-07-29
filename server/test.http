@@ -88,3 +88,18 @@ Content-Type: application/json
   "llm": "codestral:22b"
 }
 
+###
+
+POST https://api.openai.com/v1/chat/completions
+Authorization: Bearer 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
+Content-Type: application/json
+
+{
+    "model": "gpt-4o",
+    "messages": [
+      {"role": "system", "content": "You are a helpful assistant."},
+      {"role": "user", "content": "Tell me a joke."}
+    ],
+  "temperature": 0.7
+}
+

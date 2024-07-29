@@ -22,6 +22,8 @@ from server.utils.llm_factory import LLMFactory
 
 load_dotenv("./server/.env")
 
+assert os.getenv("TEST_SETTING", 'failed') == "test", "TEST_SETTING value is not 'test'"
+
 app = FastAPI(title="app")
 
 # noinspection PyTypeChecker

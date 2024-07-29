@@ -9,6 +9,7 @@ import type { LlmProvider } from './types';
 export interface Token {
     role: string;
     content: string;
+    llmInfo: LlmProvider;
 }
 
 export interface GenericReader {
@@ -17,26 +18,21 @@ export interface GenericReader {
 
 export function storeTokenHistory(
     tokenHistory: Token[],
-    listItems: ListItem[],
     addItem: (item: ListItem) => void,
     clearResult: () => void
 ): void {
     if (tokenHistory.length > 0) {
-        const rawTitle = tokenHistory[tokenHistory.length - 1].content.substring(0, 30);
-        const title = marked.parse(rawTitle).replace(/<[^>]*>/g, ''); // Strip HTML tags
+        const lastToken = tokenHistory[tokenHistory.length - 1];
+        const title = marked.parse(lastToken.content.substring(0, 30)).replace(/<[^>]*>/g, '');
         const newItem: ListItem = {
             id: Date.now(),
             text: title,
-            tokenHistory: tokenHistory.map(token => ({
-                role: token.role,
-                content: token.content // Store original markdown content
-            }))
+            tokenHistory: [...tokenHistory]
         };
         addItem(newItem);
         clearResult();
     }
 }
-
 
 export function scrollChatBottom(resultDiv: HTMLDivElement, behavior: ScrollBehavior = 'auto'): void {
     resultDiv.lastElementChild?.scrollIntoView({ behavior, block: 'end' });
@@ -147,16 +143,16 @@ marked.setOptions({
   gfm: true
 });
 
-marked.setOptions({
-    //renderer: renderer,
-    highlight: function(code, lang) {
-        const language = hljs.getLanguage(lang) ? lang : 'python';
-        return hljs.highlight(code, { language: language || 'python' }).value;
-    },
-    langPrefix: 'hljs language-',
-    breaks: true,
-    gfm: true
-});
+// marked.setOptions({
+//     //renderer: renderer,
+//     highlight: function(code, lang) {
+//         const language = hljs.getLanguage(lang) ? lang : 'python';
+//         return hljs.highlight(code, { language: language || 'python' }).value;
+//     },
+//     langPrefix: 'hljs language-',
+//     breaks: true,
+//     gfm: true
+// });
 
 export function renderMarkdownWithCodeBlock(content: string, outputElement: HTMLElement) {
   const parser = new StreamParser(outputElement);

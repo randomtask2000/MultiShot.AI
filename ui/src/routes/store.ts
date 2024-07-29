@@ -1,9 +1,10 @@
 import { writable } from 'svelte/store';
+import type { Token } from './tokenUtils';
 
 export interface ListItem {
   id: number;
   text: string;
-  tokenHistory: { role: string, content: string }[];
+  tokenHistory: Token[];
 }
 
 function createListStore() {

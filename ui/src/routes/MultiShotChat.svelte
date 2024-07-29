@@ -34,7 +34,8 @@ onMount(() => {
 });
 
 function handleAddItem() {
-  storeTokenHistory(tokenHistory, listItems, listStore.addItem, clearResult);
+  storeTokenHistory(tokenHistory, listStore.addItem, clearResultDiv);
+  tokenHistory = [];
   clearToken();
 }
 
@@ -44,7 +45,7 @@ function handleClearList() {
 
 function restoreChat(item: ListItem): void {
   tokenHistory = [...item.tokenHistory];
-  clearResult();
+  clearResultDiv();
   tokenHistory.forEach((token) => {
     const type: 'user' | 'ai' = token.role === 'user' ? 'user' : 'ai';
     const { bubbleId, pid } = addBubble(resultDiv, type, type);
@@ -70,7 +71,7 @@ const clearToken = () => {
   tokenVar = '';
 };
 
-const clearResult = () => {
+const clearResultDiv = () => {
   if (resultDiv) {
     resultDiv.innerHTML = '';
   }
@@ -89,7 +90,7 @@ function getToken() {
 
 async function sendUserTokenAiHistory() {
   const token = getToken();
-  tokenHistory.push({ role: "user", content: token }); //TODO: should be Token
+  tokenHistory.push({ role: "user", content: token, llmInfo: selectedItem });
   let { pid: divIdUser } = addBubble(resultDiv, "User", "user");
   printMessage(divIdUser, token);
   const response = await fetchAi(tokenHistory, selectedItem);
@@ -98,7 +99,7 @@ async function sendUserTokenAiHistory() {
   }
   let { pid: aiPid } = addBubble(resultDiv, "AI", "ai");
   const content = await printResponse(resultDiv, response.body.getReader() as GenericReader, new TextDecoder('utf-8'), aiPid);
-  tokenHistory.push({ role: "assistant", content });
+  tokenHistory.push({ role: "assistant", content, llmInfo: selectedItem });
   clearToken();
 }
 
