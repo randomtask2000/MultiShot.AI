@@ -55,20 +55,22 @@
           class="w-6 h-5"
         />
       </span>
-      <span class="font-nunito  bg-gradient-to-br from-pink-500 to-violet-500 bg-clip-text text-transparent box-decoration-clone">{selectedItem ? selectedItem.title : 'Select Model'}</span>
+      <span class="font-nunito  bg-gradient-to-br from-pink-500 to-violet-200 bg-clip-text text-transparent box-decoration-clone">{selectedItem ? selectedItem.title : 'Select Model'}</span>
     </button>
     {#if isListBoxVisible}
-      <div transition:fade class="absolute top-full right-0 mt-2 z-50 min-w-[200px] w-max bg-surface-700/30 rounded-md p-3">
+      <div transition:fade class="absolute top-full right-0 mt-2 z-50 min-w-[200px] w-max rounded-md p-3 bg-gradient-to-br from-surface-900/95 to-darkblue-900/90">
         <ListBox class="w-full">
           {#each Items as item}
             <ListBoxItem
               on:click={() => handleSelectItem({ detail: item })}
               active={selectedItem?.model === item.model}
-              value={item.model}
+              value={item.model}s
               class="whitespace-nowrap"
+              group="llmSelector"
+              name="llmSelector"
             >
               <svelte:fragment slot="lead">
-                <Icon icon="{item.icon}" class="text-white-500 w-6 h-6" />
+                <Icon icon="{item.icon}" class="text-white-800/90 w-6 h-6" />
               </svelte:fragment>
               {item.title}
             </ListBoxItem>

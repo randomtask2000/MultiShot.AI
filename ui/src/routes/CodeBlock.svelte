@@ -30,7 +30,7 @@
   }
 </script>
 
-<div class="w-full overflow-hidden !bg-surface-900/70 rounded-md">
+<div class="w-full overflow-hidden !bg-surface-900/70 rounded-md m-2">
   <div class="flex flex-wrap justify-between items-center p-2">
     <div class="text-xs sm:text-sm text-surface-300/70">language: {language}</div>
     <button
