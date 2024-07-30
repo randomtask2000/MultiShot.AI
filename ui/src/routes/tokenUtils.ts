@@ -1,5 +1,6 @@
 import { type ListItem } from './store';
 import { marked } from 'marked';
+import { markedHighlight } from "marked-highlight";
 import hljs from 'highlight.js';
 import BubbleUser from './BubbleUser.svelte';
 import BubbleSystem from './BubbleSystem.svelte';
@@ -46,15 +47,6 @@ export function handleScroll(elemChat: HTMLDivElement): boolean {
     return false;
 }
 
-/**
- * Creates and appends a new bubble to the resultDiv based on the given person and type.
- *
- * @param {HTMLDivElement} resultDiv - The div element to append the bubble to.
- * @param {string} person - The name of the person associated with the bubble.
- * @param {"user" | "ai"} type - The type of bubble, either "user" or "ai".
- * @returns {{ bubbleId: string, pid: string }} - An object containing the bubbleId and pid of the newly created bubble.
- * @throws {Error} - If an unsupported type is provided.
- */
 export function addBubble(resultDiv: HTMLDivElement, person: string, type: "user" | "ai"): { bubbleId: string, pid: string } {
     if (!resultDiv) {
         console.error('resultDiv is not initialized');
@@ -94,15 +86,6 @@ export function printMessage(pid: string, tokens: string): void {
     }
 }
 
-
-/**
- * Fetches AI response from the server by sending a chat history and selected item model
- *
- * @param {Token[]} history - The chat history as an array of Token objects
- * @param {LlmProvider} selectedItem - The selected item model for AI chat
- *
- * @returns {Promise<Response>} - The response from the server
- */
 export async function fetchAi(history: Token[], selectedItem: LlmProvider) {
     const content = JSON.stringify({ messages: history, llm: selectedItem });
     return await fetch('http://localhost:8000/chat/', {
@@ -115,50 +98,34 @@ export async function fetchAi(history: Token[], selectedItem: LlmProvider) {
 }
 
 class CustomRenderer extends marked.Renderer {
-  codeStart(language: string): string {
-    //const validLanguage = language && hljs.getLanguage(language) ? language : 'python';
-    //return `<pre><code class="hljs language-${validLanguage}" style="background-color: black; color: white">`;
-    return ``;
-  }
-  codeEnd(): string {
-    return ``;
-  }
   code(code: string, language: string): string {
-    const validLanguage = language && hljs.getLanguage(language) ? language : 'python';
-    const highlightedCode = hljs.highlight(code, { language: validLanguage }).value;
-    return this.codeStart(validLanguage) + highlightedCode + this.codeEnd();
+    return `<pre><code data-highlighted="true" class="language-${language}">${code}</code></pre>`;
   }
 }
 
 const customRenderer = new CustomRenderer();
 
-marked.setOptions({
-  renderer: customRenderer,
-  highlight: function(code, lang) {
-    const language = lang && hljs.getLanguage(lang) ? lang : 'python';
-    return hljs.highlight(code, { language }).value;
-  },
-  langPrefix: 'language-',
-  breaks: true,
-  gfm: true
-});
-
-// marked.setOptions({
-//     //renderer: renderer,
-//     highlight: function(code, lang) {
-//         const language = hljs.getLanguage(lang) ? lang : 'python';
-//         return hljs.highlight(code, { language: language || 'python' }).value;
-//     },
-//     langPrefix: 'hljs language-',
-//     breaks: true,
-//     gfm: true
-// });
+marked.use(
+  markedHighlight({
+    langPrefix: 'language-',
+    highlight(code, lang) {
+      const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+      return hljs.highlight(code, { language }).value;
+    }
+  }),
+  {
+    mangle: false,
+    headerIds: false,
+    renderer: customRenderer
+  }
+);
 
 export function renderMarkdownWithCodeBlock(content: string, outputElement: HTMLElement) {
   const parser = new StreamParser(outputElement);
   parser.processChunk(content);
   parser.finish();
 }
+
 export function renderMarkdown(content: string) {
   const tempDiv = document.createElement('div');
   renderMarkdownWithCodeBlock(content, tempDiv);
@@ -247,7 +214,6 @@ export class StreamParser {
   }
 }
 
-
 export async function printResponse(
     resultDiv: HTMLDivElement,
     reader: GenericReader,
@@ -258,11 +224,9 @@ export async function printResponse(
     const outputElement = document.getElementById(responsePid)!;
     const parser = new StreamParser(outputElement);
 
-    // New: Track the last scroll time
     let lastScrollTime = 0;
 
     async function processResult(result: { done: boolean; value: Uint8Array | undefined }): Promise<void> {
-        // New: Check if it's time to scroll (every 200ms)
         const currentTime = Date.now();
         if (currentTime - lastScrollTime > 200) {
             scrollChatBottom(resultDiv, 'smooth');
@@ -271,7 +235,6 @@ export async function printResponse(
 
         if (result.done) {
             parser.finish();
-            // Final scroll to ensure everything is visible
             scrollChatBottom(resultDiv, 'smooth');
             return;
         }
@@ -285,4 +248,3 @@ export async function printResponse(
     await reader.read().then(processResult);
     return lastResponse;
 }
-

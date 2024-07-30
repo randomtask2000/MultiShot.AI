@@ -50,6 +50,7 @@
     "@floating-ui/dom": "1.6.5",
     "deep-chat": "^1.4.11",
     "highlight.js": "11.9.0",
-    "marked": "^5.0.0"
+    "marked": "^5.0.0",
+    "marked-highlight": "^2.1.3"
   }
 }
