@@ -78,7 +78,7 @@ async def stream_chat_history(llm: LlmProvider, tokens: List[Message]) -> AsyncI
     """
     callback = AsyncIteratorCallbackHandler()
     model = await get_llm(callback, llm)
-    print("model key: "+model.openai_api_key)
+
     messages = [
         SystemMessage(
             content=f"You are a helpful assistant named Buddy running model {llm.model}. {llm.systemMessage}"
