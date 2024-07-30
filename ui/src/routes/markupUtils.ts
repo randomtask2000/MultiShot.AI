@@ -1,8 +1,8 @@
 import { marked } from 'marked';
 import hljs from 'highlight.js';
 import CodeBlock from './CodeBlock.svelte';
-import { scrollChatBottom } from './tokenUtils';
-import type { GenericReader } from './tokenUtils';
+//import { scrollChatBottom } from './tokenUtils';
+//import type { GenericReader } from './tokenUtils';
 
 class CustomRenderer extends marked.Renderer {
   codeStart(language: string): string {
@@ -135,7 +135,7 @@ export class StreamParser {
   }
 }
 
-export async function printResponse(
+/*export async function printResponse(
     resultDiv: HTMLDivElement,
     reader: GenericReader,
     decoder: TextDecoder,
@@ -164,4 +164,4 @@ export async function printResponse(
     }
     await reader.read().then(processResult);
     return lastResponse;
-}
+}*/

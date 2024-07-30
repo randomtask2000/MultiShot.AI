@@ -258,14 +258,21 @@ export async function printResponse(
     const outputElement = document.getElementById(responsePid)!;
     const parser = new StreamParser(outputElement);
 
+    // New: Track the last scroll time
+    let lastScrollTime = 0;
+
     async function processResult(result: { done: boolean; value: Uint8Array | undefined }): Promise<void> {
-        if (Date.now() % 2000 < 1000) {
-            setTimeout(() => {
-                scrollChatBottom(resultDiv,'smooth');
-            }, 0);
+        // New: Check if it's time to scroll (every 200ms)
+        const currentTime = Date.now();
+        if (currentTime - lastScrollTime > 200) {
+            scrollChatBottom(resultDiv, 'smooth');
+            lastScrollTime = currentTime;
         }
+
         if (result.done) {
             parser.finish();
+            // Final scroll to ensure everything is visible
+            scrollChatBottom(resultDiv, 'smooth');
             return;
         }
         if (result.value) {
