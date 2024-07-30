@@ -30,16 +30,25 @@
   }
 </script>
 
-<div class="overflow-x-auto !bg-surface-900/70 pt-0 pb-0 rounded-md">
-  <div class="flex justify-between w-full">
-    <div class="pl-2 text-sm text-surface-300/70">language: {language}</div>
+<div class="w-full overflow-hidden !bg-surface-900/70 rounded-md">
+  <div class="flex flex-wrap justify-between items-center p-2">
+    <div class="text-xs sm:text-sm text-surface-300/70">language: {language}</div>
     <button
       on:click={copyToClipboard}
-      class="flex-grow pl-2 pr-2 text-sm text-surface-300/70 text-right hover:text-white focus:outline-none"
+      class="text-xs sm:text-sm text-surface-300/70 hover:text-white focus:outline-none"
     >
       {copyText}
     </button>
   </div>
-  <pre><code class="hljs language-{language} !bg-surface-900/95 !text-white text-xs">{@html highlighted}</code></pre>
-  <div class="pr-2 text-sm text-surface-300/70 text-right">language: {language}</div>
+  <div class="overflow-x-auto">
+    <pre class="p-2"><code class="hljs language-{language} !bg-surface-900/95 !text-white text-xs sm:text-sm">{@html highlighted}</code></pre>
+  </div>
 </div>
+
+<style>
+  pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+</style>

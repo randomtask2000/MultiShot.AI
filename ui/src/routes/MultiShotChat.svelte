@@ -1,9 +1,8 @@
 <!-- MultiShotChat.svelte -->
 <script lang="ts">
-import { onMount } from 'svelte';
+import { onMount, onDestroy, afterUpdate } from 'svelte';
 import { type LlmProvider } from './types';
 import { listStore, type ListItem } from './store';
-import { afterUpdate } from 'svelte';
 import {
   storeTokenHistory,
   type Token,
@@ -30,8 +29,11 @@ const unsubscribe = listStore.subscribe(value => {
 
 onMount(() => {
   listStore.init();
+  checkWindowSize(); // Check initial window size
+  window.addEventListener('resize', checkWindowSize);
   return () => {
     unsubscribe();
+    window.removeEventListener('resize', checkWindowSize);
   };
 });
 
@@ -68,6 +70,18 @@ let tokenVar: string = '';
 let tokenHistory: Token[] = [];
 let resultDiv: HTMLDivElement;
 let sidebarVisible = true;
+let windowWidth: number;
+
+const MOBILE_BREAKPOINT = 768; // You can adjust this value as needed
+
+function checkWindowSize() {
+  windowWidth = window.innerWidth;
+  if (windowWidth <= MOBILE_BREAKPOINT) {
+    sidebarVisible = false;
+  } else {
+    sidebarVisible = true;
+  }
+}
 
 const clearToken = () => {
   tokenVar = '';
@@ -126,11 +140,6 @@ $: if (selectedItem != null) {
 
 </script>
 
-<!--<svelte:head>-->
-<!--  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/default.min.css">-->
-<!--  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js"></script>-->
-<!--</svelte:head>-->
-
 <div class="max-w-screen h-screen flex">
   <div
     class="h-screen sidebar-container transition-all duration-300 ease-in-out"
@@ -163,11 +172,11 @@ $: if (selectedItem != null) {
         <AppBarContent bind:selectedItem />
       </svelte:fragment>
     </AppBar>
-<div id="chat" class="flex-1 flex flex-col h-full">
-  <div id="resultOuter" bind:this={elemChat}
-       class="flex-1 bg-surface-800/30 p-4 overflow-y-auto max-h-[calc(100vh-170px)]">
-    <div id="result" bind:this={resultDiv} class="h-full"></div>
-  </div>
+    <div id="chat" class="flex-1 flex flex-col h-full">
+      <div id="resultOuter" bind:this={elemChat}
+           class="flex-1 bg-surface-800/30 p-4 overflow-y-auto max-h-[calc(100vh-170px)]">
+        <div id="result" bind:this={resultDiv} class="h-full"></div>
+      </div>
       <div class="bg-surface-500/30 p-4">
         <div class="input-group input-group-divider grid-cols-[auto_auto_1fr_auto] rounded-full overflow-hidden pr-11 relative">
           <button class="input-group-shim" on:click={sendUserTokenAiHistory}>+</button>
