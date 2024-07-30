@@ -1,7 +1,7 @@
 <!-- MultiShotChat.svelte -->
 <script lang="ts">
 import { onMount } from 'svelte';
-import { type LlmProvider, Items } from './types';
+import { type LlmProvider } from './types';
 import { listStore, type ListItem } from './store';
 import { afterUpdate } from 'svelte';
 import {
@@ -20,6 +20,8 @@ import { AppBar } from '@skeletonlabs/skeleton';
 import ChatHistorySidebar from './ChatHistorySidebar.svelte';
 import AppBarContent from './AppBarContent.svelte';
 import { fade, fly } from 'svelte/transition';
+import { spring } from 'svelte/motion';
+import { cubicInOut } from 'svelte/easing';
 
 let listItems: ListItem[];
 const unsubscribe = listStore.subscribe(value => {
@@ -113,6 +115,11 @@ function toggleSidebar() {
   sidebarVisible = !sidebarVisible;
 }
 
+function clearChat() {
+  tokenHistory = [];
+  clearResultDiv();
+}
+
 $: if (selectedItem != null) {
   console.log("MultiShotChat: selectedItem has changed:", selectedItem);
 }
@@ -124,28 +131,43 @@ $: if (selectedItem != null) {
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js"></script>
 </svelte:head>
 
-<div class="max-w-screen h-screen flex flex-col">
-  <AppBar>
-    <svelte:fragment slot="lead">
-      <button class="btn btn-sm variant-ghost-surface" on:click={toggleSidebar}>
-        <Icon icon={sidebarVisible ? "mdi:menu-open" : "mdi:menu"} />
-      </button>
-    </svelte:fragment>
-    <svelte:fragment slot="trail">
-      <AppBarContent bind:selectedItem />
-    </svelte:fragment>
-  </AppBar>
-  <div class="flex-1 flex overflow-hidden">
-    {#if sidebarVisible}
-      <div transition:fly={{ x: -250, opacity: 1, duration: 300 }}>
-        <ChatHistorySidebar onRestoreChat={restoreChat} onClearList={handleClearList} />
-      </div>
-    {/if}
-    <div id="chat" class="flex-1 flex flex-col">
-      <div id="resultOuter" bind:this={elemChat}
-           class="flex-1 bg-surface-800/30 p-4 overflow-y-auto">
-        <div id="result" bind:this={resultDiv}></div>
-      </div>
+<div class="max-w-screen h-screen flex">
+  <div
+    class="h-screen sidebar-container transition-all duration-300 ease-in-out"
+    style="width: {sidebarVisible ? '250px' : '0'}; overflow: hidden;"
+  >
+    <ChatHistorySidebar
+      onRestoreChat={restoreChat}
+      onClearList={handleClearList}
+      {sidebarVisible}
+    />
+  </div>
+  <div
+    id="chat-container"
+    class="flex flex-col transition-all duration-300 ease-in-out"
+    style="flex-grow: 1; width: {sidebarVisible ? 'calc(100% - 250px)' : '100%'};"
+  >
+    <AppBar>
+      <svelte:fragment slot="lead">
+        <button class="btn btn-sm variant-ghost-surface rounded-md p-2 mr-4 h-8" on:click={toggleSidebar} id="openclosebtn">
+          <Icon icon={sidebarVisible ? "mdi:menu-open" : "mdi:menu"} />
+        </button>
+        <button type="button" class="btn btn-sm variant-ghost-surface rounded-md h-8" on:click={clearChat}>
+            <span>
+               <Icon icon="mdi:delete-sweep" />
+            </span>
+            <span class="font-nunito">Clear Chat</span>
+        </button>
+      </svelte:fragment>
+      <svelte:fragment slot="trail">
+        <AppBarContent bind:selectedItem />
+      </svelte:fragment>
+    </AppBar>
+<div id="chat" class="flex-1 flex flex-col h-full">
+  <div id="resultOuter" bind:this={elemChat}
+       class="flex-1 bg-surface-800/30 p-4 overflow-y-auto max-h-[calc(100vh-170px)]">
+    <div id="result" bind:this={resultDiv} class="h-full"></div>
+  </div>
       <div class="bg-surface-500/30 p-4">
         <div class="input-group input-group-divider grid-cols-[auto_auto_1fr_auto] rounded-full overflow-hidden pr-11 relative">
           <button class="input-group-shim" on:click={sendUserTokenAiHistory}>+</button>

@@ -77,6 +77,8 @@
       </div>
     {/if}
   </div>
-  <a class="font-nunito btn btn-sm variant-ghost-surface rounded-md" href="https://twitter.com/cronuser" target="_blank" rel="noreferrer"> Twitter </a>
-  <a class="font-nunito btn btn-sm variant-ghost-surface rounded-md" href="https://github.com/randomtask2000/MultiShot.AI" target="_blank" rel="noreferrer"> GitHub </a>
+  <a class="font-nunito btn btn-sm variant-ghost-surface rounded-md" href="https://twitter.com/cronuser" target="_blank" rel="noreferrer">
+    <Icon icon="simple-icons:x" class="w-6 h-5" /></a>
+  <a class="font-nunito btn btn-sm variant-ghost-surface rounded-md" href="https://github.com/randomtask2000/MultiShot.AI" target="_blank" rel="noreferrer">
+    <Icon icon="simple-icons:github" class="w-6 h-5 pr-2" /> GitHub </a>
 

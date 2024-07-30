@@ -1,40 +1,43 @@
 <!-- ChatHistorySidebar.svelte -->
 <script lang="ts">
+  import { fly } from 'svelte/transition';
+  import { cubicInOut } from 'svelte/easing';
   import { listStore, type ListItem } from './store';
   import Icon from '@iconify/svelte';
-  import { fade } from 'svelte/transition';
 
   export let onRestoreChat: (item: ListItem) => void;
   export let onClearList: () => void;
-
-  let listItems: ListItem[];
-
-  listStore.subscribe(value => {
-    listItems = value;
-  });
+  export let sidebarVisible: boolean;
 </script>
 
-<div id="search"
-     class="grid grid-rows-[auto_1fr_auto] gap-0 w-[250px] h-full bg-surface-700/30 transition-all duration-300"
-     transition:fade={{ duration: 300 }}>
-  <div class="bg-surface-600/30 p-4 text-gray-500">Chat History</div>
-  <div class="bg-surface-600/30 p-4 overflow-y-auto">
-    {#each listItems as item (item.id)}
-      <button
-        class="font-nunito variant-soft-secondary p-2 rounded-md mb-2 w-full text-left flex items-center"
-        on:click={() => onRestoreChat(item)}
-        on:keydown={(e) => e.key === 'Enter' && onRestoreChat(item)}
-        title={item.tokenHistory[0].content.substring(0, 30)}
-      >
-        <Icon icon="mdi:chat-outline" class="mr-2" />
-        <span class="truncate">{@html item.text}</span>
-      </button>
-    {/each}
-  </div>
-  <div class="bg-surface-600/30 p-4">
-    <button class="btn variant-filled-primary w-full" on:click={onClearList} title="clear the list">
-      <Icon icon="mdi:delete-sweep" class="mr-2" />
-      Clear History
-    </button>
-  </div>
+<div
+  class="h-screen w-60 p-4 shadow-md overflow-y-auto"
+  transition:fly={{ x: -250, opacity: 1, duration: 300, easing: cubicInOut }}
+>
+  <h2 class="font-nunito text-xl bg-gradient-to-br from-surface-500/30 to-violet-400 bg-clip-text text-transparent box-decoration-clone">Chat History</h2>
+    <br/>
+  {#if $listStore.length === 0}
+    <p class="bg-surface-800/30">No saved chats yet.</p>
+  {:else}
+    <ul class="space-y-2">
+      {#each $listStore as item (item.id)}
+        <li>
+          <button
+            on:click={() => onRestoreChat(item)}
+            class="flex items-center justify-between w-full p-2 text-left hover:bg-surface-500/30 rounded transition duration-300 font-nunito"
+          >
+            <span class="truncate">{@html item.text}</span>
+            <Icon icon="mdi:restore" class="flex-shrink-0 ml-2" />
+          </button>
+        </li>
+      {/each}
+    </ul>
+  {/if}
+  <button
+    on:click={onClearList}
+    class="mt-4 flex items-center justify-center w-full p-2 bg-surface-500/30 text-white rounded hover:bg-red-600 transition duration-300 font-nunito"
+  >
+    <Icon icon="mdi:delete" class="mr-2" />
+    Clear All
+  </button>
 </div>
