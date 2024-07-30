@@ -31,14 +31,13 @@ class LLMFactory:
 
     @staticmethod
     async def get_anthropic(callback, llm, env_key):
-        k = os.getenv(env_key, 'nokey')
         model = ChatAnthropic(
             streaming=True,
             verbose=True,
             callbacks=[callback],
             model=llm,
             model_name=llm,
-            anthropic_api_key=k
+            anthropic_api_key=os.getenv(env_key + '_KEY', 'nokey'),
         )
         return model
 
@@ -48,7 +47,7 @@ class LLMFactory:
             streaming=True,
             verbose=True,
             callbacks=[callback],
-            openai_api_key=os.getenv(env_key, 'nokey'),
+            openai_api_key=os.getenv(env_key + '_KEY', 'nokey'),
             model_name=llm
         )
         return model
@@ -60,7 +59,7 @@ class LLMFactory:
             streaming=True,
             verbose=True,
             callbacks=[callback],
-            openai_api_key=os.getenv(env_key, 'nokey'),
+            openai_api_key=os.getenv(env_key + '_KEY', 'nokey'),
             model_name=llm
         )
         return model
