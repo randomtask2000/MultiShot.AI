@@ -140,66 +140,68 @@ $: if (selectedItem != null) {
 
 </script>
 
-<div class="max-w-screen h-screen flex">
-  <div
-    class="h-screen sidebar-container transition-all duration-300 ease-in-out"
-    style="width: {sidebarVisible ? '250px' : '0'}; overflow: hidden;"
-  >
-    <ChatHistorySidebar
-      onRestoreChat={restoreChat}
-      onClearList={handleClearList}
-      {sidebarVisible}
-    />
-  </div>
-  <div
-    id="chat-container"
-    class="flex flex-col transition-all duration-300 ease-in-out"
-    style="flex-grow: 1; width: {sidebarVisible ? 'calc(100% - 250px)' : '100%'};"
-  >
-    <AppBar>
-      <svelte:fragment slot="lead">
-        <button class="btn btn-sm variant-ghost-surface rounded-md p-2 mr-4 h-8" on:click={toggleSidebar} id="openclosebtn">
-          <Icon icon={sidebarVisible ? "mdi:menu-open" : "mdi:menu"} />
-        </button>
-        <button type="button" class="btn btn-sm variant-ghost-surface rounded-md h-8" on:click={clearChat}>
-            <span>
-               <Icon icon="mdi:delete-sweep" />
-            </span>
-            <span class="font-nunito">Clear Chat</span>
-        </button>
-      </svelte:fragment>
-      <svelte:fragment slot="trail">
-        <AppBarContent bind:selectedItem />
-      </svelte:fragment>
-    </AppBar>
-    <div id="chat" class="flex-1 flex flex-col h-full">
-      <div id="resultOuter" bind:this={elemChat}
-           class="flex-1 bg-surface-800/30 p-4 overflow-y-auto max-h-[calc(100vh-170px)]">
-        <div id="result" bind:this={resultDiv} class="h-full"></div>
-      </div>
-      <div class="bg-surface-500/30 p-4">
-        <div class="input-group input-group-divider grid-cols-[auto_auto_1fr_auto] rounded-full overflow-hidden pr-11 relative">
-          <button class="input-group-shim" on:click={sendUserTokenAiHistory}>+</button>
-          <button class="w-12 h-8 bg-transparent border-none pt-2" on:click={handleAddItem} name="save">
-            <Icon icon="ic:twotone-save-alt" class="w-full h-full" />
+<div class="max-w-screen h-screen flex flex-col">
+  <div class="flex flex-grow overflow-hidden">
+    <div
+      class="h-full sidebar-container transition-all duration-300 ease-in-out"
+      style="width: {sidebarVisible ? '250px' : '0'}; overflow: hidden;"
+    >
+      <ChatHistorySidebar
+        onRestoreChat={restoreChat}
+        onClearList={handleClearList}
+        {sidebarVisible}
+      />
+    </div>
+    <div
+      id="chat-container"
+      class="flex flex-col flex-grow overflow-hidden transition-all duration-300 ease-in-out"
+      style="width: {sidebarVisible ? 'calc(100% - 250px)' : '100%'};"
+    >
+      <AppBar>
+        <svelte:fragment slot="lead">
+          <button class="btn btn-sm variant-ghost-surface rounded-md p-2 mr-4 h-8" on:click={toggleSidebar} id="openclosebtn">
+            <Icon icon={sidebarVisible ? "mdi:menu-open" : "mdi:menu"} />
           </button>
-          <textarea bind:value={tokenVar}
-                    class="w-full font-nunito bg-transparent border-0 ring-0 right-5"
-                    name="tokenInput"
-                    id="tokenInput"
-                    placeholder="Write a message..."
-                    rows="1"
-                    on:keydown={checkForReturnKey} />
-          <button
-            class="absolute -right-2.5 top-1 bottom-1 bg-transparent flex items-center justify-center transition-all duration-300 ease-in-out hover:scale-110"
-            on:click={sendUserTokenAiHistory}
-            name="send"
-          >
-            <Icon
-              icon="ph:arrow-circle-up-fill"
-              class="w-8 h-8 transition-all duration-300 ease-in-out hover:text-variant-filled-primary hover:drop-shadow-[0_0_10px_rgba(59,130,246,0.5)] "
-            />
+          <button type="button" class="btn btn-sm variant-ghost-surface rounded-md h-8" on:click={clearChat}>
+              <span>
+                 <Icon icon="mdi:delete-sweep" />
+              </span>
+              <span class="font-nunito">Clear Chat</span>
           </button>
+        </svelte:fragment>
+        <svelte:fragment slot="trail">
+          <AppBarContent bind:selectedItem />
+        </svelte:fragment>
+      </AppBar>
+      <div id="chat" class="flex flex-col flex-grow overflow-hidden">
+        <div id="resultOuter" bind:this={elemChat}
+             class="flex-grow bg-surface-800/30 p-4 overflow-y-auto">
+          <div id="result" bind:this={resultDiv} class="min-h-full"></div>
+        </div>
+        <div class="bg-surface-500/30 p-4 flex-shrink-0">
+          <div class="input-group input-group-divider grid-cols-[auto_auto_1fr_auto] rounded-full overflow-hidden pr-11 relative">
+            <button class="input-group-shim" on:click={sendUserTokenAiHistory}>+</button>
+            <button class="w-12 h-8 bg-transparent border-none pt-2" on:click={handleAddItem} name="save">
+              <Icon icon="ic:twotone-save-alt" class="w-full h-full" />
+            </button>
+            <textarea bind:value={tokenVar}
+                      class="w-full font-nunito bg-transparent border-0 ring-0 right-5"
+                      name="tokenInput"
+                      id="tokenInput"
+                      placeholder="Write a message..."
+                      rows="1"
+                      on:keydown={checkForReturnKey} />
+            <button
+              class="absolute -right-2.5 top-1 bottom-1 bg-transparent flex items-center justify-center transition-all duration-300 ease-in-out hover:scale-110"
+              on:click={sendUserTokenAiHistory}
+              name="send"
+            >
+              <Icon
+                icon="ph:arrow-circle-up-fill"
+                class="w-8 h-8 transition-all duration-300 ease-in-out hover:text-variant-filled-primary hover:drop-shadow-[0_0_10px_rgba(59,130,246,0.5)] "
+              />
+            </button>
+          </div>
         </div>
       </div>
     </div>
