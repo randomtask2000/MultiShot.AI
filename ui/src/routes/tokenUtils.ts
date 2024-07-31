@@ -5,17 +5,8 @@ import hljs from 'highlight.js';
 import BubbleUser from './BubbleUser.svelte';
 import BubbleSystem from './BubbleSystem.svelte';
 import CodeBlock from './CodeBlock.svelte';
-import type { LlmProvider } from './types';
 
-export interface Token {
-    role: string;
-    content: string;
-    llmInfo: LlmProvider;
-}
-
-export interface GenericReader {
-  read(): Promise<{ done: boolean; value: Uint8Array | undefined }>;
-}
+import { type Token, type GenericReader, type LlmProvider } from './types';
 
 export function storeTokenHistory(
     tokenHistory: Token[],

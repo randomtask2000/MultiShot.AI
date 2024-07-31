@@ -13,6 +13,20 @@ export interface DataObject {
   item: string;
 }
 
+export interface Token {
+    role: string;
+    content: string;
+    llmInfo: LlmProvider;
+}
+
+export interface GenericReader {
+  read(): Promise<{ done: boolean; value: Uint8Array | undefined }>;
+}
+
+export interface DataObject {
+  item: string;
+}
+
 // unplugin-icons  https://github.com/unplugin/unplugin-icons
 // icons can be found here: https://icon-sets.iconify.design/
 export const Items: LlmProvider[] = [

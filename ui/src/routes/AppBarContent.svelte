@@ -1,4 +1,3 @@
-<!-- AppBarContent.svelte -->
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { LlmProvider } from './types';
@@ -8,6 +7,7 @@
   import { fade } from 'svelte/transition';
 
   export let selectedItem: LlmProvider | null = null;
+
 
   function handleSelectItem(event: CustomEvent<LlmProvider> | { detail: LlmProvider }): void {
     selectedItem = event.detail;

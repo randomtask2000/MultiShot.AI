@@ -1,17 +1,14 @@
-<!-- MultiShotChat.svelte -->
 <script lang="ts">
 import { onMount, onDestroy, afterUpdate } from 'svelte';
-import { type LlmProvider } from './types';
+import { type LlmProvider, type Token, type GenericReader } from './types';
 import { listStore, type ListItem } from './store';
 import {
   storeTokenHistory,
-  type Token,
   scrollChatBottom,
   addBubble,
   printMessage,
   fetchAi,
   printResponse,
-  type GenericReader,
   renderMarkdownWithCodeBlock
 } from './tokenUtils';
 import Icon from '@iconify/svelte';

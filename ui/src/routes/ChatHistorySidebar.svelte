@@ -1,4 +1,3 @@
-<!-- ChatHistorySidebar.svelte -->
 <script lang="ts">
   import { fly } from 'svelte/transition';
   import { cubicInOut } from 'svelte/easing';
