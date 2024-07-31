@@ -11,6 +11,8 @@
   let showCursor = true;
   let cursorTimeout: ReturnType<typeof setTimeout>;
 
+  const CURSOR_CHAR = '█'; // ASCII 219
+
   $: {
     highlighted = hljs.highlight(content, { language }).value;
     resetCursorTimeout();
@@ -52,8 +54,8 @@
       {copyText}
     </button>
   </div>
-  <div class="overflow-x-auto code-content" style="max-height: 400px;">
-    <pre class="p-2"><code class="hljs language-{language} !bg-surface-900/95 !text-white text-xs sm:text-sm">{@html highlighted}</code>{#if showCursor}<span class="cursor">{'█'}</span>{/if}</pre>
+  <div class="overflow-x-auto code-content">
+    <pre class="p-2 pb-3"><code class="hljs language-{language} !bg-surface-900/95 !text-white text-xs sm:text-sm">{@html highlighted}</code><span class="cursor" class:visible={showCursor}>{CURSOR_CHAR}</span></pre>
   </div>
 </div>
 
@@ -62,11 +64,27 @@
     margin: 0;
     white-space: pre-wrap;
     word-wrap: break-word;
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: 0.75rem; /* Added padding at the bottom */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Optional: adds a subtle line */
+  }
+
+  code {
+    flex: 1;
   }
 
   .cursor {
     display: inline-block;
-    width: 0;
+    width: 0.6em;
+    height: 1.2em;
+    vertical-align: text-bottom;
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+
+  .cursor.visible {
+    opacity: 1;
     animation: blink 0.7s infinite;
   }
 
