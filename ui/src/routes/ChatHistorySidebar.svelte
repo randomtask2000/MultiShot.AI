@@ -1,10 +1,11 @@
 <script lang="ts">
   import { fly } from 'svelte/transition';
   import { cubicInOut } from 'svelte/easing';
-  import { listStore, type ListItem } from './store';
+  import { listStore } from './store';
+  import { type ChatHistoryItem, LlmProviderList } from './types';
   import Icon from '@iconify/svelte';
 
-  export let onRestoreChat: (item: ListItem) => void;
+  export let onRestoreChat: (item: ChatHistoryItem) => void;
   export let onClearList: () => void;
   export let sidebarVisible: boolean;
 </script>
@@ -26,7 +27,7 @@
             class="flex items-center justify-between w-full p-2 text-left hover:bg-surface-500/30 rounded transition duration-300 font-nunito"
           >
             <span class="truncate">{@html item.text}</span>
-            <Icon icon="mdi:restore" class="flex-shrink-0 ml-2" />
+            <Icon icon={item.llmProvider.icon} class="flex-shrink-0 ml-2" />
           </button>
         </li>
       {/each}

@@ -27,6 +27,13 @@ export interface DataObject {
   item: string;
 }
 
+export interface ChatHistoryItem {
+  id: number;
+  text: string;
+  tokenHistory: Token[];
+  llmProvider: LlmProvider;
+}
+
 // unplugin-icons  https://github.com/unplugin/unplugin-icons
 // icons can be found here: https://icon-sets.iconify.design/
 export const LlmProviderList: LlmProvider[] = [

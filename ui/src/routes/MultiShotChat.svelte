@@ -1,7 +1,7 @@
 <script lang="ts">
 import { onMount, onDestroy, afterUpdate } from 'svelte';
-import { type LlmProvider, type Token, type GenericReader } from './types';
-import { listStore, type ListItem } from './store';
+import { type LlmProvider, type Token, type GenericReader, LlmProviderList, type ChatHistoryItem } from './types';
+import { listStore } from './store';
 import {
   storeTokenHistory,
   scrollChatBottom,
@@ -19,14 +19,14 @@ import { fade, fly } from 'svelte/transition';
 import { spring } from 'svelte/motion';
 import { cubicInOut } from 'svelte/easing';
 
-let listItems: ListItem[];
+let listItems: ChatHistoryItem[];
 const unsubscribe = listStore.subscribe(value => {
   listItems = value;
 });
 
 onMount(() => {
   listStore.init();
-  checkWindowSize(); // Check initial window size
+  checkWindowSize();
   window.addEventListener('resize', checkWindowSize);
   return () => {
     unsubscribe();
@@ -44,8 +44,9 @@ function handleClearList() {
   listStore.clearList();
 }
 
-function restoreChat(item: ListItem): void {
+function restoreChat(item: ChatHistoryItem): void {
   tokenHistory = [...item.tokenHistory];
+  selectedItem = item.llmProvider;
   clearResultDiv();
   tokenHistory.forEach((token) => {
     const type: 'user' | 'ai' = token.role === 'user' ? 'user' : 'ai';
@@ -62,7 +63,7 @@ function restoreChat(item: ListItem): void {
   });
 }
 
-export let selectedItem: LlmProvider;
+export let selectedItem: LlmProvider = LlmProviderList[0];
 let tokenVar: string = '';
 let tokenHistory: Token[] = [];
 let resultDiv: HTMLDivElement;

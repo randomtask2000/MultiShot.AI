@@ -1,8 +1,7 @@
-// tokenUtils.ts
-import { type ListItem } from './store';
+import { type ChatHistoryItem } from './types';
 import BubbleUser from './BubbleUser.svelte';
 import BubbleSystem from './BubbleSystem.svelte';
-import { type Token, type GenericReader, type LlmProvider } from './types';
+import { type Token, type GenericReader, type LlmProvider, LlmProviderList } from './types';
 import {
   renderMarkdownWithCodeBlock,
   renderMarkdown,
@@ -12,16 +11,17 @@ import {
 
 export function storeTokenHistory(
     tokenHistory: Token[],
-    addItem: (item: ListItem) => void,
+    addItem: (item: ChatHistoryItem) => void,
     clearResult: () => void
 ): void {
     if (tokenHistory.length > 0) {
         const lastToken = tokenHistory[tokenHistory.length - 1];
         const title = renderMarkdown(lastToken.content.substring(0, 30)).replace(/<[^>]*>/g, '');
-        const newItem: ListItem = {
+        const newItem: ChatHistoryItem = {
             id: Date.now(),
             text: title,
-            tokenHistory: [...tokenHistory]
+            tokenHistory: [...tokenHistory],
+            llmProvider: lastToken.llmInfo
         };
         addItem(newItem);
         clearResult();

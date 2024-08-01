@@ -1,14 +1,8 @@
 import { writable } from 'svelte/store';
-import type { Token } from './tokenUtils';
-
-export interface ListItem {
-  id: number;
-  text: string;
-  tokenHistory: Token[];
-}
+import type { ChatHistoryItem } from './types';
 
 function createListStore() {
-  const { subscribe, set, update } = writable<ListItem[]>([]);
+  const { subscribe, set, update } = writable<ChatHistoryItem[]>([]);
 
   let initialized = false;
 
@@ -17,14 +11,14 @@ function createListStore() {
     if (typeof window === 'undefined') return;
 
     const storedItems = localStorage.getItem('listItems');
-    const initialItems: ListItem[] = storedItems ? JSON.parse(storedItems) : [];
+    const initialItems: ChatHistoryItem[] = storedItems ? JSON.parse(storedItems) : [];
     set(initialItems);
     initialized = true;
   }
 
   return {
     subscribe,
-    addItem: (item: ListItem) => {
+    addItem: (item: ChatHistoryItem) => {
       update(items => {
         const updatedItems = [...items, item];
         if (typeof window !== 'undefined') {
@@ -44,3 +38,4 @@ function createListStore() {
 }
 
 export const listStore = createListStore();
+
