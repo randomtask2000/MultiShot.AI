@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { LlmProvider } from './types';
-  import { Items } from './types';
+  import { LlmProviderList } from './types';
   import Icon from '@iconify/svelte';
   import { ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
   import { fade } from 'svelte/transition';
@@ -17,7 +17,7 @@
 
   $: if (!selectedItem) {
     const desiredSelector = 'gpt-4o-mini';
-    const matchedItem = Items.find(item => item.model === desiredSelector);
+    const matchedItem = LlmProviderList.find(item => item.model === desiredSelector);
     if (matchedItem) {
       selectedItem = matchedItem;
     } else {
@@ -60,7 +60,7 @@
     {#if isListBoxVisible}
       <div transition:fade class="absolute top-full right-0 mt-2 z-50 min-w-[200px] w-max rounded-md p-3 bg-gradient-to-br from-surface-900/95 to-darkblue-900/90">
         <ListBox class="w-full">
-          {#each Items as item}
+          {#each LlmProviderList as item}
             <ListBoxItem
               on:click={() => handleSelectItem({ detail: item })}
               active={selectedItem?.model === item.model}

@@ -15,6 +15,11 @@ class LLMFactory:
                 model = await LLMFactory.get_anthropic(callback,
                                                        llm_settings.model,
                                                        llm_settings.apiKeyName)
+            case "mistral":
+                model = await LLMFactory.get_openai_url(callback,
+                                                        llm_settings.model,
+                                                        llm_settings.apiKeyName,
+                                                        "https://api.mistral.ai/v1/")
             case "groq":
                 model = await LLMFactory.get_openai_url(callback,
                                                         llm_settings.model,

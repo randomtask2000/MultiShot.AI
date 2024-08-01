@@ -29,7 +29,7 @@ export interface DataObject {
 
 // unplugin-icons  https://github.com/unplugin/unplugin-icons
 // icons can be found here: https://icon-sets.iconify.design/
-export const Items: LlmProvider[] = [
+export const LlmProviderList: LlmProvider[] = [
     {
       "provider": "openai",
       "model": "gpt-4o-mini",
@@ -65,6 +65,15 @@ export const Items: LlmProvider[] = [
       "subtitle": "Best for coding tasks",
       "systemMessage": "You are a highly skilled AI assistant specializing in Svelte, JavaScript, Python, LangChain, LangGraph, and TypeScript. Your role involves guiding developers in setting up and configuring projects, creating and optimizing code, debugging issues, and providing best practices. You offer well-commented and formatted code snippets, in baby language for someone that doesn't like to read, and relevant references.",
       "apiKeyName": "ANTHROPIC_API"
+    },
+    {
+      "model": "mistral-large-latest",
+      "title": "Mistral large latest",
+      "icon": "logos:mistral-ai-icon",
+      "subtitle": "Large enough",
+      "systemMessage": "You are a highly skilled AI assistant specializing in Svelte, JavaScript, Python, LangChain, LangGraph, and TypeScript. You only return the full code files and no explanations.",
+      "provider": "mistral",
+      "apiKeyName": "MISTRAL_API"
     },
     {
       "provider": "groq",
