@@ -1,12 +1,14 @@
+// tokenUtils.ts
 import { type ListItem } from './store';
-import { marked } from 'marked';
-import { markedHighlight } from "marked-highlight";
-import hljs from 'highlight.js';
 import BubbleUser from './BubbleUser.svelte';
 import BubbleSystem from './BubbleSystem.svelte';
-import CodeBlock from './CodeBlock.svelte';
-
 import { type Token, type GenericReader, type LlmProvider } from './types';
+import {
+  renderMarkdownWithCodeBlock,
+  renderMarkdown,
+  renderMarkdownHistory,
+  StreamParser
+} from './markdownUtils';
 
 export function storeTokenHistory(
     tokenHistory: Token[],
@@ -15,7 +17,7 @@ export function storeTokenHistory(
 ): void {
     if (tokenHistory.length > 0) {
         const lastToken = tokenHistory[tokenHistory.length - 1];
-        const title = marked.parse(lastToken.content.substring(0, 30)).replace(/<[^>]*>/g, '');
+        const title = renderMarkdown(lastToken.content.substring(0, 30)).replace(/<[^>]*>/g, '');
         const newItem: ListItem = {
             id: Date.now(),
             text: title,
@@ -45,6 +47,7 @@ export function addBubble(resultDiv: HTMLDivElement, person: string, type: "user
     }
     if (!person) person = "person";
     const parentDiv = document.createElement('div');
+    const bubbleId = `div${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const bubbleData = {
         color: 'variant-soft-primary',
         name: person,
@@ -64,8 +67,7 @@ export function addBubble(resultDiv: HTMLDivElement, person: string, type: "user
         default:
             throw new Error("Unsupported type");
     }
-    const bubbleId = `div${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    bubble.id = bubbleId;
+    parentDiv.id = bubbleId;
     resultDiv.appendChild(parentDiv);
     return { bubbleId, pid: bubbleData.pid };
 }
@@ -73,7 +75,9 @@ export function addBubble(resultDiv: HTMLDivElement, person: string, type: "user
 export function printMessage(pid: string, tokens: string): void {
     const element = document.getElementById(pid);
     if (element) {
-        element.innerHTML += tokens;
+        const parser = new StreamParser(element);
+        parser.processChunk(tokens);
+        parser.finish();
     }
 }
 
@@ -86,123 +90,6 @@ export async function fetchAi(history: Token[], selectedItem: LlmProvider) {
         },
         body: content
     });
-}
-
-class CustomRenderer extends marked.Renderer {
-  code(code: string, language: string): string {
-    return `<pre><code data-highlighted="true" class="language-${language}">${code}</code></pre>`;
-  }
-}
-
-const customRenderer = new CustomRenderer();
-
-marked.use(
-  markedHighlight({
-    langPrefix: 'language-',
-    highlight(code, lang) {
-      const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-      return hljs.highlight(code, { language }).value;
-    }
-  }),
-  {
-    mangle: false,
-    headerIds: false,
-    renderer: customRenderer
-  }
-);
-
-export function renderMarkdownWithCodeBlock(content: string, outputElement: HTMLElement) {
-  const parser = new StreamParser(outputElement);
-  parser.processChunk(content);
-  parser.finish();
-}
-
-export function renderMarkdown(content: string) {
-  const tempDiv = document.createElement('div');
-  renderMarkdownWithCodeBlock(content, tempDiv);
-  return tempDiv.innerHTML;
-}
-
-export function renderMarkdownHistory(content: string) {
-  return renderMarkdown(content);
-}
-
-export class StreamParser {
-  private outputElement: HTMLElement;
-  private buffer: string = '';
-  private inCodeBlock: boolean = false;
-  private currentLanguage: string = '';
-  private codeBlockComponent: CodeBlock | null = null;
-  private codeBlockContent: string = '';
-
-  constructor(outputElement: HTMLElement) {
-    this.outputElement = outputElement;
-  }
-
-  private renderMarkdown(line: string): void {
-    if (line.startsWith('```')) {
-      if (this.inCodeBlock) {
-        // End of code block
-        if (this.codeBlockComponent) {
-          this.codeBlockComponent.$set({ content: this.codeBlockContent.trim() });
-          this.codeBlockComponent = null;
-        }
-        this.inCodeBlock = false;
-        this.codeBlockContent = '';
-      } else {
-        // Start of code block
-        this.currentLanguage = line.slice(3).trim() || 'python';
-        this.inCodeBlock = true;
-        const wrapper = document.createElement('div');
-        this.outputElement.appendChild(wrapper);
-        this.codeBlockComponent = new CodeBlock({
-          target: wrapper,
-          props: {
-            content: '',
-            language: this.currentLanguage
-          }
-        });
-      }
-    } else if (this.inCodeBlock) {
-      // Inside code block
-      this.codeBlockContent += line;
-      if (this.codeBlockComponent) {
-        this.codeBlockComponent.$set({ content: this.codeBlockContent });
-      }
-    } else {
-      // Regular markdown content
-      const html = marked(line);
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = html;
-      while (tempDiv.firstChild) {
-        this.outputElement.appendChild(tempDiv.firstChild);
-      }
-    }
-  }
-
-  processChunk(chunk: string): void {
-    this.buffer += chunk;
-    const lines = this.buffer.split('\n');
-    while (lines.length > 1) {
-      const line = lines.shift();
-      if (line !== undefined) {
-        this.renderMarkdown(line + '\n');
-      }
-    }
-    this.buffer = lines[0];
-  }
-
-  finish(): void {
-    if (this.buffer) {
-      this.renderMarkdown(this.buffer);
-      this.buffer = '';
-    }
-    if (this.inCodeBlock) {
-      this.renderMarkdown('```');
-    }
-    this.codeBlockComponent = null;
-    this.codeBlockContent = '';
-  }
 }
 
 export async function printResponse(
@@ -233,9 +120,14 @@ export async function printResponse(
             const token = decoder.decode(result.value);
             lastResponse += token;
             parser.processChunk(token);
+
+            // Add a small delay to make the cursor blinking visible
+            await new Promise(resolve => setTimeout(resolve, 10));
         }
         return reader.read().then(processResult);
     }
     await reader.read().then(processResult);
     return lastResponse;
 }
+
+export { renderMarkdownWithCodeBlock, renderMarkdown, renderMarkdownHistory };

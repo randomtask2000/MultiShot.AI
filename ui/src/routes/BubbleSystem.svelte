@@ -2,6 +2,7 @@
     import { Avatar } from '@skeletonlabs/skeleton';
     import { fly } from 'svelte/transition';
     import { onMount, afterUpdate } from 'svelte';
+    import { StreamParser } from './markdownUtils';
 
     interface Bubble {
         color: string;
@@ -13,6 +14,28 @@
     }
 
     export let bubble: Bubble;
+
+    let contentElement: HTMLElement;
+    let parser: StreamParser;
+    let currentMessage = '';
+
+    $: if (contentElement && !parser) {
+        parser = new StreamParser(contentElement);
+    }
+
+    $: if (parser && bubble.message !== currentMessage) {
+        const newChunk = bubble.message.slice(currentMessage.length);
+        parser.processChunk(newChunk);
+        currentMessage = bubble.message;
+    }
+
+    onMount(() => {
+        return () => {
+            if (parser) {
+                parser.finish();
+            }
+        };
+    });
 
     function shake(node: HTMLElement) {
         let lastHeight = node.offsetHeight;
@@ -64,7 +87,64 @@
             <p class="font-bold capitalize">{bubble.name}</p>
             <small class="opacity-50">{bubble.timestamp}</small>
         </header>
-        <p id={bubble.pid} class="font-nunito text-left">{bubble.message}</p>
+        <div bind:this={contentElement} id={bubble.pid} class="font-nunito text-left"></div>
     </div>
 </div>
 <br />
+
+<style>
+    :global(.blinking-cursor) {
+        font-weight: 100;
+        color: #2E3D48;
+        -webkit-animation: 1s blink step-end infinite;
+        -moz-animation: 1s blink step-end infinite;
+        -ms-animation: 1s blink step-end infinite;
+        -o-animation: 1s blink step-end infinite;
+        animation: 1s blink step-end infinite;
+    }
+
+    @keyframes blink {
+        from, to {
+            color: transparent;
+        }
+        50% {
+            color: #2E3D48;
+        }
+    }
+
+    @-moz-keyframes blink {
+        from, to {
+            color: transparent;
+        }
+        50% {
+            color: #2E3D48;
+        }
+    }
+
+    @-webkit-keyframes blink {
+        from, to {
+            color: transparent;
+        }
+        50% {
+            color: #2E3D48;
+        }
+    }
+
+    @-ms-keyframes blink {
+        from, to {
+            color: transparent;
+        }
+        50% {
+            color: #2E3D48;
+        }
+    }
+
+    @-o-keyframes blink {
+        from, to {
+            color: transparent;
+        }
+        50% {
+            color: #2E3D48;
+        }
+    }
+</style>
