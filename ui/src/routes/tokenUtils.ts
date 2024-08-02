@@ -1,7 +1,8 @@
+// tokenUtils.ts
 import { type ChatHistoryItem } from './types';
 import BubbleUser from './BubbleUser.svelte';
 import BubbleSystem from './BubbleSystem.svelte';
-import { type Token, type GenericReader, type LlmProvider, LlmProviderList } from './types';
+import { type Token, type GenericReader, type LlmProvider } from './types';
 import {
   renderMarkdownWithCodeBlock,
   renderMarkdown,

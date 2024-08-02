@@ -1,7 +1,8 @@
 <script lang="ts">
-import { onMount, onDestroy, afterUpdate } from 'svelte';
+import { onMount, afterUpdate } from 'svelte';
 import { type LlmProvider, type Token, type GenericReader, LlmProviderList, type ChatHistoryItem } from './types';
 import { listStore } from './store';
+import { ChatHistoryManager } from './chatHistoryManager';
 import {
   storeTokenHistory,
   scrollChatBottom,
@@ -15,9 +16,6 @@ import Icon from '@iconify/svelte';
 import { AppBar } from '@skeletonlabs/skeleton';
 import ChatHistorySidebar from './ChatHistorySidebar.svelte';
 import AppBarContent from './AppBarContent.svelte';
-import { fade, fly } from 'svelte/transition';
-import { spring } from 'svelte/motion';
-import { cubicInOut } from 'svelte/easing';
 
 let listItems: ChatHistoryItem[];
 const unsubscribe = listStore.subscribe(value => {
@@ -41,7 +39,7 @@ function handleAddItem() {
 }
 
 function handleClearList() {
-  listStore.clearList();
+  ChatHistoryManager.clearChatHistory();
 }
 
 function restoreChat(item: ChatHistoryItem): void {
