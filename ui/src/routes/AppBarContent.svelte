@@ -6,6 +6,9 @@
   import { ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
   import { fade } from 'svelte/transition';
   import { themeStore } from './store';
+  import { LightSwitch } from '@skeletonlabs/skeleton';
+  import { autoModeWatcher } from '@skeletonlabs/skeleton'; //https://www.skeleton.dev/docs/dark-mode
+  import { setInitialClassState } from '@skeletonlabs/skeleton';
 
   export let selectedItem: LlmProvider | null = null;
 
@@ -76,6 +79,8 @@
   });
 </script>
 
+
+<svelte:head>{@html '<script>(' + setInitialClassState.toString() + autoModeWatcher.toString() + ')();</script>'}</svelte:head>
 <strong class="font-nunito text-xl bg-gradient-to-br from-pink-500 to-violet-500 bg-clip-text text-transparent box-decoration-clone">MultiShot.AI</strong>
 <div class="relative" bind:this={listBoxContainer}>
   <button type="button" class="btn btn-sm variant-ghost-surface rounded-md" on:click|stopPropagation={() => isListBoxVisible = !isListBoxVisible}>
@@ -111,7 +116,8 @@
 </div>
 <div class="relative" bind:this={themeListBoxContainer}>
   <button type="button" class="btn btn-sm variant-ghost-surface rounded-md" on:click|stopPropagation={() => isThemeListBoxVisible = !isThemeListBoxVisible}>
-    <span class="font-nunito">Theme: {selectedTheme}</span>
+    <span class="font-nunito">{selectedTheme}</span>
+    <LightSwitch />
   </button>
   {#if isThemeListBoxVisible}
     <div transition:fade class="absolute top-full right-0 mt-2 z-50 min-w-[200px] w-max rounded-md p-3 bg-gradient-to-br from-surface-900/95 to-darkblue-900/90">
