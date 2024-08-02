@@ -29,3 +29,29 @@ function createListStore() {
 }
 
 export const listStore = createListStore();
+
+// New theme store
+function createThemeStore() {
+  const defaultTheme = 'rocket';
+  const { subscribe, set } = writable(
+    (typeof localStorage !== 'undefined' && localStorage.getItem('selectedTheme')) || defaultTheme
+  );
+
+  return {
+    subscribe,
+    setTheme: (theme: string) => {
+      set(theme);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('selectedTheme', theme);
+      }
+    },
+    init: () => {
+      const storedTheme = typeof localStorage !== 'undefined' && localStorage.getItem('selectedTheme');
+      if (storedTheme) {
+        set(storedTheme);
+      }
+    }
+  };
+}
+
+export const themeStore = createThemeStore();
