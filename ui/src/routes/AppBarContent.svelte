@@ -9,6 +9,7 @@
   import { LightSwitch } from '@skeletonlabs/skeleton';
   import { autoModeWatcher } from '@skeletonlabs/skeleton'; //https://www.skeleton.dev/docs/dark-mode
   import { setInitialClassState } from '@skeletonlabs/skeleton';
+  import { SlideToggle } from '@skeletonlabs/skeleton';
 
   export let selectedItem: LlmProvider | null = null;
 
@@ -77,50 +78,64 @@
       document.removeEventListener('click', handleClickOutside);
     };
   });
+
+  let localwebLlm: boolean = false;
 </script>
 
 
 <svelte:head>{@html '<script>(' + setInitialClassState.toString() + autoModeWatcher.toString() + ')();</script>'}</svelte:head>
-<strong class="font-nunito text-xl bg-gradient-to-br from-pink-500 to-violet-500 bg-clip-text text-transparent box-decoration-clone">MultiShot.AI</strong>
 <div class="relative" bind:this={listBoxContainer}>
-  <button type="button" class="btn btn-sm variant-ghost-surface rounded-md" on:click|stopPropagation={() => isListBoxVisible = !isListBoxVisible}>
+  <button type="button" class="btn btn-sm variant-ghost-surface rounded-md"
+          on:click|stopPropagation={() => isListBoxVisible = !isListBoxVisible}>
     <span>
       <Icon
         icon={selectedItem ? selectedItem.icon : "material-symbols:skull"}
         class="w-6 h-5"
       />
     </span>
-    <span class="font-nunito  bg-gradient-to-br from-pink-500 to-violet-200 bg-clip-text text-transparent box-decoration-clone">{selectedItem ? selectedItem.title : 'Select Model'}</span>
+    <span class="font-nunito text-sm bg-gradient-to-br from-pink-500 to-violet-500
+    bg-clip-text text-transparent box-decoration-clone"
+    >{selectedItem ? selectedItem.title : 'Select Model'}</span>
+    <SlideToggle name="slide" bind:checked={localwebLlm}
+                 active="" size="sm"
+    >{localwebLlm ? 'local' : 'remote'}</SlideToggle>
   </button>
   {#if isListBoxVisible}
-    <div transition:fade class="absolute top-full right-0 mt-2 z-50 min-w-[200px] w-max rounded-md p-3 bg-gradient-to-br from-surface-900/95 to-darkblue-900/90">
+    <div transition:fade class="absolute top-full right-0 mt-2 z-50 min-w-[200px]
+    w-max rounded-md p-3 bg-surface-500/80">
       <ListBox class="w-full">
         {#each LlmProviderList as item}
-          <ListBoxItem
-            on:click={() => handleSelectItem({ detail: item })}
-            active={selectedItem?.model === item.model}
-            value={item.model}
-            class="whitespace-nowrap"
-            group="llmSelector"
-            name="llmSelector"
-          >
-            <svelte:fragment slot="lead">
-              <Icon icon="{item.icon}" class="text-white-800/90 w-6 h-6" />
-            </svelte:fragment>
-            {item.title}
-          </ListBoxItem>
+          {#if item.local === localwebLlm}
+            <ListBoxItem
+              on:click={() => handleSelectItem({ detail: item })}
+              active={selectedItem?.model === item.model}
+              value={item.model}
+              class="whitespace-nowrap"
+              group="llmSelector"
+              name="llmSelector"
+            >
+              <svelte:fragment slot="lead">
+                <Icon icon="{item.icon}" class="text-white-800/90 w-6 h-6" />
+              </svelte:fragment>
+              {item.title}
+            </ListBoxItem>
+          {/if}
         {/each}
       </ListBox>
     </div>
   {/if}
 </div>
+<strong class="font-nunito text-xl bg-gradient-to-br from-pink-500 to-violet-500 bg-clip-text
+text-transparent box-decoration-clone">MultiShot.AI</strong>
 <div class="relative" bind:this={themeListBoxContainer}>
-  <button type="button" class="btn btn-sm variant-ghost-surface rounded-md" on:click|stopPropagation={() => isThemeListBoxVisible = !isThemeListBoxVisible}>
+  <button type="button" class="btn btn-sm variant-ghost-surface rounded-md"
+          on:click|stopPropagation={() => isThemeListBoxVisible = !isThemeListBoxVisible}>
     <span class="font-nunito">{selectedTheme}</span>
     <LightSwitch />
   </button>
   {#if isThemeListBoxVisible}
-    <div transition:fade class="absolute top-full right-0 mt-2 z-50 min-w-[200px] w-max rounded-md p-3 bg-gradient-to-br from-surface-900/95 to-darkblue-900/90">
+    <div transition:fade class="absolute top-full right-0 mt-2 z-50 min-w-[200px]
+    w-max rounded-md p-3 bg-surface-500/80">
       <ListBox class="w-full">
         {#each themes as theme}
           <ListBoxItem
@@ -138,7 +153,9 @@
     </div>
   {/if}
 </div>
-<a class="font-nunito btn btn-sm variant-ghost-surface rounded-md" href="https://twitter.com/cronuser" target="_blank" rel="noreferrer">
+<a class="font-nunito btn btn-sm variant-ghost-surface rounded-md"
+   href="https://twitter.com/cronuser" target="_blank" rel="noreferrer">
   <Icon icon="simple-icons:x" class="w-6 h-5" /></a>
-<a class="font-nunito btn btn-sm variant-ghost-surface rounded-md" href="https://github.com/randomtask2000/MultiShot.AI" target="_blank" rel="noreferrer">
+<a class="font-nunito btn btn-sm variant-ghost-surface rounded-md"
+   href="https://github.com/randomtask2000/MultiShot.AI" target="_blank" rel="noreferrer">
   <Icon icon="simple-icons:github" class="w-6 h-5 pr-2" /> GitHub </a>
