@@ -7,9 +7,10 @@
   import { fade } from 'svelte/transition';
   import { themeStore } from './store';
   import { LightSwitch } from '@skeletonlabs/skeleton';
-  import { autoModeWatcher } from '@skeletonlabs/skeleton'; //https://www.skeleton.dev/docs/dark-mode
+  import { autoModeWatcher } from '@skeletonlabs/skeleton';
   import { setInitialClassState } from '@skeletonlabs/skeleton';
   import { SlideToggle } from '@skeletonlabs/skeleton';
+  import * as webllm from "@mlc-ai/web-llm";
 
   export let selectedItem: LlmProvider | null = null;
 
@@ -48,7 +49,7 @@
 
   $: if (!selectedItem) {
     const desiredSelector = 'gpt-4o-mini';
-    const matchedItem = LlmProviderList.find(item => item.model === desiredSelector);
+    const matchedItem = $LlmProviderList.find(item => item.model === desiredSelector);
     if (matchedItem) {
       selectedItem = matchedItem;
     } else {
@@ -74,6 +75,31 @@
     themeStore.init();
     document.addEventListener('click', handleClickOutside);
 
+    // Load WebLLM models
+    const loadWebLLMModels = async () => {
+      const availableModels = webllm.prebuiltAppConfig.model_list.map(
+        (m) => m.model_id
+      );
+
+      availableModels.forEach((model) => {
+        LlmProviderList.update(list => [
+          ...list,
+          {
+            provider: "webllm",
+            model: model,
+            title: `WebLLM - ${model}`,
+            icon: "material-symbols:skull",
+            subtitle: "Local WebLLM model",
+            systemMessage: "You are a helpful AI assistant.",
+            apiKeyName: "",
+            local: true
+          }
+        ]);
+      });
+    };
+
+    loadWebLLMModels();
+
     return () => {
       document.removeEventListener('click', handleClickOutside);
     };
@@ -81,7 +107,6 @@
 
   let localwebLlm: boolean = false;
 </script>
-
 
 <svelte:head>{@html '<script>(' + setInitialClassState.toString() + autoModeWatcher.toString() + ')();</script>'}</svelte:head>
 <div class="relative" bind:this={listBoxContainer}>
@@ -104,7 +129,7 @@
     <div transition:fade class="absolute top-full right-0 mt-2 z-50 min-w-[200px]
     w-max rounded-md p-3 bg-surface-500/80">
       <ListBox class="w-full">
-        {#each LlmProviderList as item}
+        {#each $LlmProviderList as item}
           {#if item.local === localwebLlm}
             <ListBoxItem
               on:click={() => handleSelectItem({ detail: item })}
@@ -134,23 +159,27 @@ text-transparent box-decoration-clone">MultiShot.AI</strong>
     <LightSwitch />
   </button>
   {#if isThemeListBoxVisible}
-    <div transition:fade class="absolute top-full right-0 mt-2 z-50 min-w-[200px]
-    w-max rounded-md p-3 bg-surface-500/80">
-      <ListBox class="w-full">
-        {#each themes as theme}
-          <ListBoxItem
-            on:click={() => handleSelectTheme(theme)}
-            active={selectedTheme === theme}
-            value={theme}
-            class="whitespace-nowrap"
-            group="themeSelector"
-            name="themeSelector"
-          >
-            {theme}
-          </ListBoxItem>
-        {/each}
-      </ListBox>
-    </div>
+    <div
+  transition:fade
+  class="absolute top-full right-0 mt-2 z-50 min-w-[200px] w-max rounded-md p-3 bg-surface-500/80 max-h-[80vh] overflow-y-auto"
+>
+  <ListBox class="w-full">
+    {#each themes as theme}
+      <ListBoxItem
+        on:click={() => handleSelectTheme(theme)}
+        active={selectedTheme === theme}
+        value={theme}
+        class="whitespace-nowrap"
+        group="themeSelector"
+        name="themeSelector"
+      >
+        {theme}
+      </ListBoxItem>
+    {/each}
+  </ListBox>
+</div>
+
+
   {/if}
 </div>
 <a class="font-nunito btn btn-sm variant-ghost-surface rounded-md"

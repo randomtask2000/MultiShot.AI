@@ -1,3 +1,4 @@
+import { writable } from 'svelte/store';
 
 export interface LlmProvider {
   model: string;
@@ -24,10 +25,6 @@ export interface GenericReader {
   read(): Promise<{ done: boolean; value: Uint8Array | undefined }>;
 }
 
-export interface DataObject {
-  item: string;
-}
-
 export interface ChatHistoryItem {
   id: number;
   text: string;
@@ -35,9 +32,7 @@ export interface ChatHistoryItem {
   llmProvider: LlmProvider;
 }
 
-// unplugin-icons  https://github.com/unplugin/unplugin-icons
-// icons can be found here: https://icon-sets.iconify.design/
-export const LlmProviderList: LlmProvider[] = [
+export const LlmProviderList = writable<LlmProvider[]>([
     {
       "provider": "openai",
       "model": "gpt-4o-mini",
@@ -118,4 +113,4 @@ export const LlmProviderList: LlmProvider[] = [
       "apiKeyName": "OLLAMA_API",
       "local": true
     }
-  ];
+]);
