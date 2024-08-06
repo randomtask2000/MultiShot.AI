@@ -1,0 +1,10 @@
+{
+    "configurations": [
+        {
+            "type": "browser",
+            "name": "Browser configuration",
+            "url": "http://localhost:3333",
+        },
+        
+    ]
+}

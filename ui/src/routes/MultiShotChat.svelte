@@ -10,26 +10,41 @@ import {
   printMessage,
   fetchAi,
   printResponse,
-  renderMarkdownWithCodeBlock
+  renderMarkdownWithCodeBlock,
+  initializeWebLLM
 } from './tokenUtils';
 import Icon from '@iconify/svelte';
 import { AppBar, initializeStores } from '@skeletonlabs/skeleton';
 import ChatHistorySidebar from './ChatHistorySidebar.svelte';
 import AppBarContent from './AppBarContent.svelte';
-
+import { get } from 'svelte/store';
 
 initializeStores();
-
 
 let listItems: ChatHistoryItem[];
 const unsubscribe = listStore.subscribe(value => {
   listItems = value;
 });
 
+let selectedItem: LlmProvider;
+
 onMount(() => {
   listStore.init();
   checkWindowSize();
   window.addEventListener('resize', checkWindowSize);
+
+  const providers = get(LlmProviderList);
+  if (providers.length > 0) {
+    selectedItem = providers[0];
+    if (selectedItem.provider === "webllm") {
+       initializeWebLLM(selectedItem.model);
+    }
+  } else {
+    console.error('No LLM providers available');
+    // Handle the case where no providers are available
+    // You might want to show an error message to the user
+  }
+
   return () => {
     unsubscribe();
     window.removeEventListener('resize', checkWindowSize);
@@ -65,22 +80,17 @@ function restoreChat(item: ChatHistoryItem): void {
   });
 }
 
-export let selectedItem: LlmProvider = LlmProviderList[0];
 let tokenVar: string = '';
 let tokenHistory: Token[] = [];
 let resultDiv: HTMLDivElement;
 let sidebarVisible = true;
 let windowWidth: number;
 
-const MOBILE_BREAKPOINT = 768; // You can adjust this value as needed
+const MOBILE_BREAKPOINT = 768;
 
 function checkWindowSize() {
   windowWidth = window.innerWidth;
-  if (windowWidth <= MOBILE_BREAKPOINT) {
-    sidebarVisible = false;
-  } else {
-    sidebarVisible = true;
-  }
+  sidebarVisible = windowWidth > MOBILE_BREAKPOINT;
 }
 
 const clearToken = () => {
@@ -105,6 +115,11 @@ function getToken() {
 }
 
 async function sendUserTokenAiHistory() {
+  if (!selectedItem) {
+    console.error('No LLM provider selected');
+    return;
+  }
+
   const token = getToken();
   tokenHistory.push({ role: "user", content: token, llmInfo: selectedItem });
   let { pid: divIdUser } = addBubble(resultDiv, "User", "user");
@@ -134,8 +149,17 @@ function clearChat() {
   clearResultDiv();
 }
 
-$: if (selectedItem != null) {
-  console.log("MultiShotChat: selectedItem has changed:", selectedItem);
+async function handleModelChange(newModel: LlmProvider) {
+  if (newModel) {
+    selectedItem = newModel;
+    if (newModel.provider === "webllm") {
+      await initializeWebLLM(newModel.model);
+    }
+  } else {
+    console.error('Invalid model selected');
+    // Handle the case where an invalid model is selected
+    // You might want to show an error message to the user
+  }
 }
 
 </script>
@@ -170,7 +194,11 @@ $: if (selectedItem != null) {
           </button>
         </svelte:fragment>
         <svelte:fragment slot="trail">
-          <AppBarContent bind:selectedItem />
+          {#if selectedItem}
+            <AppBarContent bind:selectedItem on:change={(event) => handleModelChange(event.detail)} />
+          {:else}
+            <p>No LLM provider selected</p>
+          {/if}
         </svelte:fragment>
       </AppBar>
       <div id="chat" class="flex flex-col flex-grow overflow-hidden">

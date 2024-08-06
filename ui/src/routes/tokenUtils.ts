@@ -11,7 +11,14 @@ import {
 } from './markdownUtils';
 import * as webllm from "@mlc-ai/web-llm";
 
+let engine: webllm.MLCEngine | null = null;
 
+export async function initializeWebLLM(model: string) {
+    if (!engine) {
+        engine = new webllm.MLCEngine();
+        await engine.reload(model);
+    }
+}
 
 export function storeTokenHistory(
     tokenHistory: Token[],
@@ -88,17 +95,36 @@ export function printMessage(pid: string, tokens: string): void {
 // Modify the fetchAi function to handle WebLLM models
 export async function fetchAi(history: Token[], selectedItem: LlmProvider) {
     if (selectedItem.provider === "webllm") {
-        const engine = new webllm.MLCEngine();
-        await engine.reload(selectedItem.model);
+        if (!engine) {
+            engine = new webllm.MLCEngine();
+            await engine.reload(selectedItem.model);
+        }
+
         const messages: webllm.ChatCompletionMessageParam[] = history.map(token => ({
             role: token.role as "system" | "user" | "assistant",
             content: token.content
         }));
-        const response = await engine.chat.completions.create({
+
+        const stream = await engine.chat.completions.create({
             messages,
             stream: true,
+            temperature: 1.0,
+            top_p: 1
         });
-        return { body: { getReader: () => response[Symbol.asyncIterator]() } };
+
+        const iterator = stream[Symbol.asyncIterator]();
+
+        return {
+            body: {
+                getReader: () => ({
+                    async read() {
+                        const { done, value } = await iterator.next();
+                        if (done) return { done: true, value: undefined };
+                        return { done: false, value: value.choices[0].delta.content };
+                    }
+                })
+            }
+        };
     } else {
         const content = JSON.stringify({ messages: history, llm: selectedItem });
         return await fetch('http://localhost:8000/chat/', {
