@@ -9,6 +9,9 @@ import {
   renderMarkdownHistory,
   StreamParser
 } from './markdownUtils';
+import * as webllm from "@mlc-ai/web-llm";
+
+
 
 export function storeTokenHistory(
     tokenHistory: Token[],
@@ -82,17 +85,33 @@ export function printMessage(pid: string, tokens: string): void {
     }
 }
 
+// Modify the fetchAi function to handle WebLLM models
 export async function fetchAi(history: Token[], selectedItem: LlmProvider) {
-    const content = JSON.stringify({ messages: history, llm: selectedItem });
-    return await fetch('http://localhost:8000/chat/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: content
-    });
+    if (selectedItem.provider === "webllm") {
+        const engine = new webllm.MLCEngine();
+        await engine.reload(selectedItem.model);
+        const messages: webllm.ChatCompletionMessageParam[] = history.map(token => ({
+            role: token.role as "system" | "user" | "assistant",
+            content: token.content
+        }));
+        const response = await engine.chat.completions.create({
+            messages,
+            stream: true,
+        });
+        return { body: { getReader: () => response[Symbol.asyncIterator]() } };
+    } else {
+        const content = JSON.stringify({ messages: history, llm: selectedItem });
+        return await fetch('http://localhost:8000/chat/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: content
+        });
+    }
 }
 
+// Modify the printResponse function to handle WebLLM models
 export async function printResponse(
     resultDiv: HTMLDivElement,
     reader: GenericReader,
@@ -105,7 +124,7 @@ export async function printResponse(
 
     let lastScrollTime = 0;
 
-    async function processResult(result: { done: boolean; value: Uint8Array | undefined }): Promise<void> {
+    async function processResult(result: { done: boolean; value: any }): Promise<void> {
         const currentTime = Date.now();
         if (currentTime - lastScrollTime > 200) {
             scrollChatBottom(resultDiv, 'smooth');
@@ -118,7 +137,16 @@ export async function printResponse(
             return;
         }
         if (result.value) {
-            const token = decoder.decode(result.value);
+            let token;
+            if (typeof result.value === 'string') {
+                token = result.value;
+            } else if (result.value instanceof Uint8Array) {
+                token = decoder.decode(result.value);
+            } else if (result.value.choices && result.value.choices[0].delta.content) {
+                token = result.value.choices[0].delta.content;
+            } else {
+                return;
+            }
             lastResponse += token;
             parser.processChunk(token);
 

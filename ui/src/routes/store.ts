@@ -1,29 +1,31 @@
 // store.ts
 import { writable } from 'svelte/store';
-import type { ChatHistoryItem } from './types';
+import type { ChatHistoryItem, LlmProvider } from './types';
 
 function createListStore() {
   const { subscribe, set, update } = writable<ChatHistoryItem[]>([]);
 
   return {
     subscribe,
-    set,
-    addItem: (item: ChatHistoryItem) => {
-      update(items => {
-        const updatedItems = [...items, item];
-        localStorage.setItem('listItems', JSON.stringify(updatedItems));
-        return updatedItems;
-      });
-    },
-    clearList: () => {
-      set([]);
-      localStorage.removeItem('listItems');
-    },
+    addItem: (item: ChatHistoryItem) => update(items => [...items, item]),
+    clearList: () => set([]),
     init: () => {
-      const storedItems = localStorage.getItem('listItems');
-      if (storedItems) {
-        set(JSON.parse(storedItems));
+      const stored = localStorage.getItem('chatHistory');
+      if (stored) {
+        set(JSON.parse(stored));
       }
+    },
+    addModel: (model: string) => {
+      // This method doesn't modify the chat history,
+      // but we can use it to store the downloaded models separately
+      const downloadedModels = JSON.parse(localStorage.getItem('downloadedModels') || '[]');
+      if (!downloadedModels.includes(model)) {
+        downloadedModels.push(model);
+        localStorage.setItem('downloadedModels', JSON.stringify(downloadedModels));
+      }
+    },
+    getDownloadedModels: () => {
+      return JSON.parse(localStorage.getItem('downloadedModels') || '[]');
     }
   };
 }

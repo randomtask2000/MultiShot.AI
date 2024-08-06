@@ -28,8 +28,9 @@ export class ChatHistoryManager {
             return item;
           });
 
-          listStore.set(validatedChatHistory);
-          localStorage.setItem('listItems', JSON.stringify(validatedChatHistory));
+          listStore.clearList();
+          validatedChatHistory.forEach(item => listStore.addItem(item));
+          localStorage.setItem('chatHistory', JSON.stringify(validatedChatHistory));
           resolve();
         } catch (error) {
           reject(new Error(`Invalid file format: ${ChatHistoryManager.getErrorMessage(error)}`));

@@ -10,7 +10,12 @@
   import { autoModeWatcher } from '@skeletonlabs/skeleton';
   import { setInitialClassState } from '@skeletonlabs/skeleton';
   import { SlideToggle } from '@skeletonlabs/skeleton';
-  import * as webllm from "@mlc-ai/web-llm";
+  //import * as webllm from "@mlc-ai/web-llm";
+  import ConfigModal from './ConfigModal.svelte';  // Import the modal component
+    //import { Modal } from '@skeletonlabs/skeleton';
+
+  //export let open = false;
+
 
   export let selectedItem: LlmProvider | null = null;
 
@@ -26,6 +31,9 @@
     'seafoam',
     'crimson'
   ];
+
+  let isConfigModalOpen: boolean = false;  // State to control modal visibility
+
 
   let selectedTheme: string;
 
@@ -75,30 +83,31 @@
     themeStore.init();
     document.addEventListener('click', handleClickOutside);
 
+    // not a good plan
     // Load WebLLM models
-    const loadWebLLMModels = async () => {
-      const availableModels = webllm.prebuiltAppConfig.model_list.map(
-        (m) => m.model_id
-      );
-
-      availableModels.forEach((model) => {
-        LlmProviderList.update(list => [
-          ...list,
-          {
-            provider: "webllm",
-            model: model,
-            title: `WebLLM - ${model}`,
-            icon: "material-symbols:skull",
-            subtitle: "Local WebLLM model",
-            systemMessage: "You are a helpful AI assistant.",
-            apiKeyName: "",
-            local: true
-          }
-        ]);
-      });
-    };
-
-    loadWebLLMModels();
+    // const loadWebLLMModels = async () => {
+    //   const availableModels = webllm.prebuiltAppConfig.model_list.map(
+    //     (m) => m.model_id
+    //   );
+    //
+    //   availableModels.forEach((model) => {
+    //     LlmProviderList.update(list => [
+    //       ...list,
+    //       {
+    //         provider: "webllm",
+    //         model: model,
+    //         title: `WebLLM - ${model}`,
+    //         icon: "material-symbols:skull",
+    //         subtitle: "Local WebLLM model",
+    //         systemMessage: "You are a helpful AI assistant.",
+    //         apiKeyName: "",
+    //         local: true
+    //       }
+    //     ]);
+    //   });
+    // };
+    //
+    // loadWebLLMModels();
 
     return () => {
       document.removeEventListener('click', handleClickOutside);
@@ -128,6 +137,23 @@
   {#if isListBoxVisible}
     <div transition:fade class="absolute top-full right-0 mt-2 z-50 min-w-[200px]
     w-max rounded-md p-3 bg-surface-500/80">
+      <!-- config button -->
+      <div class="flex justify-end">
+        <button
+          type="button"
+          class="btn variant-filled"
+          on:click={() => isConfigModalOpen = true}
+        >
+          <span>
+            <Icon
+              icon="majesticons:settings-cog-line"
+              class="w-6 h-5"
+            />
+          </span>
+          <span>Configure</span>
+        </button>
+      </div>
+
       <ListBox class="w-full">
         {#each $LlmProviderList as item}
           {#if item.local === localwebLlm}
@@ -160,28 +186,30 @@ text-transparent box-decoration-clone">MultiShot.AI</strong>
   </button>
   {#if isThemeListBoxVisible}
     <div
-  transition:fade
-  class="absolute top-full right-0 mt-2 z-50 min-w-[200px] w-max rounded-md p-3 bg-surface-500/80 max-h-[80vh] overflow-y-auto"
->
-  <ListBox class="w-full">
-    {#each themes as theme}
-      <ListBoxItem
-        on:click={() => handleSelectTheme(theme)}
-        active={selectedTheme === theme}
-        value={theme}
-        class="whitespace-nowrap"
-        group="themeSelector"
-        name="themeSelector"
-      >
-        {theme}
-      </ListBoxItem>
-    {/each}
-  </ListBox>
+          transition:fade
+          class="absolute top-full right-0 mt-2 z-50 min-w-[200px] w-max rounded-md p-3 bg-surface-500/80 max-h-[80vh] overflow-y-auto"
+        >
+        <ListBox class="w-full">
+          {#each themes as theme}
+            <ListBoxItem
+              on:click={() => handleSelectTheme(theme)}
+              active={selectedTheme === theme}
+              value={theme}
+              class="whitespace-nowrap"
+              group="themeSelector"
+              name="themeSelector"
+            >
+              {theme}
+            </ListBoxItem>
+          {/each}
+        </ListBox>
+    </div>
+    {/if}
 </div>
-
-
+  {#if isConfigModalOpen}
+    <ConfigModal bind:open={isConfigModalOpen} />
   {/if}
-</div>
+
 <a class="font-nunito btn btn-sm variant-ghost-surface rounded-md"
    href="https://twitter.com/cronuser" target="_blank" rel="noreferrer">
   <Icon icon="simple-icons:x" class="w-6 h-5" /></a>

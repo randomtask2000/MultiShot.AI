@@ -13,9 +13,13 @@ import {
   renderMarkdownWithCodeBlock
 } from './tokenUtils';
 import Icon from '@iconify/svelte';
-import { AppBar } from '@skeletonlabs/skeleton';
+import { AppBar, initializeStores } from '@skeletonlabs/skeleton';
 import ChatHistorySidebar from './ChatHistorySidebar.svelte';
 import AppBarContent from './AppBarContent.svelte';
+
+
+initializeStores();
+
 
 let listItems: ChatHistoryItem[];
 const unsubscribe = listStore.subscribe(value => {
@@ -158,12 +162,12 @@ $: if (selectedItem != null) {
           <button class="btn btn-sm variant-ghost-surface rounded-md p-2 mr-4 h-8" on:click={toggleSidebar} id="openclosebtn">
             <Icon icon={sidebarVisible ? "mdi:menu-open" : "mdi:menu"} />
           </button>
-<!--          <button type="button" class="btn btn-sm variant-ghost-surface rounded-md h-8" on:click={clearChat}>-->
-<!--              <span>-->
-<!--                 <Icon icon="mdi:delete-sweep" />-->
-<!--              </span>-->
-<!--              <span class="font-nunito">Clear Chat</span>-->
-<!--          </button>-->
+          <button type="button" class="btn btn-sm variant-ghost-surface rounded-md h-8" on:click={clearChat}>
+              <span>
+                 <Icon icon="mdi:delete-sweep" />
+              </span>
+              <span class="font-nunito">Clear Chat</span>
+          </button>
         </svelte:fragment>
         <svelte:fragment slot="trail">
           <AppBarContent bind:selectedItem />
