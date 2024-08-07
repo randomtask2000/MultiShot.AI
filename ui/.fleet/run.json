@@ -20,7 +20,6 @@
         {
             "type": "browser",
             "name": "browser Run",
-            "dependsOn": ["Run UI"],
             "url": "http://localhost:3333",
         },
         

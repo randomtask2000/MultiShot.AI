@@ -1,8 +1,7 @@
 {
     "configurations": [
-        
         {
-            "name": "fast (1)",
+            "name": "fast (server)",
             "type": "fastapi",
             "workingDir": "$PROJECT_DIR$",
             "environment": {
@@ -10,7 +9,7 @@
             },
             "module": "server.main",
             "application": "app",
-            "arguments": ["--reload"]
+            "arguments": ["--reload", "--port=8000"]
         }
     ]
 }
