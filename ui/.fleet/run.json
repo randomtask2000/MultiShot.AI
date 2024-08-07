@@ -1,8 +1,26 @@
 {
     "configurations": [
         {
+            "name": "fast (ui)",
+            "type": "fastapi",
+            "workingDir": "$PROJECT_DIR$/../",
+            "environment": {
+                "PYTHONPATH": "$PROJECT_DIR$"
+            },
+            "module": "server.main",
+            "application": "app",
+            "arguments": ["--reload", "--port=8000"]
+        },
+        {
+            "type": "npm",
+            "name": "Run UI",
+            "command": "run dev",
+            "commandArguments": ["--", "--port=3333"],
+        },
+        {
             "type": "browser",
-            "name": "Browser configuration",
+            "name": "browser Run",
+            "dependsOn": ["Run UI"],
             "url": "http://localhost:3333",
         },
         

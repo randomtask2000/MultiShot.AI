@@ -139,7 +139,7 @@ async def chat(chat_history: ChatHistory):
 
 if __name__ == "__main__":
     uvicorn.run(app,
-                port=8000,
+                # port=8000,
                 reload=True,
                 log_level='debug'
                 )

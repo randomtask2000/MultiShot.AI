@@ -1,0 +1,16 @@
+{
+    "configurations": [
+        
+        {
+            "name": "fast (1)",
+            "type": "fastapi",
+            "workingDir": "$PROJECT_DIR$",
+            "environment": {
+                "PYTHONPATH": "$PROJECT_DIR$"
+            },
+            "module": "server.main",
+            "application": "app",
+            "arguments": ["--reload"]
+        }
+    ]
+}
