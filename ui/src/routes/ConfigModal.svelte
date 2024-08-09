@@ -84,7 +84,7 @@
   engine.setInitProgressCallback(updateEngineInitProgressCallback);
 </script>
 
-<dialog bind:this={dialog} on:close={closeModal} class="w-full max-w-2xl p-4 rounded-lg shadow-xl bg-surface-100/30 text-left fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+<dialog bind:this={dialog} on:close={closeModal} class="w-full max-w-2xl p-4 rounded-lg shadow-xl bg-surface-100/90 text-left fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
 
   <div class="flex flex-col h-full">
     <div class="flex justify-between items-center mb-4">
@@ -104,7 +104,7 @@
         <select
           id="model-selection"
           bind:value={selectedModel}
-          class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
+          class="w-full p-2 border rounded bg-surface-300"
         >
           {#each availableModels as model}
             <option value={model}>{model}</option>
