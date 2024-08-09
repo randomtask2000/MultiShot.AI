@@ -29,7 +29,7 @@
         alert('Chat history imported successfully');
       } catch (error) {
         console.error('Import error:', error);
-        alert('Error importing chat history: ' + error.message);
+        alert('Error importing chat history: ' + (error as Error).message);
 
         // Log more details about the file
         const reader = new FileReader();
