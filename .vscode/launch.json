@@ -19,13 +19,31 @@
       "request": "launch",
       "name": "Launch Chrome",
       "url": "http://localhost:3000",
-      "webRoot": "${workspaceFolder}/ui"
+      "webRoot": "${workspaceFolder}/ui",
+      "preLaunchTask": "npm: dev",
+      "serverReadyAction": {
+        "pattern": "Local:   http://localhost:([0-9]+)/",
+        "uriFormat": "http://localhost:%s",
+        "action": "debugWithChrome"
+      }
+    },
+    {
+      "type": "python",
+      "request": "launch",
+      "name": "Launch Python Server",
+      "module": "uvicorn",
+      "args": ["server.main:app", "--reload"],
+      "cwd": "${workspaceFolder}"
     }
   ],
   "compounds": [
     {
       "name": "Vite + Chrome",
       "configurations": ["Launch Vite Dev", "Launch Chrome"]
+    },
+    {
+      "name": "Full Stack",
+      "configurations": ["Launch Vite Dev", "Launch Chrome", "Launch Python Server"]
     }
   ]
 }
