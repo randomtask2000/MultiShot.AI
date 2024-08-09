@@ -84,12 +84,8 @@
   engine.setInitProgressCallback(updateEngineInitProgressCallback);
 </script>
 
-<dialog
-  bind:this={dialog}
-  on:close={closeModal}
-  on:keydown={handleKeydown}
-  class="w-full max-w-2xl p-4 rounded-lg shadow-xl bg-white dark:bg-gray-800"
->
+<dialog bind:this={dialog} on:close={closeModal} class="w-full max-w-2xl p-4 rounded-lg shadow-xl bg-surface-100/30 text-left fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+
   <div class="flex flex-col h-full">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl font-bold">WebLLM Configuration</h2>
