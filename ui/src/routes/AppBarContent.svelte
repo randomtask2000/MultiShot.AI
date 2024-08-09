@@ -12,6 +12,7 @@
   import { SlideToggle } from '@skeletonlabs/skeleton';
   //import * as webllm from "@mlc-ai/web-llm";
   import ConfigModal from './ConfigModal.svelte';  // Import the modal component
+
     //import { Modal } from '@skeletonlabs/skeleton';
 
   //export let open = false;

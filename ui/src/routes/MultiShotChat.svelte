@@ -19,6 +19,9 @@ import ChatHistorySidebar from './ChatHistorySidebar.svelte';
 import AppBarContent from './AppBarContent.svelte';
 import { get } from 'svelte/store';
 
+// Declare selectedItem as a prop
+export let selectedItem: LlmProvider | null = null;
+
 initializeStores();
 
 let listItems: ChatHistoryItem[];
@@ -26,23 +29,21 @@ const unsubscribe = listStore.subscribe(value => {
   listItems = value;
 });
 
-let selectedItem: LlmProvider;
-
 onMount(() => {
   listStore.init();
   checkWindowSize();
   window.addEventListener('resize', checkWindowSize);
 
-  const providers = get(LlmProviderList);
-  if (providers.length > 0) {
-    selectedItem = providers[0];
-    if (selectedItem.provider === "webllm") {
-       initializeWebLLM(selectedItem.model);
+  if (!selectedItem) {
+    const providers = get(LlmProviderList);
+    if (providers.length > 0) {
+      selectedItem = providers[0];
+      if (selectedItem.provider === "webllm") {
+         initializeWebLLM(selectedItem.model);
+      }
+    } else {
+      console.error('No LLM providers available');
     }
-  } else {
-    console.error('No LLM providers available');
-    // Handle the case where no providers are available
-    // You might want to show an error message to the user
   }
 
   return () => {
@@ -157,8 +158,6 @@ async function handleModelChange(newModel: LlmProvider) {
     }
   } else {
     console.error('Invalid model selected');
-    // Handle the case where an invalid model is selected
-    // You might want to show an error message to the user
   }
 }
 
@@ -194,11 +193,7 @@ async function handleModelChange(newModel: LlmProvider) {
           </button>
         </svelte:fragment>
         <svelte:fragment slot="trail">
-          {#if selectedItem}
-            <AppBarContent bind:selectedItem on:change={(event) => handleModelChange(event.detail)} />
-          {:else}
-            <p>No LLM provider selected</p>
-          {/if}
+          <AppBarContent {selectedItem} on:change={(event) => handleModelChange(event.detail)} />
         </svelte:fragment>
       </AppBar>
       <div id="chat" class="flex flex-col flex-grow overflow-hidden">
