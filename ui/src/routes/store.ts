@@ -1,12 +1,6 @@
 // store.ts
-import { writable, type Writable } from 'svelte/store';
+import { writable } from 'svelte/store';
 import type { ChatHistoryItem, LlmProvider } from './types';
-
-interface LlmProviderListType extends Writable<LlmProvider[]> {
-  init: () => void;
-  addProvider: (provider: LlmProvider) => void;
-  removeProvider: (id: string) => void;
-}
 
 function createListStore() {
   const { subscribe, set, update } = writable<ChatHistoryItem[]>([]);
@@ -16,14 +10,14 @@ function createListStore() {
     addItem: (item: ChatHistoryItem) => update(items => [...items, item]),
     clearList: () => set([]),
     init: () => {
-      const stored = localStorage.getItem('chatHistory');
-      if (stored) {
-        set(JSON.parse(stored));
+      if (typeof localStorage !== 'undefined') {
+        const stored = localStorage.getItem('chatHistory');
+        if (stored) {
+          set(JSON.parse(stored));
+        }
       }
     },
     addModel: (model: string) => {
-      // This method doesn't modify the chat history,
-      // but we can use it to store the downloaded models separately
       const downloadedModels = JSON.parse(localStorage.getItem('downloadedModels') || '[]');
       if (!downloadedModels.includes(model)) {
         downloadedModels.push(model);
@@ -38,7 +32,6 @@ function createListStore() {
 
 export const listStore = createListStore();
 
-// New theme store
 function createThemeStore() {
   const defaultTheme = 'rocket';
   const { subscribe, set } = writable(
@@ -64,16 +57,13 @@ function createThemeStore() {
 
 export const themeStore = createThemeStore();
 
-// Updated LlmProviderList store
-function createLlmProviderListStore(): LlmProviderListType {
+function createLlmProviderListStore() {
   const { subscribe, set, update } = writable<LlmProvider[]>([]);
 
   const isBrowser = typeof window !== 'undefined';
 
   return {
     subscribe,
-    set,
-    update,
     init: () => {
       if (isBrowser) {
         const stored = localStorage.getItem('llmProviderList');
