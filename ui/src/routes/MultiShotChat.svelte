@@ -1,7 +1,7 @@
 <script lang="ts">
 import { onMount, afterUpdate } from 'svelte';
 import { type LlmProvider, type Token, type GenericReader, LlmProviderList, type ChatHistoryItem } from './types';
-import { listStore } from './store';
+import { listStore, themeStore, llmProviderListStore } from './store';
 import { ChatHistoryManager } from './chatHistoryManager';
 import {
   storeTokenHistory,
@@ -14,7 +14,7 @@ import {
   initializeWebLLM
 } from './tokenUtils';
 import Icon from '@iconify/svelte';
-import { AppBar, initializeStores } from '@skeletonlabs/skeleton';
+import { AppBar } from '@skeletonlabs/skeleton';
 import ChatHistorySidebar from './ChatHistorySidebar.svelte';
 import AppBarContent from './AppBarContent.svelte';
 import { get } from 'svelte/store';
@@ -22,21 +22,16 @@ import { get } from 'svelte/store';
 // Declare selectedItem as a prop
 export let selectedItem: LlmProvider | null = null;
 
-initializeStores();
-
-let listItems: ChatHistoryItem[];
-const unsubscribe = listStore.subscribe(value => {
-  listItems = value;
-});
-
 onMount(() => {
   listStore.init();
+  themeStore.init();
+  llmProviderListStore.init();
   checkWindowSize();
   window.addEventListener('resize', checkWindowSize);
 
   if (!selectedItem) {
-    const providers = get(LlmProviderList);
-    if (providers.length > 0) {
+    const providers: LlmProvider[] = get(LlmProviderList);
+    if (providers && providers.length > 0) {
       selectedItem = providers[0];
       if (selectedItem.provider === "webllm") {
          initializeWebLLM(selectedItem.model);
@@ -47,7 +42,6 @@ onMount(() => {
   }
 
   return () => {
-    unsubscribe();
     window.removeEventListener('resize', checkWindowSize);
   };
 });
@@ -193,7 +187,7 @@ async function handleModelChange(newModel: LlmProvider) {
           </button>
         </svelte:fragment>
         <svelte:fragment slot="trail">
-          <AppBarContent {selectedItem} on:change={(event) => handleModelChange(event.detail)} />
+          <AppBarContent bind:selectedItem={selectedItem} />
         </svelte:fragment>
       </AppBar>
       <div id="chat" class="flex flex-col flex-grow overflow-hidden">

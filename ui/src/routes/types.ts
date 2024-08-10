@@ -1,7 +1,8 @@
 import { writable } from 'svelte/store';
-import type { Readable } from 'svelte/store';
+import type { Readable, Writable } from 'svelte/store';
 
 export interface LlmProvider {
+  id: string;
   model: string;
   provider: string;
   title: string;
@@ -35,7 +36,8 @@ export interface ChatHistoryItem {
 
 export type WritableStore<T> = Writable<T>;
 
-export const LlmProviderList: WritableStore<LlmProvider[]> = writable<LlmProvider[]>([
+function createPersistentLlmProviderList() {
+  const initialProviders = [
     {
       "provider": "openai",
       "model": "gpt-4o-mini",
@@ -116,4 +118,28 @@ export const LlmProviderList: WritableStore<LlmProvider[]> = writable<LlmProvide
       "apiKeyName": "OLLAMA_API",
       "local": true
     }
-]);
+  ];
+
+  const storedProviders = typeof localStorage !== 'undefined' 
+    ? JSON.parse(localStorage.getItem('llmProviderList') || 'null')
+    : null;
+
+  const { subscribe, set, update } = writable(storedProviders || initialProviders);
+
+  return {
+    subscribe,
+    set: (value: LlmProvider[]) => {
+      localStorage.setItem('llmProviderList', JSON.stringify(value));
+      set(value);
+    },
+    update: (updater: (value: LlmProvider[]) => LlmProvider[]) => {
+      update(providers => {
+        const updated = updater(providers);
+        localStorage.setItem('llmProviderList', JSON.stringify(updated));
+        return updated;
+      });
+    }
+  };
+}
+
+export const LlmProviderList = createPersistentLlmProviderList();

@@ -6,6 +6,7 @@
   import { LlmProviderList } from './types';
   import { get } from 'svelte/store';
   import { listStore } from './store';
+  import type { LlmProvider } from './types';
 
   export let open = false;
 
@@ -14,6 +15,7 @@
   let availableModels: string[] = [];
   let selectedModel = "TinyLlama-1.1B-Chat-v0.4-q4f32_1-MLC-1k";
   let isDownloading = false;
+  let isModelInitialized = false;
   let downloadStatus = '';
 
   const engine = new webllm.MLCEngine();
@@ -49,22 +51,28 @@
     try {
       await engine.reload(selectedModel, config);
       isDownloading = false;
+      isModelInitialized = true;
       downloadStatus = "Model initialized successfully.";
 
-      // Add the downloaded model to the LlmProviderList
-      LlmProviderList.update(providers => [
-        ...providers,
-        {
-          provider: "webllm",
-          model: selectedModel,
-          title: selectedModel,
-          icon: "mdi:brain",
-          subtitle: "Local WebLLM model",
-          systemMessage: "You are a helpful AI assistant.",
-          apiKeyName: "",
-          local: true
+      // Check if the provider already exists before adding
+      LlmProviderList.update((providers: LlmProvider[]) => {
+        if (!providers.some(p => p.provider === "webllm" && p.model === selectedModel)) {
+          return [
+            ...providers,
+            {
+              provider: "webllm",
+              model: selectedModel,
+              title: selectedModel,
+              icon: "mdi:brain",
+              subtitle: "Local WebLLM model",
+              systemMessage: "You are a helpful AI assistant.",
+              apiKeyName: "",
+              local: true
+            }
+          ];
         }
-      ]);
+        return providers;
+      });
 
       // Update the store with the new model
       listStore.addModel(selectedModel);
@@ -115,10 +123,10 @@
       <div>
         <button
           on:click={initializeWebLLMEngine}
-          disabled={isDownloading}
+          disabled={isDownloading || isModelInitialized}
           class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-blue-300"
         >
-          {isDownloading ? 'Downloading...' : 'Download'}
+          {isDownloading ? 'Downloading...' : isModelInitialized ? 'Model Initialized' : 'Download'}
         </button>
         {#if isDownloading}
           <div class="mt-2 flex items-center">

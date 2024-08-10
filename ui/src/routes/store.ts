@@ -1,5 +1,5 @@
 // store.ts
-import { writable } from 'svelte/store';
+import { writable, type Writable } from 'svelte/store';
 import type { ChatHistoryItem, LlmProvider } from './types';
 
 function createListStore() {
@@ -81,6 +81,13 @@ function createLlmProviderListStore() {
     }),
     removeProvider: (id: string) => update(providers => {
       const updatedProviders = providers.filter(p => p.id !== id);
+      if (isBrowser) {
+        localStorage.setItem('llmProviderList', JSON.stringify(updatedProviders));
+      }
+      return updatedProviders;
+    }),
+    updateAndPersist: (updater: (providers: LlmProvider[]) => LlmProvider[]) => update(providers => {
+      const updatedProviders = updater(providers);
       if (isBrowser) {
         localStorage.setItem('llmProviderList', JSON.stringify(updatedProviders));
       }

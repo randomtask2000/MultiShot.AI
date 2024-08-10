@@ -13,11 +13,6 @@
   //import * as webllm from "@mlc-ai/web-llm";
   import ConfigModal from './ConfigModal.svelte';  // Import the modal component
 
-    //import { Modal } from '@skeletonlabs/skeleton';
-
-  //export let open = false;
-
-
   export let selectedItem: LlmProvider | null = null;
 
   const themes = [
@@ -45,9 +40,8 @@
     }
   });
 
-  function handleSelectItem(event: CustomEvent<LlmProvider> | { detail: LlmProvider }): void {
-    selectedItem = event.detail;
-    console.log("AppBarContent: selectedItem:", selectedItem);
+  function handleSelectItem(item: LlmProvider): void {
+    selectedItem = item;
     isListBoxVisible = false;
   }
 
@@ -56,15 +50,15 @@
     isThemeListBoxVisible = false;
   }
 
-  $: if (!selectedItem) {
-    const desiredSelector = 'gpt-4o-mini';
-    const matchedItem = $LlmProviderList.find(item => item.model === desiredSelector);
-    if (matchedItem) {
-      selectedItem = matchedItem;
-    } else {
-      console.log(`No item with selector "${desiredSelector}" was found.`);
+  // Subscribe to the LlmProviderList store
+  let providers: LlmProvider[];
+  LlmProviderList.subscribe(value => {
+    providers = value;
+    if (!selectedItem && providers.length > 0) {
+      const desiredSelector = 'gpt-4o-mini';
+      selectedItem = providers.find(item => item.model === desiredSelector) || providers[0];
     }
-  }
+  });
 
   let isListBoxVisible = false;
   let isThemeListBoxVisible = false;
@@ -156,10 +150,10 @@
       </div>
 
       <ListBox class="w-full">
-        {#each $LlmProviderList as item}
+        {#each providers as item}
           {#if item.local === localwebLlm}
             <ListBoxItem
-              on:click={() => handleSelectItem({ detail: item })}
+              on:click={() => handleSelectItem(item)}
               active={selectedItem?.model === item.model}
               value={item.model}
               class="whitespace-nowrap"
