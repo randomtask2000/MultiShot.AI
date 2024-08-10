@@ -2,48 +2,42 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "type": "python",
+      "request": "launch",
+      "name": "server",
+      "module": "uvicorn",
+      "args": ["server.main:app", "--reload"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
       "type": "node",
       "request": "launch",
-      "name": "Launch Vite Dev",
+      "name": "ui",
+      "cwd": "${workspaceFolder}/ui",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--", "--port", "3000"],
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
-      "env": {
-        "NODE_ENV": "development"
-      },
-      "cwd": "${workspaceFolder}/ui/"
+      "runtimeArgs": ["run", "dev", "--", "--port=3333"],
+      "console": "integratedTerminal"
     },
     {
       "type": "chrome",
       "request": "launch",
-      "name": "Launch Chrome",
-      "url": "http://localhost:3000",
+      "name": "chrome",
+      "url": "http://localhost:3333",
       "webRoot": "${workspaceFolder}/ui",
-      "preLaunchTask": "npm: dev",
-      "serverReadyAction": {
-        "pattern": "Local:   http://localhost:([0-9]+)/",
-        "uriFormat": "http://localhost:%s",
-        "action": "debugWithChrome"
+      "sourceMaps": true,
+      "sourceMapPathOverrides": {
+        "webpack:///./src/*": "${webRoot}/src/*"
       }
-    },
-    {
-      "type": "python",
-      "request": "launch",
-      "name": "Launch Python Server",
-      "module": "uvicorn",
-      "args": ["server.main:app", "--reload"],
-      "cwd": "${workspaceFolder}"
     }
   ],
   "compounds": [
     {
       "name": "Vite + Chrome",
-      "configurations": ["Launch Vite Dev", "Launch Chrome"]
+      "configurations": ["ui", "chrome"]
     },
     {
       "name": "Full Stack",
-      "configurations": ["Launch Vite Dev", "Launch Chrome", "Launch Python Server"]
+      "configurations": ["server", "ui", "chrome"]
     }
   ]
 }
