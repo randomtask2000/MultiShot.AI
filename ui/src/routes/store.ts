@@ -1,6 +1,12 @@
 // store.ts
-import { writable } from 'svelte/store';
+import { writable, type Writable } from 'svelte/store';
 import type { ChatHistoryItem, LlmProvider } from './types';
+
+interface LlmProviderListType extends Writable<LlmProvider[]> {
+  init: () => void;
+  addProvider: (provider: LlmProvider) => void;
+  removeProvider: (id: string) => void;
+}
 
 function createListStore() {
   const { subscribe, set, update } = writable<ChatHistoryItem[]>([]);
@@ -57,3 +63,45 @@ function createThemeStore() {
 }
 
 export const themeStore = createThemeStore();
+
+// Updated LlmProviderList store
+function createLlmProviderListStore(): LlmProviderListType {
+  const { subscribe, set, update } = writable<LlmProvider[]>([]);
+
+  const isBrowser = typeof window !== 'undefined';
+
+  return {
+    subscribe,
+    set,
+    update,
+    init: () => {
+      if (isBrowser) {
+        const stored = localStorage.getItem('llmProviderList');
+        if (stored) {
+          set(JSON.parse(stored));
+        }
+      }
+    },
+    addProvider: (provider: LlmProvider) => update(providers => {
+      const updatedProviders = [...providers, provider];
+      if (isBrowser) {
+        localStorage.setItem('llmProviderList', JSON.stringify(updatedProviders));
+      }
+      return updatedProviders;
+    }),
+    removeProvider: (id: string) => update(providers => {
+      const updatedProviders = providers.filter(p => p.id !== id);
+      if (isBrowser) {
+        localStorage.setItem('llmProviderList', JSON.stringify(updatedProviders));
+      }
+      return updatedProviders;
+    }),
+  };
+}
+
+export const llmProviderListStore = createLlmProviderListStore();
+
+// Initialize the store only in the browser
+if (typeof window !== 'undefined') {
+  llmProviderListStore.init();
+}

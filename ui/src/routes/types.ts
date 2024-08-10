@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store';
+import { writable, Writable } from 'svelte/store';
 
 export interface LlmProvider {
   model: string;
@@ -32,7 +32,9 @@ export interface ChatHistoryItem {
   llmProvider: LlmProvider;
 }
 
-export const LlmProviderList = writable<LlmProvider[]>([
+export type LlmProviderListType = Writable<LlmProvider[]>;
+
+export const LlmProviderList: LlmProviderListType = writable<LlmProvider[]>([
     {
       "provider": "openai",
       "model": "gpt-4o-mini",
