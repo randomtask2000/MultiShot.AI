@@ -14,7 +14,7 @@
       "request": "launch",
       "name": "ui",
       "cwd": "${workspaceFolder}/ui",
-      //"runtimeExecutable": "npm",
+      // "runtimeExecutable": "npm",
       // "runtimeArgs": ["run", "dev", "--", "--port=3333"],
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["exec", "vite", "--port=3333"],
