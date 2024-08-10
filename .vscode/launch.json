@@ -32,11 +32,11 @@
   ],
   "compounds": [
     {
-      "name": "Vite + Chrome",
+      "name": "ui + chrome",
       "configurations": ["ui", "chrome"]
     },
     {
-      "name": "Full Stack",
+      "name": "server + ui + chrome",
       "configurations": ["server", "ui", "chrome"]
     }
   ]
