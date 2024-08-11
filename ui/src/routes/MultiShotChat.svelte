@@ -174,7 +174,7 @@ async function handleModelChange(newModel: LlmProvider) {
       class="flex flex-col flex-grow overflow-hidden transition-all duration-300 ease-in-out"
       style="width: {sidebarVisible ? 'calc(100% - 250px)' : '100%'};"
     >
-      <AppBar>
+      <AppBar background="light:bg-surface-500/10 dark:bg-surface-500/10">
         <svelte:fragment slot="lead">
           <button class="btn btn-sm variant-ghost-surface rounded-md p-2 mr-4 h-8" on:click={toggleSidebar} id="openclosebtn">
             <Icon icon={sidebarVisible ? "mdi:menu-open" : "mdi:menu"} />

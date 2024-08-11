@@ -13,7 +13,7 @@
   import ConfigModal from './ConfigModal.svelte';
   import { get } from 'svelte/store';
 
-  let selectedItem: LlmProvider | null = null;
+  export let selectedItem: LlmProvider | null = null;
 
   const themes = [
     'skeleton',
@@ -123,7 +123,7 @@
   </button>
   {#if isListBoxVisible}
     <div transition:fade class="absolute top-full right-0 mt-2 z-50 min-w-[200px]
-    w-max rounded-md p-3 bg-surface-500/80">
+    w-max rounded-md p-3 bg-surface-200 dark:bg-surface-600">
       <!-- config button -->
       {#if localwebLlm }
         <div class="flex justify-end">
@@ -176,7 +176,8 @@ text-transparent box-decoration-clone">MultiShot.AI</strong>
   {#if isThemeListBoxVisible}
     <div
           transition:fade
-          class="absolute top-full right-0 mt-2 z-50 min-w-[200px] w-max rounded-md p-3 bg-surface-500/80 max-h-[80vh] overflow-y-auto"
+          class="absolute top-full right-0 mt-2 z-50 min-w-[200px] w-max rounded-md 
+          p-3 max-h-[80vh] overflow-y-auto bg-surface-200 dark:bg-surface-600"
         >
         <ListBox class="w-full">
           {#each themes as theme}
@@ -204,4 +205,4 @@ text-transparent box-decoration-clone">MultiShot.AI</strong>
   <Icon icon="simple-icons:x" class="w-6 h-5" /></a>
 <a class="font-nunito btn btn-sm variant-ghost-surface rounded-md"
    href="https://github.com/randomtask2000/MultiShot.AI" target="_blank" rel="noreferrer">
-  <Icon icon="simple-icons:github" class="w-6 h-5 pr-2" /> GitHub </a>
+  <Icon icon="simple-icons:github" class="w-6 h-5" /></a>
