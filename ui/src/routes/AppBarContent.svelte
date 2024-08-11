@@ -5,15 +5,15 @@
   import Icon from '@iconify/svelte';
   import { ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
   import { fade } from 'svelte/transition';
-  import { themeStore } from './store';
+  import { themeStore, selectedModelStore, localWebLlmStore } from './store';
   import { LightSwitch } from '@skeletonlabs/skeleton';
   import { autoModeWatcher } from '@skeletonlabs/skeleton';
   import { setInitialClassState } from '@skeletonlabs/skeleton';
   import { SlideToggle } from '@skeletonlabs/skeleton';
-  //import * as webllm from "@mlc-ai/web-llm";
-  import ConfigModal from './ConfigModal.svelte';  // Import the modal component
+  import ConfigModal from './ConfigModal.svelte';
+  import { get } from 'svelte/store';
 
-  export let selectedItem: LlmProvider | null = null;
+  let selectedItem: LlmProvider | null = null;
 
   const themes = [
     'skeleton',
@@ -28,8 +28,7 @@
     'crimson'
   ];
 
-  let isConfigModalOpen: boolean = false;  // State to control modal visibility
-
+  let isConfigModalOpen: boolean = false;
 
   let selectedTheme: string;
 
@@ -42,6 +41,7 @@
 
   function handleSelectItem(item: LlmProvider): void {
     selectedItem = item;
+    selectedModelStore.setSelectedModel(item.model);
     isListBoxVisible = false;
   }
 
@@ -50,15 +50,26 @@
     isThemeListBoxVisible = false;
   }
 
-  // Subscribe to the LlmProviderList store
+  // Subscribe to the LlmProviderList store and selectedModelStore
   let providers: LlmProvider[];
   LlmProviderList.subscribe(value => {
     providers = value;
-    if (!selectedItem && providers.length > 0) {
+    updateSelectedItem();
+  });
+
+  selectedModelStore.subscribe(() => {
+    updateSelectedItem();
+  });
+
+  function updateSelectedItem() {
+    const selectedModelValue = get(selectedModelStore);
+    if (selectedModelValue && providers) {
+      selectedItem = providers.find(item => item.model === selectedModelValue) || null;
+    } else if (!selectedItem && providers && providers.length > 0) {
       const desiredSelector = 'gpt-4o-mini';
       selectedItem = providers.find(item => item.model === desiredSelector) || providers[0];
     }
-  });
+  }
 
   let isListBoxVisible = false;
   let isThemeListBoxVisible = false;
@@ -76,40 +87,21 @@
 
   onMount(() => {
     themeStore.init();
+    selectedModelStore.init();
     document.addEventListener('click', handleClickOutside);
-
-    // not a good plan
-    // Load WebLLM models
-    // const loadWebLLMModels = async () => {
-    //   const availableModels = webllm.prebuiltAppConfig.model_list.map(
-    //     (m) => m.model_id
-    //   );
-    //
-    //   availableModels.forEach((model) => {
-    //     LlmProviderList.update(list => [
-    //       ...list,
-    //       {
-    //         provider: "webllm",
-    //         model: model,
-    //         title: `WebLLM - ${model}`,
-    //         icon: "material-symbols:skull",
-    //         subtitle: "Local WebLLM model",
-    //         systemMessage: "You are a helpful AI assistant.",
-    //         apiKeyName: "",
-    //         local: true
-    //       }
-    //     ]);
-    //   });
-    // };
-    //
-    // loadWebLLMModels();
-
     return () => {
       document.removeEventListener('click', handleClickOutside);
     };
   });
 
-  let localwebLlm: boolean = false;
+  let localwebLlm: boolean;
+  localWebLlmStore.subscribe(value => {
+    localwebLlm = value;
+  });
+
+  function handleLocalWebLlmChange(event: Event) {
+    localWebLlmStore.setLocalWebLlm((event.target as HTMLInputElement).checked);
+  }
 </script>
 
 <svelte:head>{@html '<script>(' + setInitialClassState.toString() + autoModeWatcher.toString() + ')();</script>'}</svelte:head>
@@ -125,7 +117,7 @@
     <span class="font-nunito text-sm bg-gradient-to-br from-pink-500 to-violet-500
     bg-clip-text text-transparent box-decoration-clone"
     >{selectedItem ? selectedItem.title : 'Select Model'}</span>
-    <SlideToggle name="slide" bind:checked={localwebLlm}
+    <SlideToggle name="slide" bind:checked={localwebLlm} on:change={handleLocalWebLlmChange}
                  active="" size="sm"
     >{localwebLlm ? 'local' : 'remote'}</SlideToggle>
   </button>
@@ -133,21 +125,23 @@
     <div transition:fade class="absolute top-full right-0 mt-2 z-50 min-w-[200px]
     w-max rounded-md p-3 bg-surface-500/80">
       <!-- config button -->
-      <div class="flex justify-end">
-        <button
-          type="button"
-          class="btn variant-filled"
-          on:click={() => isConfigModalOpen = true}
-        >
-          <span>
-            <Icon
-              icon="majesticons:settings-cog-line"
-              class="w-6 h-5"
-            />
-          </span>
-          <span>Configure</span>
-        </button>
-      </div>
+      {#if localwebLlm }
+        <div class="flex justify-end">
+          <button
+            type="button"
+            class="btn variant-filled"
+            on:click={() => isConfigModalOpen = true}
+          >
+            <span>
+              <Icon
+                icon="majesticons:settings-cog-line"
+                class="w-6 h-5"
+              />
+            </span>
+            <span>Configure</span>
+          </button>
+        </div>
+      {/if}
 
       <ListBox class="w-full">
         {#each providers as item}
@@ -202,7 +196,7 @@ text-transparent box-decoration-clone">MultiShot.AI</strong>
     {/if}
 </div>
   {#if isConfigModalOpen}
-    <ConfigModal bind:open={isConfigModalOpen} />
+    <ConfigModal bind:open={isConfigModalOpen} bind:selectedItem={selectedItem} />
   {/if}
 
 <a class="font-nunito btn btn-sm variant-ghost-surface rounded-md"

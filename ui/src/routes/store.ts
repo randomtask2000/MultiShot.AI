@@ -79,8 +79,8 @@ function createLlmProviderListStore() {
       }
       return updatedProviders;
     }),
-    removeProvider: (id: string) => update(providers => {
-      const updatedProviders = providers.filter(p => p.id !== id);
+    removeProvider: (model: string) => update(providers => {
+      const updatedProviders = providers.filter(p => p.model !== model);
       if (isBrowser) {
         localStorage.setItem('llmProviderList', JSON.stringify(updatedProviders));
       }
@@ -98,7 +98,58 @@ function createLlmProviderListStore() {
 
 export const llmProviderListStore = createLlmProviderListStore();
 
-// Initialize the store only in the browser
+function createSelectedModelStore() {
+  const { subscribe, set } = writable<string | null>(null);
+
+  return {
+    subscribe,
+    setSelectedModel: (model: string) => {
+      set(model);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('selectedModel', model);
+      }
+    },
+    init: () => {
+      if (typeof localStorage !== 'undefined') {
+        const storedModel = localStorage.getItem('selectedModel');
+        if (storedModel) {
+          set(storedModel);
+        }
+      }
+    }
+  };
+}
+
+export const selectedModelStore = createSelectedModelStore();
+
+function createLocalWebLlmStore() {
+  const { subscribe, set } = writable(
+    typeof localStorage !== 'undefined' && localStorage.getItem('localwebLlm') === 'true'
+  );
+
+  return {
+    subscribe,
+    setLocalWebLlm: (value: boolean) => {
+      set(value);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('localwebLlm', value.toString());
+      }
+    },
+    init: () => {
+      if (typeof localStorage !== 'undefined') {
+        const storedValue = localStorage.getItem('localwebLlm');
+        if (storedValue !== null) {
+          set(storedValue === 'true');
+        }
+      }
+    }
+  };
+}
+
+export const localWebLlmStore = createLocalWebLlmStore();
+
+// Initialize the stores only in the browser
 if (typeof window !== 'undefined') {
   llmProviderListStore.init();
+  localWebLlmStore.init();
 }

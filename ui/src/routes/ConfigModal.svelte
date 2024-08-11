@@ -4,16 +4,16 @@
   import { ProgressRadial } from '@skeletonlabs/skeleton';
   import * as webllm from "@mlc-ai/web-llm";
   import { LlmProviderList } from './types';
-  import { get } from 'svelte/store';
-  import { listStore } from './store';
+  import { listStore, llmProviderListStore, selectedModelStore } from './store';
   import type { LlmProvider } from './types';
 
   export let open = false;
+  export let selectedItem: LlmProvider | null;
 
   const dispatch = createEventDispatcher();
   let dialog: HTMLDialogElement;
   let availableModels: string[] = [];
-  let selectedModel = "TinyLlama-1.1B-Chat-v0.4-q4f32_1-MLC-1k";
+  let selectedModel = selectedItem?.model || "TinyLlama-1.1B-Chat-v0.4-q4f32_1-MLC-1k";
   let isDownloading = false;
   let isModelInitialized = false;
   let downloadStatus = '';
@@ -33,6 +33,24 @@
   function closeModal() {
     open = false;
     dispatch('close');
+    updateSelectedItem();
+  }
+
+  function updateSelectedItem() {
+    if (selectedItem?.model !== selectedModel) {
+      selectedItem = {
+              provider: "webllm",
+              model: selectedModel,
+              title: selectedModel,
+              icon: "mdi:brain",
+              subtitle: "Local WebLLM model",
+              systemMessage: "You are a helpful AI assistant.",
+              apiKeyName: "",
+              local: true,
+              selected: true
+      };
+      selectedModelStore.setSelectedModel(selectedModel);
+    }
   }
 
   function handleKeydown(event: KeyboardEvent) {
@@ -67,15 +85,17 @@
               subtitle: "Local WebLLM model",
               systemMessage: "You are a helpful AI assistant.",
               apiKeyName: "",
-              local: true
-            }
+              local: true,
+              selected: true
+  }
           ];
-        }
-        return providers;
+  }
+        return providers.map(p => p.model === selectedModel ? { ...p, selected: true } : { ...p, selected: false });
       });
 
       // Update the store with the new model
       listStore.addModel(selectedModel);
+      selectedModelStore.setSelectedModel(selectedModel);
     } catch (error) {
       console.error("Error initializing WebLLM engine:", error);
       downloadStatus = "Error: Failed to initialize the model. Please try again.";

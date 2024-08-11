@@ -2,7 +2,6 @@ import { writable } from 'svelte/store';
 import type { Readable, Writable } from 'svelte/store';
 
 export interface LlmProvider {
-  id: string;
   model: string;
   provider: string;
   title: string;
