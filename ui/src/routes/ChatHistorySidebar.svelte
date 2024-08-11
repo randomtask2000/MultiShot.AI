@@ -41,9 +41,15 @@
     }
   }
 
-  // function handleClearList() {
-  //   ChatHistoryManager.clearChatHistory();
-  // }
+  function handleClearList() {
+    // Clear the listStore
+    onClearList();
+    
+    // Clear the localStorage
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('chatHistory');
+    }
+  }
 </script>
 
 <div
@@ -90,7 +96,7 @@
       />
     </label>
     <button
-      on:click={onClearList}
+      on:click={handleClearList}
       class="flex items-center justify-center w-full p-2 bg-surface-500/30 text-white rounded hover:bg-red-600 transition duration-300 font-nunito"
     >
       <Icon icon="mdi:delete" class="mr-2" />
