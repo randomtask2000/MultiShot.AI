@@ -4,6 +4,7 @@ import forms from '@tailwindcss/forms';
 import typography from '@tailwindcss/typography';
 import { skeleton } from '@skeletonlabs/tw-plugin';
 import { theme_chat1 } from './src/theme_chat1'
+import { my_blue_steel } from './src/my-blue-steel'
 
 export default {
 	darkMode: 'class',
@@ -73,6 +74,7 @@ export default {
 				],
 				custom: [
 					theme_chat1,
+					my_blue_steel,
 				],
 			},
 		}),
