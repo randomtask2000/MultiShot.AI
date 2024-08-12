@@ -119,11 +119,11 @@ text-left fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
   <div class="flex flex-col h-full">
     <div class="flex justify-between items-start mb-4">
       <div class="space-y-2">
-        <h2 class="h2">WebLLM Configuration</h2>
+        <h2 class="h2">Download a Model</h2>
         <p class="text-sm">
           These are free LLMs that can be run in the browser completely privately without a 3rd party 
-          processing your prompts. However, you'll have to download the model first and the larger the 
-          model (see models like Llama 3 8B or even 70B) may run slow on your computer.
+          processing your prompts. However, you'll have to download the model first; larger models 
+          (see models like Meta's Llama 3.1-8B 4GB) may run slow on your computer.
         </p>
       </div>
       <button

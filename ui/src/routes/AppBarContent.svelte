@@ -159,7 +159,7 @@
 						<span>
 							<Icon icon="majesticons:settings-cog-line" class="w-6 h-5" />
 						</span>
-						<span>Configure</span>
+						<span>Add local model</span>
 					</button>
 				</div>
 			{/if}
