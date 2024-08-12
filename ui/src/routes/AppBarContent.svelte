@@ -153,7 +153,7 @@
 				<div class="flex justify-end">
 					<button
 						type="button"
-						class="btn variant-filled"
+						class="btn variant-filled bg-primary-500"
 						on:click={() => (isConfigModalOpen = true)}
 					>
 						<span>
@@ -183,9 +183,11 @@
 							</ListBoxItem>
 							<button
 								type="button"
-								class="absolute right-2 top-1/2 transform -translate-y-1/2 btn-icon 
-                btn-icon-sm variant-ghost-error opacity-0 group-hover:opacity-100 
-                transition-opacity duration-200"
+								class="absolute right-1 top-1/2 transform bg-secondary-500 
+                -translate-y-1/2 btn-icon 
+                btn-icon-sm opacity-0 group-hover:opacity-100 
+                transition-opacity duration-[2000ms] rounded-sm
+                "
 								on:click|stopPropagation={() => removeProvider(item.model)}
 							>
 								<Icon icon="mdi:close" class="w-4 h-4"/>

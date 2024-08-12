@@ -127,7 +127,7 @@ text-left fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
   <div class="flex flex-col h-full">
     <div class="flex justify-between items-start mb-4">
       <div class="space-y-2">
-        <h2 class="h2">Download a Model</h2>
+        <h2 class="h2">Download Model</h2>
         <p class="text-sm">
           These are free LLMs that can be run in the browser completely privately without a 3rd party 
           processing your prompts. However, you'll have to download the model first; larger models 
@@ -136,7 +136,7 @@ text-left fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
       </div>
       <button
         on:click={closeModal}
-        class="btn btn-sm btn-icon variant-ghost-surface"
+        class="btn btn-sm btn-icon variant-ghost-surface bg-primary-500/30"
         aria-label="Close modal"
       >
         <Icon icon="mdi:close" />
@@ -161,7 +161,7 @@ text-left fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <button
           on:click={initializeWebLLMEngine}
           disabled={isDownloading || isModelInitialized}
-          class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-blue-300"
+          class="px-4 py-2 bg-primary-500  text-white rounded hover:bg-primary-300 disabled:bg-primary-300"
         >
           {isDownloading ? 'Downloading...' : isModelInitialized ? 'Model Initialized' : 'Download'}
         </button>

@@ -5,6 +5,7 @@
   import { type ChatHistoryItem } from './types';
   import Icon from '@iconify/svelte';
   import { ChatHistoryManager } from './chatHistoryManager';
+  import { get } from 'svelte/store';
 
   export let onRestoreChat: (item: ChatHistoryItem) => void;
   export let onClearList: () => void;
@@ -50,6 +51,13 @@
       localStorage.removeItem('chatHistory');
     }
   }
+
+  function deleteEntry(id: number) {
+    const currentItems = get(listStore);
+    const updatedItems = currentItems.filter(item => item.id !== id);
+    listStore.clearList();
+    updatedItems.forEach(item => listStore.addItem(item));
+  }
 </script>
 
 <div
@@ -70,13 +78,29 @@ text-transparent box-decoration-clone">MultiShot.AI</strong
   {:else}
     <ul class="space-y-2">
       {#each $listStore as item (item.id)}
-        <li>
+        <li class="group relative">
           <button
             on:click={() => onRestoreChat(item)}
             class="flex items-center justify-between w-full p-2 text-left hover:bg-surface-500/30 rounded transition duration-300 font-nunito"
           >
+          <!-- absolute right-1 top-1/2 transform bg-secondary-500 
+                -translate-y-1/2 btn-icon 
+                btn-icon-sm opacity-0 group-hover:opacity-100 
+                transition-opacity duration-[2000ms] rounded-sm -->
             <span class="truncate">{@html item.text}</span>
-            <Icon icon={item.llmProvider.icon} class="flex-shrink-0 ml-2" />
+            <div class="flex items-center relative">
+              <Icon icon={item.llmProvider.icon} class="flex-shrink-0 mr-0" />
+              <button
+                type="button"
+                class=" btn-icon btn-icon-sm bg-secondary-500 rounded-sm
+         opacity-0 group-hover:opacity-100 
+         transition-[opacity_0ms] group-hover:transition-[opacity_200ms]
+         absolute top-0 right-1 -mt-2 -mr-2"
+                on:click|stopPropagation={() => deleteEntry(item.id)}
+              >
+                <Icon icon="mdi:close" class="w-4 h-4"/>
+              </button>
+            </div>
           </button>
         </li>
       {/each}
@@ -85,13 +109,15 @@ text-transparent box-decoration-clone">MultiShot.AI</strong
   <div class="mt-4 space-y-2">
     <button
       on:click={handleExport}
-      class="flex items-center justify-center w-full p-2 bg-surface-500/30 text-white rounded hover:bg-blue-600 transition duration-300 font-nunito"
+      class="flex items-center justify-center w-full p-2 bg-primary-500/30 text-white rounded 
+      hover:bg-secondary-600 transition duration-300 font-nunito"
     >
       <Icon icon="mdi:export" class="mr-2" />
       Export Chat History
     </button>
     <label
-      class="flex items-center justify-center w-full p-2 bg-surface-500/30 text-white rounded hover:bg-green-600 transition duration-300 font-nunito cursor-pointer"
+      class="flex items-center justify-center w-full p-2 bg-primary-500/30 text-white rounded 
+      hover:bg-secondary-600 transition duration-300 font-nunito cursor-pointer"
     >
       <Icon icon="mdi:import" class="mr-2" />
       Import Chat History
@@ -104,7 +130,8 @@ text-transparent box-decoration-clone">MultiShot.AI</strong
     </label>
     <button
       on:click={handleClearList}
-      class="flex items-center justify-center w-full p-2 bg-surface-500/30 text-white rounded hover:bg-red-600 transition duration-300 font-nunito"
+      class="flex items-center justify-center w-full p-2 bg-primary-500/30 text-white rounded 
+      hover:bg-secondary-600 transition duration-300 font-nunito"
     >
       <Icon icon="mdi:delete" class="mr-2" />
       Clear All
