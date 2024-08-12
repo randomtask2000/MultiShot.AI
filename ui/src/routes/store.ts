@@ -7,7 +7,13 @@ function createListStore() {
 
   return {
     subscribe,
-    addItem: (item: ChatHistoryItem) => update(items => [...items, item]),
+    addItem: (item: ChatHistoryItem) => update(items => {
+      const updatedItems = [...items, item];
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('chatHistory', JSON.stringify(updatedItems));
+      }
+      return updatedItems;
+    }),
     clearList: () => set([]),
     init: () => {
       if (typeof localStorage !== 'undefined') {

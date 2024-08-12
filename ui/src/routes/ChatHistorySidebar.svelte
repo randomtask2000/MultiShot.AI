@@ -83,19 +83,15 @@ text-transparent box-decoration-clone">MultiShot.AI</strong
             on:click={() => onRestoreChat(item)}
             class="flex items-center justify-between w-full p-2 text-left hover:bg-surface-500/30 rounded transition duration-300 font-nunito"
           >
-          <!-- absolute right-1 top-1/2 transform bg-secondary-500 
-                -translate-y-1/2 btn-icon 
-                btn-icon-sm opacity-0 group-hover:opacity-100 
-                transition-opacity duration-[2000ms] rounded-sm -->
             <span class="truncate">{@html item.text}</span>
             <div class="flex items-center relative">
               <Icon icon={item.llmProvider.icon} class="flex-shrink-0 mr-0" />
               <button
                 type="button"
                 class=" btn-icon btn-icon-sm bg-secondary-500 rounded-sm
-         opacity-0 group-hover:opacity-100 
-         transition-[opacity_0ms] group-hover:transition-[opacity_200ms]
-         absolute top-0 right-1 -mt-2 -mr-2"
+                        opacity-0 group-hover:opacity-100 
+                        transition-[opacity_0ms] group-hover:transition-[opacity_200ms]
+                        absolute top-0 right-1 -mt-2 -mr-2"
                 on:click|stopPropagation={() => deleteEntry(item.id)}
               >
                 <Icon icon="mdi:close" class="w-4 h-4"/>
