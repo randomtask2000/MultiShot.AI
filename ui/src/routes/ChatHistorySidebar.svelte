@@ -53,7 +53,7 @@
 </script>
 
 <div
-  class="h-screen w-62 p-4 shadow-md overflow-y-auto"
+  class="h-screen w-61 p-4 shadow-md overflow-y-auto"
   transition:fly={{ x: -250, opacity: 1, duration: 300, easing: cubicInOut }}
 >
   <h2 class="font-nunito text-xl bg-gradient-to-br from-surface-500/30 to-violet-400 bg-clip-text text-transparent box-decoration-clone">Chat History</h2>

@@ -53,7 +53,7 @@ function createPersistentLlmProviderList() {
       "title": "GPT-4o",
       "icon": "simple-icons:openai",
       "subtitle": "Best for complex tasks",
-      "systemMessage": "You are a highly skilled AI assistant specializing in Svelte, JavaScript, Python, LangChain, LangGraph, and TypeScript. Your role involves guiding developers in setting up and configuring projects, creating and optimizing code, debugging issues, and providing best practices. You offer well-commented and formatted code snippets, in baby language for someone that doesn't like to read, and relevant references.",
+      "systemMessage": "You are a highly skilled AI assistant",
       "apiKeyName": "OPENAI_API",
       "local": false
     },
