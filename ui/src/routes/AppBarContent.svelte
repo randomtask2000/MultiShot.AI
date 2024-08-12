@@ -5,7 +5,7 @@
   import Icon from '@iconify/svelte';
   import { ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
   import { fade } from 'svelte/transition';
-  import { themeStore, selectedModelStore, localWebLlmStore } from './store';
+  import { themeStore, selectedModelStore, localWebLlmStore, llmProviderListStore } from './store';
   import { LightSwitch } from '@skeletonlabs/skeleton';
   import { autoModeWatcher } from '@skeletonlabs/skeleton';
   import { setInitialClassState } from '@skeletonlabs/skeleton';
@@ -102,6 +102,15 @@
   function handleLocalWebLlmChange(event: Event) {
     localWebLlmStore.setLocalWebLlm((event.target as HTMLInputElement).checked);
   }
+
+  function removeProvider(model: string): void {
+    llmProviderListStore.removeProvider(model);
+    providers = providers.filter(provider => provider.model !== model);
+    if (selectedItem?.model === model) {
+      selectedItem = null;
+      selectedModelStore.setSelectedModel('');
+    }
+  }
 </script>
 
 <svelte:head>{@html '<script>(' + setInitialClassState.toString() + autoModeWatcher.toString() + ')();</script>'}</svelte:head>
@@ -144,8 +153,9 @@
       {/if}
 
       <ListBox class="w-full">
-        {#each providers as item}
+        {#each providers as item (item.model)}
           {#if item.local === localwebLlm}
+            <div class="relative group">
             <ListBoxItem
               on:click={() => handleSelectItem(item)}
               active={selectedItem?.model === item.model}
@@ -159,10 +169,18 @@
               </svelte:fragment>
               {item.title}
             </ListBoxItem>
-          {/if}
+              <button
+                type="button"
+                class="absolute right-2 top-1/2 transform -translate-y-1/2 btn-icon btn-icon-sm variant-ghost-error opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                on:click|stopPropagation={() => removeProvider(item.model)}
+              >
+                <Icon icon="mdi:close" class="w-4 h-4" />
+  </button>
+    </div>
+    {/if}
         {/each}
       </ListBox>
-    </div>
+</div>
   {/if}
 </div>
 <strong class="font-nunito text-xl bg-gradient-to-br from-pink-500 to-violet-500 bg-clip-text
@@ -199,7 +217,6 @@ text-transparent box-decoration-clone">MultiShot.AI</strong>
   {#if isConfigModalOpen}
     <ConfigModal bind:open={isConfigModalOpen} bind:selectedItem={selectedItem} />
   {/if}
-
 <a class="font-nunito btn btn-sm variant-ghost-surface rounded-md"
    href="https://twitter.com/cronuser" target="_blank" rel="noreferrer">
   <Icon icon="simple-icons:x" class="w-6 h-5" /></a>
