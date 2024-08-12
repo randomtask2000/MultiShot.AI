@@ -195,10 +195,6 @@
 		</div>
 	{/if}
 </div>
-<strong
-	class="font-nunito text-xl bg-gradient-to-br from-pink-500 to-violet-500 bg-clip-text
-text-transparent box-decoration-clone">MultiShot.AI</strong
->
 <div class="relative" bind:this={themeListBoxContainer}>
 	<button
 		type="button"

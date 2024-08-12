@@ -56,7 +56,14 @@
   class="h-screen w-61 p-4 shadow-md overflow-y-auto"
   transition:fly={{ x: -250, opacity: 1, duration: 300, easing: cubicInOut }}
 >
-  <h2 class="font-nunito text-xl bg-gradient-to-br from-surface-500/30 to-violet-400 bg-clip-text text-transparent box-decoration-clone">Chat History</h2>
+<strong
+class="font-nunito text-xl bg-gradient-to-br from-pink-500 to-violet-500 bg-clip-text
+text-transparent box-decoration-clone">MultiShot.AI</strong
+>
+  <!-- <h2 class="font-nunito text-xl bg-gradient-to-br 
+  from-surface-500/30 to-violet-400 bg-clip-text text-transparent 
+  box-decoration-clone">Chat History</h2> -->
+  <br/>
   <br/>
   {#if $listStore.length === 0}
     <p class="bg-surface-800/30">No saved chats yet.</p>
