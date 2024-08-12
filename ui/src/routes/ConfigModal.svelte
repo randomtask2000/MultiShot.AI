@@ -112,14 +112,23 @@
   engine.setInitProgressCallback(updateEngineInitProgressCallback);
 </script>
 
-<dialog bind:this={dialog} on:close={closeModal} class="w-full max-w-2xl p-4 rounded-lg shadow-xl bg-surface-100/90 text-left fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+<dialog bind:this={dialog} on:close={closeModal} 
+class="w-full max-w-2xl p-4 rounded-lg shadow-xl bg-surface-100/90 
+text-left fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
 
   <div class="flex flex-col h-full">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xl font-bold">WebLLM Configuration</h2>
+    <div class="flex justify-between items-start mb-4">
+      <div class="space-y-2">
+        <h2 class="h2">WebLLM Configuration</h2>
+        <p class="text-sm">
+          These are free LLMs that can be run in the browser completely privately without a 3rd party 
+          processing your prompts. However, you'll have to download the model first and the larger the 
+          model (see models like Llama 3 8B or even 70B) may run slow on your computer.
+        </p>
+      </div>
       <button
         on:click={closeModal}
-        class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+        class="btn btn-sm btn-icon variant-ghost-surface"
         aria-label="Close modal"
       >
         <Icon icon="mdi:close" />
