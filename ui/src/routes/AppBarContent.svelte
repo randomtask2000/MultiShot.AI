@@ -114,12 +114,10 @@
 	}
 </script>
 
-<svelte:head
-	>{@html '<script>(' +
+<svelte:head>{@html '<script>(' +
 		setInitialClassState.toString() +
 		autoModeWatcher.toString() +
-		')();</script>'}</svelte:head
->
+		')();</script>'}</svelte:head>
 <div class="relative" bind:this={listBoxContainer}>
 	<button
 		type="button"
