@@ -6,6 +6,7 @@
   import { LlmProviderList } from './types';
   import { listStore, llmProviderListStore, selectedModelStore } from './store';
   import type { LlmProvider } from './types';
+  import LoadingAnimationNeural from './LoadingAnimationNeural.svelte';
 
   export let open = false;
   export let selectedItem: LlmProvider | null;
@@ -17,6 +18,8 @@
   let isDownloading = false;
   let isModelInitialized = false;
   let downloadStatus = '';
+  let progressPercentage = 0;
+  let statusMessage = '';
 
   const engine = new webllm.MLCEngine();
 
@@ -105,11 +108,16 @@
   }
 
   function updateEngineInitProgressCallback(report: { progress: number; text: string }) {
-    console.log("initialize", report.progress);
-    downloadStatus = report.text;
+    statusMessage = report.text;
+  }
+
+  function initProgressCallback(report: { progress: number; text: string }) {
+    progressPercentage = Math.round(report.progress * 100);
+    downloadStatus = `${report.text} (${progressPercentage}%)`;
   }
 
   engine.setInitProgressCallback(updateEngineInitProgressCallback);
+  engine.setInitProgressCallback(initProgressCallback);
 </script>
 
 <dialog bind:this={dialog} on:close={closeModal} 
@@ -158,9 +166,10 @@ text-left fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
           {isDownloading ? 'Downloading...' : isModelInitialized ? 'Model Initialized' : 'Download'}
         </button>
         {#if isDownloading}
-          <div class="mt-2 flex items-center">
-            <ProgressRadial stroke={100} meter="stroke-primary-500" track="stroke-primary-500/30" />
-            <p class="ml-2">{downloadStatus}</p>
+          <div class="mt-2 flex flex-col">
+            <progress value={progressPercentage} max="100" class="w-full"></progress>
+            <p class="mt-1">{downloadStatus}</p>
+            <p class="mt-1">{statusMessage}</p>
           </div>
         {/if}
       </div>
