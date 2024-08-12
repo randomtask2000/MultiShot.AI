@@ -183,10 +183,12 @@
 							</ListBoxItem>
 							<button
 								type="button"
-								class="absolute right-2 top-1/2 transform -translate-y-1/2 btn-icon btn-icon-sm variant-ghost-error opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+								class="absolute right-2 top-1/2 transform -translate-y-1/2 btn-icon 
+                btn-icon-sm variant-ghost-error opacity-0 group-hover:opacity-100 
+                transition-opacity duration-200"
 								on:click|stopPropagation={() => removeProvider(item.model)}
 							>
-								<Icon icon="mdi:close" class="w-4 h-4" />
+								<Icon icon="mdi:close" class="w-4 h-4"/>
 							</button>
 						</div>
 					{/if}
