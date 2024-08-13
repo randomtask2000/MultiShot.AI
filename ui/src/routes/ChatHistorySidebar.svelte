@@ -80,7 +80,7 @@
 
 <div
   class="h-screen w-61 p-4 shadow-md flex flex-col bg-gradient-to-t 
-  from-surface-600/70 dark:from-surface-500/80"
+  from-surface-600/70 dark:from-surface-600/80"
   transition:fly={{ x: -250, opacity: 1, duration: 300, easing: cubicInOut }}
 >
   <strong
@@ -99,7 +99,7 @@
     {#if sortedListStore.length === 0}
       <p class="text-white/50">No saved chats yet.</p>
     {:else}
-      <h3 class="font-bold mb-2">Today</h3>
+      <h3 class="font-bold mb-2 text-opacity-20">Today</h3>
       <ul class="space-y-2 mb-4">
         {#each todayItems as item (item.id)}
           <li class="group relative">
@@ -127,7 +127,7 @@
       </ul>
 
       {#if olderItems.length > 0}
-        <h3 class="font-bold mb-2">Older</h3>
+        <h3 class="font-bold mb-2 text-opacity-20">Older</h3>
         <ul class="space-y-2">
           {#each olderItems as item (item.id)}
             <li class="group relative">
@@ -161,14 +161,14 @@
     <button
       on:click={handleExport}
       class="flex items-center justify-center w-full p-2 bg-surface-500/10 rounded 
-      hover:bg-secondary-600 transition duration-300 font-nunito"
+      hover:bg-secondary-600 transition duration-300 font-nunito font-normal"
     >
       <Icon icon="mdi:export" class="mr-2" />
       Export Chat History
     </button>
     <label
       class="flex items-center justify-center w-full p-2 bg-surface-500/10 rounded 
-      hover:bg-secondary-600 transition duration-300 font-nunito cursor-pointer"
+      hover:bg-secondary-600 transition duration-300 font-nunito font-normal"
     >
       <Icon icon="mdi:import" class="mr-2" />
       Import Chat History
@@ -182,7 +182,7 @@
     <button
       on:click={handleClearList}
       class="flex items-center justify-center w-full p-2 bg-surface-500/10 rounded 
-      hover:bg-secondary-600 transition duration-300 font-nunito"
+      hover:bg-secondary-600 transition duration-300 font-nunito font-normal"
     >
       <Icon icon="mdi:delete" class="mr-2" />
       Clear All
