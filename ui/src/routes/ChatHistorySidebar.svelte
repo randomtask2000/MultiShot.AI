@@ -11,6 +11,12 @@
   export let onClearList: () => void;
   export let sidebarVisible: boolean;
 
+  $: sortedListStore = $listStore.sort((a, b) => {
+    const dateA = a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt);
+    const dateB = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
+    return dateB.getTime() - dateA.getTime();
+  });
+
   async function handleExport() {
     const url = await ChatHistoryManager.exportChatHistory();
     const a = document.createElement('a');
@@ -68,16 +74,13 @@
 class="font-nunito text-xl bg-gradient-to-br from-pink-500 to-violet-500 bg-clip-text
 text-transparent box-decoration-clone">MultiShot.AI</strong
 >
-  <!-- <h2 class="font-nunito text-xl bg-gradient-to-br 
-  from-surface-500/30 to-violet-400 bg-clip-text text-transparent 
-  box-decoration-clone">Chat History</h2> -->
   <br/>
   <br/>
-  {#if $listStore.length === 0}
+  {#if sortedListStore.length === 0}
     <p class="bg-surface-800/30">No saved chats yet.</p>
   {:else}
     <ul class="space-y-2">
-      {#each $listStore as item (item.id)}
+      {#each sortedListStore as item (item.id)}
         <li class="group relative">
           <button
             on:click={() => onRestoreChat(item)}
