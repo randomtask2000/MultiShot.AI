@@ -59,8 +59,7 @@
               subtitle: "Local WebLLM model",
               systemMessage: "You are a helpful AI assistant.",
               apiKeyName: "",
-              local: true,
-              selected: true
+              local: true
       };
       selectedModelStore.setSelectedModel(selectedModel);
     }
