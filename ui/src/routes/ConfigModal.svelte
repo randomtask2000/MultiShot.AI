@@ -39,13 +39,23 @@
     updateSelectedItem();
   }
 
+  function getIcon(modelName: string): string {
+    if (modelName.toLowerCase().includes('llama')) {
+      return "fluent-emoji-high-contrast:llama";
+    } else if (modelName.toLowerCase().includes('mistral')) {
+      return "logos:mistral-ai-icon";
+    } else {
+      return "mdi:brain";
+    }
+  }
+
   function updateSelectedItem() {
     if (selectedItem?.model !== selectedModel) {
       selectedItem = {
               provider: "webllm",
               model: selectedModel,
               title: selectedModel,
-              icon: "mdi:brain",
+              icon: getIcon(selectedModel),
               subtitle: "Local WebLLM model",
               systemMessage: "You are a helpful AI assistant.",
               apiKeyName: "",
