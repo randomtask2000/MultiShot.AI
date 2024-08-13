@@ -17,6 +17,18 @@
     return dateB.getTime() - dateA.getTime();
   });
 
+  $: todayItems = sortedListStore.filter(item => {
+    const itemDate = item.createdAt instanceof Date ? item.createdAt : new Date(item.createdAt);
+    const today = new Date();
+    return itemDate.toDateString() === today.toDateString();
+  });
+
+  $: olderItems = sortedListStore.filter(item => {
+    const itemDate = item.createdAt instanceof Date ? item.createdAt : new Date(item.createdAt);
+    const today = new Date();
+    return itemDate.toDateString() !== today.toDateString();
+  });
+
   async function handleExport() {
     const url = await ChatHistoryManager.exportChatHistory();
     const a = document.createElement('a');
@@ -77,10 +89,11 @@ text-transparent box-decoration-clone">MultiShot.AI</strong
   <br/>
   <br/>
   {#if sortedListStore.length === 0}
-    <p class="bg-surface-800/30">No saved chats yet.</p>
+    <p class="text-white/50">No saved chats yet.</p>
   {:else}
-    <ul class="space-y-2">
-      {#each sortedListStore as item (item.id)}
+    <h3 class="font-bold mb-2 text-white/50">Today</h3>
+    <ul class="space-y-2 mb-4">
+      {#each todayItems as item (item.id)}
         <li class="group relative">
           <button
             on:click={() => onRestoreChat(item)}
@@ -104,6 +117,35 @@ text-transparent box-decoration-clone">MultiShot.AI</strong
         </li>
       {/each}
     </ul>
+
+    {#if olderItems.length > 0}
+      <h3 class="font-bold mb-2 text-white/50">Older</h3>
+      <ul class="space-y-2">
+        {#each olderItems as item (item.id)}
+          <li class="group relative">
+            <button
+              on:click={() => onRestoreChat(item)}
+              class="flex items-center justify-between w-full p-2 text-left hover:bg-surface-500/30 rounded transition duration-300 font-nunito"
+            >
+              <span class="truncate">{@html item.text}</span>
+              <div class="flex items-center relative">
+                <Icon icon={item.llmProvider.icon} class="flex-shrink-0 mr-0" />
+                <button
+                  type="button"
+                  class=" btn-icon btn-icon-sm bg-secondary-500/70 rounded-sm
+                          opacity-0 group-hover:opacity-100 
+                          transition-[opacity_0ms] group-hover:transition-[opacity_200ms]
+                          absolute top-0 right-1 -mt-2 -mr-2"
+                  on:click|stopPropagation={() => deleteEntry(item.id)}
+                >
+                  <Icon icon="mdi:close" class="w-4 h-4"/>
+                </button>
+              </div>
+            </button>
+          </li>
+        {/each}
+      </ul>
+    {/if}
   {/if}
   <div class="mt-4 space-y-2">
     <button
