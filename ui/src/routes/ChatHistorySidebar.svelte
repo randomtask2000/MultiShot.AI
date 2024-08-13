@@ -88,7 +88,7 @@ text-transparent box-decoration-clone">MultiShot.AI</strong
               <Icon icon={item.llmProvider.icon} class="flex-shrink-0 mr-0" />
               <button
                 type="button"
-                class=" btn-icon btn-icon-sm bg-secondary-500 rounded-sm
+                class=" btn-icon btn-icon-sm bg-secondary-500/70 rounded-sm
                         opacity-0 group-hover:opacity-100 
                         transition-[opacity_0ms] group-hover:transition-[opacity_200ms]
                         absolute top-0 right-1 -mt-2 -mr-2"
@@ -105,14 +105,14 @@ text-transparent box-decoration-clone">MultiShot.AI</strong
   <div class="mt-4 space-y-2">
     <button
       on:click={handleExport}
-      class="flex items-center justify-center w-full p-2 bg-primary-500/30 text-white rounded 
+      class="flex items-center justify-center w-full p-2 bg-surface-500/30 text-white rounded 
       hover:bg-secondary-600 transition duration-300 font-nunito"
     >
       <Icon icon="mdi:export" class="mr-2" />
       Export Chat History
     </button>
     <label
-      class="flex items-center justify-center w-full p-2 bg-primary-500/30 text-white rounded 
+      class="flex items-center justify-center w-full p-2 bg-surface-500/30 text-white rounded 
       hover:bg-secondary-600 transition duration-300 font-nunito cursor-pointer"
     >
       <Icon icon="mdi:import" class="mr-2" />
@@ -126,7 +126,7 @@ text-transparent box-decoration-clone">MultiShot.AI</strong
     </label>
     <button
       on:click={handleClearList}
-      class="flex items-center justify-center w-full p-2 bg-primary-500/30 text-white rounded 
+      class="flex items-center justify-center w-full p-2 bg-surface-500/30 text-white rounded 
       hover:bg-secondary-600 transition duration-300 font-nunito"
     >
       <Icon icon="mdi:delete" class="mr-2" />

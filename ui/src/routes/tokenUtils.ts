@@ -30,6 +30,7 @@ export function storeTokenHistory(
         const title = renderMarkdown(lastToken.content.substring(0, 30)).replace(/<[^>]*>/g, '');
         const newItem: ChatHistoryItem = {
             id: Date.now(),
+            createdAt: new Date(),
             text: title,
             tokenHistory: [...tokenHistory],
             llmProvider: lastToken.llmInfo

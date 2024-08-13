@@ -155,7 +155,63 @@ async function handleModelChange(newModel: LlmProvider) {
   }
 }
 
+let textareaElement: HTMLTextAreaElement;
+let isResizing = false;
+let startY: number;
+let startHeight: number;
+
+function autoResizeTextarea() {
+  if (textareaElement) {
+    textareaElement.style.height = 'auto';
+    textareaElement.style.height = `${Math.min(textareaElement.scrollHeight, 192)}px`; // 192px = 12rem
+  }
+}
+
+function startResize(event: MouseEvent) {
+  isResizing = true;
+  startY = event.clientY;
+  startHeight = textareaElement.offsetHeight;
+  document.addEventListener('mousemove', resize);
+  document.addEventListener('mouseup', stopResize);
+}
+
+function resize(event: MouseEvent) {
+  if (isResizing) {
+    const newHeight = startHeight + startY - event.clientY;
+    textareaElement.style.height = `${Math.min(Math.max(newHeight, 40), 192)}px`; // 40px = 2.5rem, 192px = 12rem
+  }
+}
+
+function stopResize() {
+  isResizing = false;
+  document.removeEventListener('mousemove', resize);
+  document.removeEventListener('mouseup', stopResize);
+}
+
 </script>
+
+<style lang="postcss">
+  .red-selection::selection {
+    @apply bg-red-300/90;
+  }
+
+  .auto-resize-textarea {
+    overflow-y: auto;
+    resize: none;
+    min-height: 2.5rem;
+    max-height: 12rem;
+  }
+
+  .resize-handle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    cursor: ns-resize;
+    background: transparent;
+  }
+</style>
 
 <div class="max-w-screen h-screen flex flex-col">
   <div class="flex flex-grow overflow-hidden">
@@ -176,7 +232,8 @@ async function handleModelChange(newModel: LlmProvider) {
     >
       <AppBar background="light:bg-surface-500/10 dark:bg-surface-500/10">
         <svelte:fragment slot="lead">
-          <button class="btn btn-sm variant-ghost-surface rounded-md p-2 mr-4 h-8" on:click={toggleSidebar} id="openclosebtn">
+          <button class="btn btn-sm variant-ghost-surface rounded-md p-2 mr-4 h-8" 
+          on:click={toggleSidebar} id="openclosebtn">
             <Icon icon={sidebarVisible ? "mdi:menu-open" : "mdi:menu"} />
           </button>
           <button type="button" class="btn btn-sm variant-ghost-surface rounded-md h-8" on:click={clearChat}>
@@ -195,27 +252,42 @@ async function handleModelChange(newModel: LlmProvider) {
              class="flex-grow bg-surface-800/30 p-4 overflow-y-auto">
           <div id="result" bind:this={resultDiv} class="min-h-full"></div>
         </div>
-        <div class="bg-surface-500/30 p-4 flex-shrink-0">
-          <div class="input-group input-group-divider grid-cols-[auto_auto_1fr_auto] rounded-full overflow-hidden pr-11 relative">
+        <div id="inputContainer" class="bg-surface-500/30 p-4 flex-shrink-0 relative">
+          <div id="resizeHandle" class="absolute left-0 right-0 top-0 h-2 cursor-ns-resize z-10" on:mousedown={startResize}>&nbsp;</div>
+          <div id="inputGroup" class="input-group input-group-divider border-1 
+          grid-cols-[auto_auto_1fr_auto] rounded-full 
+          overflow-hidden pr-11 relative
+          transition-all duration-300 ease-in-out
+          hover:shadow-[0_0_15px_rgba(var(--color-primary-500),0.7)] 
+          hover:border-primary-500
+          focus-within:shadow-[0_0_15px_rgba(var(--color-primary-500),0.7)] 
+          focus-within:border-primary-500">
             <button class="input-group-shim" on:click={sendUserTokenAiHistory}>+</button>
             <button class="w-12 h-8 bg-transparent border-none pt-2" on:click={handleAddItem} name="save">
               <Icon icon="ic:twotone-save-alt" class="w-full h-full" />
             </button>
-            <textarea bind:value={tokenVar}
-                      class="w-full font-nunito bg-transparent border-0 ring-0 right-5"
-                      name="tokenInput"
-                      id="tokenInput"
-                      placeholder="Write a message..."
-                      rows="1"
-                      on:keydown={checkForReturnKey} />
+            <textarea
+              bind:value={tokenVar}
+              bind:this={textareaElement}
+              on:input={autoResizeTextarea}
+              class="w-full font-nunito bg-transparent border-0 ring-0 
+              red-selection auto-resize-textarea pr-10"
+              name="tokenInput"
+              id="tokenInput"
+              placeholder="Write a message..."
+              rows="1"
+              on:keydown={checkForReturnKey}
+            ></textarea>
             <button
-              class="absolute -right-2.5 top-1 bottom-1 bg-transparent flex items-center justify-center transition-all duration-300 ease-in-out hover:scale-110"
+              class="absolute -right-3 top-1 bottom-1 bg-transparent flex items-center 
+              justify-center transition-all duration-300 ease-in-out hover:scale-110"
               on:click={sendUserTokenAiHistory}
               name="send"
             >
               <Icon
                 icon="ph:arrow-circle-up-fill"
-                class="w-8 h-8 transition-all duration-300 ease-in-out hover:text-variant-filled-primary hover:drop-shadow-[0_0_10px_rgba(59,130,246,0.5)] "
+                class="w-9 h-9 transition-all duration-300 ease-in-out 
+                hover:text-variant-filled-red hover:drop-shadow-[0_0_20px_rgba(59,230,246,7)] "
               />
             </button>
           </div>

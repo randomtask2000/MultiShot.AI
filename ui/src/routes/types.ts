@@ -28,6 +28,7 @@ export interface GenericReader {
 
 export interface ChatHistoryItem {
   id: number;
+  createdAt: Date;
   text: string;
   tokenHistory: Token[];
   llmProvider: LlmProvider;
