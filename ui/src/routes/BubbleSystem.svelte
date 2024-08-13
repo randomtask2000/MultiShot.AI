@@ -3,6 +3,7 @@
     import { fly } from 'svelte/transition';
     import { onMount, afterUpdate } from 'svelte';
     import { StreamParser } from './markdownUtils';
+    import Icon from '@iconify/svelte';
 
     interface Bubble {
         color: string;
@@ -10,6 +11,7 @@
         timestamp: string;
         message: string;
         avatar: string;
+        icon: string;
         pid: string;
     }
 
@@ -78,7 +80,8 @@
     class="grid grid-cols-[auto_1fr] gap-2"
     in:fly="{{ y: 5, duration: 400 }}"
 >
-    <Avatar src={bubble.avatar} width="w-12" />
+    <!-- <Avatar src={bubble.avatar} width="w-12" /> -->
+    <Icon icon={bubble.icon} class="w-12 h-12" />
     <div
         use:shake
         class="card p-4 variant-soft rounded-tl-none space-y-2"

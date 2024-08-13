@@ -52,7 +52,7 @@ export function handleScroll(elemChat: HTMLDivElement): boolean {
     return false;
 }
 
-export function addBubble(resultDiv: HTMLDivElement, person: string, type: "user" | "ai"): { bubbleId: string, pid: string } {
+export function addBubble(selectedItem: LlmProvider, resultDiv: HTMLDivElement, person: string, type: "user" | "ai"): { bubbleId: string, pid: string } {
     if (!resultDiv) {
         console.error('resultDiv is not initialized');
         return { bubbleId: '', pid: '' };
@@ -66,6 +66,7 @@ export function addBubble(resultDiv: HTMLDivElement, person: string, type: "user
         timestamp: new Date().toLocaleTimeString(),
         message: "",
         avatar: `https://i.pravatar.cc/?img=${type === "user" ? Math.floor(Math.random() * 11) + 10 : Math.floor(Math.random() * 11) + 10}`,
+        icon: selectedItem.icon,
         pid: `pid${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
     };
     let bubble;

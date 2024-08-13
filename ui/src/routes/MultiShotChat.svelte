@@ -1,6 +1,10 @@
 <script lang="ts">
 import { onMount, afterUpdate } from 'svelte';
-import { type LlmProvider, type Token, type GenericReader, LlmProviderList, type ChatHistoryItem } from './types';
+import { type LlmProvider, 
+  type Token, 
+  type GenericReader, 
+  LlmProviderList, 
+  type ChatHistoryItem } from './types';
 import { listStore, themeStore, llmProviderListStore } from './store';
 import { ChatHistoryManager } from './chatHistoryManager';
 import {
@@ -62,7 +66,7 @@ function restoreChat(item: ChatHistoryItem): void {
   clearResultDiv();
   tokenHistory.forEach((token) => {
     const type: 'user' | 'ai' = token.role === 'user' ? 'user' : 'ai';
-    const { bubbleId, pid } = addBubble(resultDiv, type, type);
+    const { bubbleId, pid } = addBubble(selectedItem, resultDiv, type, type);
     if (bubbleId !== undefined && pid !== undefined) {
       const contentElement = document.getElementById(pid);
       if (contentElement) {
@@ -117,13 +121,13 @@ async function sendUserTokenAiHistory() {
 
   const token = getToken();
   tokenHistory.push({ role: "user", content: token, llmInfo: selectedItem });
-  let { pid: divIdUser } = addBubble(resultDiv, "User", "user");
+  let { pid: divIdUser } = addBubble(selectedItem, resultDiv, "User", "user");
   printMessage(divIdUser, token);
   const response = await fetchAi(tokenHistory, selectedItem);
   if (!response.body) {
     throw new Error('Response body is null');
   }
-  let { pid: aiPid } = addBubble(resultDiv, "AI", "ai");
+  let { pid: aiPid } = addBubble(selectedItem, resultDiv, "AI", "ai");
   const content = await printResponse(resultDiv, response.body.getReader() as GenericReader, new TextDecoder('utf-8'), aiPid);
   tokenHistory.push({ role: "assistant", content, llmInfo: selectedItem });
   clearToken();
