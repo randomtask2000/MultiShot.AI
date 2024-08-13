@@ -263,8 +263,8 @@ function stopResize() {
           focus-within:shadow-[0_0_15px_rgba(var(--color-primary-500),0.7)] 
           focus-within:border-primary-500">
             <button class="input-group-shim" on:click={sendUserTokenAiHistory}>+</button>
-            <button class="w-12 h-8 bg-transparent border-none pt-2" on:click={handleAddItem} name="save">
-              <Icon icon="ic:twotone-save-alt" class="w-full h-full" />
+            <button class="w-12 h-full bg-transparent border-none flex items-center justify-center" on:click={handleAddItem} name="save">
+              <Icon icon="ic:twotone-save-alt" class="w-6 h-6" />
             </button>
             <textarea
               bind:value={tokenVar}
