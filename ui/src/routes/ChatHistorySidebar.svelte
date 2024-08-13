@@ -79,7 +79,7 @@
 </script>
 
 <div
-  class="h-screen w-61 p-4 shadow-md flex flex-col bg-gradient-to-t from-secondary-500/20 to-transparent"
+  class="h-screen w-61 p-4 shadow-md flex flex-col bg-gradient-to-t from-secondary-900/40 dark:from-secondary-300/20 to-transparent"
   transition:fly={{ x: -250, opacity: 1, duration: 300, easing: cubicInOut }}
 >
   <strong
@@ -89,7 +89,8 @@
     MultiShot.AI
   </strong>
 
-  <div class="flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent hover:scrollbar-thumb-gray-300 transition-all duration-500">
+  <div class="flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent 
+  hover:scrollbar-thumb-gray-300 transition-all duration-500">
     {#if sortedListStore.length === 0}
       <p class="text-white/50">No saved chats yet.</p>
     {:else}
