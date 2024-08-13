@@ -79,7 +79,8 @@
 </script>
 
 <div
-  class="h-screen w-61 p-4 shadow-md flex flex-col bg-gradient-to-t from-secondary-900/40 dark:from-secondary-300/20"
+  class="h-screen w-61 p-4 shadow-md flex flex-col bg-gradient-to-t 
+  from-surface-600/70 dark:from-surface-500/80"
   transition:fly={{ x: -250, opacity: 1, duration: 300, easing: cubicInOut }}
 >
   <strong

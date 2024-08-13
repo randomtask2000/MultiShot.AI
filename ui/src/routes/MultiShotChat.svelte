@@ -232,7 +232,8 @@ function stopResize() {
     </div>
     <div
       id="chat-container"
-      class="flex flex-col flex-grow overflow-hidden transition-all duration-300 ease-in-out"
+      class="flex flex-col flex-grow overflow-hidden transition-all 
+      duration-300 ease-in-out"
       style="width: {sidebarVisible ? 'calc(100% - 250px)' : '100%'};"
     >
       
