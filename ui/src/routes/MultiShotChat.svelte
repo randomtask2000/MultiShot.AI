@@ -1,30 +1,31 @@
 <script lang="ts">
-import { onMount, afterUpdate } from 'svelte';
-import { type LlmProvider, 
-  type Token, 
-  type GenericReader, 
-  LlmProviderList, 
-  type ChatHistoryItem } from './types';
-import { listStore, themeStore, llmProviderListStore } from './store';
-import { ChatHistoryManager } from './chatHistoryManager';
-import {
-  storeTokenHistory,
-  scrollChatBottom,
-  addBubble,
-  printMessage,
-  fetchAi,
-  printResponse,
-  renderMarkdownWithCodeBlock,
-  initializeWebLLM
-} from './tokenUtils';
-import Icon from '@iconify/svelte';
-import { AppBar } from '@skeletonlabs/skeleton';
-import ChatHistorySidebar from './ChatHistorySidebar.svelte';
-import AppBarContent from './AppBarContent.svelte';
-import { get } from 'svelte/store';
-
-// Declare selectedItem as a prop
-export let selectedItem: LlmProvider | null = null;
+  import { onMount, afterUpdate } from 'svelte';
+  import { type LlmProvider, 
+    type Token, 
+    type GenericReader, 
+    LlmProviderList, 
+    type ChatHistoryItem } from './types';
+  import { listStore, themeStore, llmProviderListStore } from './store';
+  import { ChatHistoryManager } from './chatHistoryManager';
+  import {
+    storeTokenHistory,
+    scrollChatBottom,
+    addBubble,
+    printMessage,
+    fetchAi,
+    printResponse,
+    renderMarkdownWithCodeBlock,
+    initializeWebLLM
+  } from './tokenUtils';
+  import Icon from '@iconify/svelte';
+  import { AppBar } from '@skeletonlabs/skeleton';
+  import ChatHistorySidebar from './ChatHistorySidebar.svelte';
+  import AppBarContent from './AppBarContent.svelte';
+  import { get } from 'svelte/store';
+  import AppHeader from './AppHeader.svelte';
+  
+  // Declare selectedItem as a prop
+  export let selectedItem: LlmProvider | null = null;
 
 onMount(() => {
   listStore.init();
@@ -234,23 +235,15 @@ function stopResize() {
       class="flex flex-col flex-grow overflow-hidden transition-all duration-300 ease-in-out"
       style="width: {sidebarVisible ? 'calc(100% - 250px)' : '100%'};"
     >
-      <AppBar background="light:bg-surface-500/10 dark:bg-surface-500/10">
-        <svelte:fragment slot="lead">
-          <button class="btn btn-sm variant-ghost-surface rounded-md p-2 mr-4 h-8" 
-          on:click={toggleSidebar} id="openclosebtn">
-            <Icon icon={sidebarVisible ? "mdi:menu-open" : "mdi:menu"} />
-          </button>
-          <button type="button" class="btn btn-sm variant-ghost-surface rounded-md h-8" on:click={clearChat}>
-              <span>
-                 <Icon icon="mdi:delete-sweep" />
-              </span>
-              <span class="font-nunito">Clear Chat</span>
-          </button>
-        </svelte:fragment>
-        <svelte:fragment slot="trail">
-          <AppBarContent bind:selectedItem={selectedItem} />
-        </svelte:fragment>
-      </AppBar>
+      
+          <AppHeader
+          {sidebarVisible}
+          bind:selectedItem
+          {toggleSidebar}
+          {clearChat}
+        />
+
+
       <div id="chat" class="flex flex-col flex-grow overflow-hidden">
         <div id="resultOuter" bind:this={elemChat}
              class="flex-grow bg-surface-800/30 p-4 overflow-y-auto">

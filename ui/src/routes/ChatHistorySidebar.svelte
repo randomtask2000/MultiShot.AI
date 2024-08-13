@@ -79,11 +79,15 @@
 </script>
 
 <div
-  class="h-screen w-61 p-4 shadow-md flex flex-col bg-gradient-to-t from-secondary-900/40 dark:from-secondary-300/20 to-transparent"
+  class="h-screen w-61 p-4 shadow-md flex flex-col bg-gradient-to-t from-secondary-900/40 dark:from-secondary-300/20"
   transition:fly={{ x: -250, opacity: 1, duration: 300, easing: cubicInOut }}
 >
   <strong
-    class="font-nunito text-xl bg-gradient-to-br from-pink-500 to-violet-500 bg-clip-text
+    class="font-nunito text-xl 
+    bg-gradient-to-br 
+    from-secondary-800 to-tertiary-200 
+    dark:from-secondary-100/80 dark:to-tertiary-500/80 
+    bg-clip-text
     text-transparent box-decoration-clone mb-4"
   >
     MultiShot.AI
@@ -94,7 +98,7 @@
     {#if sortedListStore.length === 0}
       <p class="text-white/50">No saved chats yet.</p>
     {:else}
-      <h3 class="font-bold mb-2 text-white/50">Today</h3>
+      <h3 class="font-bold mb-2">Today</h3>
       <ul class="space-y-2 mb-4">
         {#each todayItems as item (item.id)}
           <li class="group relative">
@@ -122,7 +126,7 @@
       </ul>
 
       {#if olderItems.length > 0}
-        <h3 class="font-bold mb-2 text-white/50">Older</h3>
+        <h3 class="font-bold mb-2">Older</h3>
         <ul class="space-y-2">
           {#each olderItems as item (item.id)}
             <li class="group relative">
@@ -155,14 +159,14 @@
   <div class="mt-4 space-y-2 sticky bottom-0 pt-2">
     <button
       on:click={handleExport}
-      class="flex items-center justify-center w-full p-2 bg-surface-500/30 text-white rounded 
+      class="flex items-center justify-center w-full p-2 bg-surface-500/10 rounded 
       hover:bg-secondary-600 transition duration-300 font-nunito"
     >
       <Icon icon="mdi:export" class="mr-2" />
       Export Chat History
     </button>
     <label
-      class="flex items-center justify-center w-full p-2 bg-surface-500/30 text-white rounded 
+      class="flex items-center justify-center w-full p-2 bg-surface-500/10 rounded 
       hover:bg-secondary-600 transition duration-300 font-nunito cursor-pointer"
     >
       <Icon icon="mdi:import" class="mr-2" />
@@ -176,7 +180,7 @@
     </label>
     <button
       on:click={handleClearList}
-      class="flex items-center justify-center w-full p-2 bg-surface-500/30 text-white rounded 
+      class="flex items-center justify-center w-full p-2 bg-surface-500/10 rounded 
       hover:bg-secondary-600 transition duration-300 font-nunito"
     >
       <Icon icon="mdi:delete" class="mr-2" />

@@ -118,133 +118,133 @@
 		setInitialClassState.toString() +
 		autoModeWatcher.toString() +
 		')();</script>'}</svelte:head>
-<div class="relative" bind:this={listBoxContainer}>
-	<button
-		type="button"
-		class="btn btn-sm variant-ghost-surface rounded-md"
-		on:click|stopPropagation={() => (isListBoxVisible = !isListBoxVisible)}
-	>
-		<span>
-			<Icon icon={selectedItem ? selectedItem.icon : 'material-symbols:skull'} class="w-6 h-5" />
-		</span>
-		<span
-			class="font-nunito text-sm bg-gradient-to-br from-pink-500 to-violet-500
-    bg-clip-text text-transparent box-decoration-clone"
-			>{selectedItem ? selectedItem.title : 'Select Model'}</span
-		>
-		<SlideToggle
-			name="slide"
-			bind:checked={localwebLlm}
-			on:change={handleLocalWebLlmChange}
-			active=""
-			size="sm">{localwebLlm ? 'local' : 'remote'}</SlideToggle
-		>
-	</button>
-	{#if isListBoxVisible}
-		<div
-			transition:fade
-			class="absolute top-full right-0 mt-2 z-50 min-w-[200px]
-    w-max rounded-md p-3 bg-surface-200 dark:bg-surface-600"
-		>
-			<!-- config button -->
-			{#if localwebLlm}
-				<div class="flex justify-end">
-					<button
-						type="button"
-						class="btn variant-filled bg-primary-500"
-						on:click={() => (isConfigModalOpen = true)}
-					>
-						<span>
-							<Icon icon="majesticons:settings-cog-line" class="w-6 h-5" />
-						</span>
-						<span>Add local model</span>
-					</button>
-				</div>
-			{/if}
 
-			<ListBox class="w-full">
-				{#each providers as item (item.model)}
-					{#if item.local === localwebLlm}
-						<div class="relative group">
-							<ListBoxItem
-								on:click={() => handleSelectItem(item)}
-								active={selectedItem?.model === item.model}
-								value={item.model}
-								class="whitespace-nowrap"
-								group="llmSelector"
-								name="llmSelector"
-							>
-								<svelte:fragment slot="lead">
-									<Icon icon={item.icon} class="text-white-800/90 w-6 h-6" />
-								</svelte:fragment>
-								{item.title}
-							</ListBoxItem>
-							<button
-								type="button"
-								class="absolute right-1 top-1/2 transform bg-secondary-500/70 
-										-translate-y-1/2 btn-icon 
-										btn-icon-sm opacity-0 group-hover:opacity-100 
-										transition-opacity duration-[50ms] rounded-sm
-										"
-								on:click|stopPropagation={() => removeProvider(item.model)}
-							>
-								<Icon icon="mdi:close" class="w-4 h-4"/>
-							</button>
-						</div>
-					{/if}
-				{/each}
-			</ListBox>
-		</div>
-	{/if}
-</div>
-<div class="relative" bind:this={themeListBoxContainer}>
-	<button
-		type="button"
-		class="btn btn-sm variant-ghost-surface rounded-md"
-		on:click|stopPropagation={() => (isThemeListBoxVisible = !isThemeListBoxVisible)}
-	>
-		<span class="font-nunito">{selectedTheme}</span>
-		<LightSwitch />
-	</button>
-	{#if isThemeListBoxVisible}
-		<div
-			transition:fade
-			class="absolute top-full right-0 mt-2 z-50 min-w-[200px] w-max rounded-md
-          p-3 max-h-[80vh] overflow-y-auto bg-surface-200 dark:bg-surface-600"
+<div class="flex items-center space-x-5">
+	<div class="relative" bind:this={listBoxContainer}>
+		<button
+			type="button"
+			class="
+			btn btn-sm 
+			flex items-center justify-center 
+			bg-surface-500/30 
+			hover:bg-secondary-600 
+			transition duration-300 font-nunito
+			border-2 border-secondary-500/50"
+			on:click|stopPropagation={() => (isListBoxVisible = !isListBoxVisible)}
 		>
-			<ListBox class="w-full">
-				{#each themes as theme}
-					<ListBoxItem
-						on:click={() => handleSelectTheme(theme)}
-						active={selectedTheme === theme}
-						value={theme}
-						class="whitespace-nowrap"
-						group="themeSelector"
-						name="themeSelector"
-					>
-						{theme}
-					</ListBoxItem>
-				{/each}
-			</ListBox>
-		</div>
-	{/if}
+			<span>
+				<Icon icon={selectedItem ? selectedItem.icon : 'material-symbols:skull'} class="w-6 h-5" />
+			</span>
+			<span
+				class="font-nunito text-sm 
+				bg-gradient-to-br 
+				text-base font-bold 
+				from-secondary-800 to-tertiary-500 
+				dark:from-secondary-100/80 dark:to-tertiary-100/80 
+				bg-clip-text text-transparent box-decoration-clone"
+				>{selectedItem ? selectedItem.title : 'Select Model'}</span
+			>
+			<SlideToggle
+				name="slide"
+				bind:checked={localwebLlm}
+				on:change={handleLocalWebLlmChange}
+				active=""
+				size="sm">{localwebLlm ? 'local' : 'remote'}</SlideToggle
+			>
+		</button>
+		{#if isListBoxVisible}
+			<div
+				transition:fade
+				class="absolute top-full right-0 mt-2 z-50 min-w-[200px]
+					w-max rounded-md p-3 bg-surface-200 dark:bg-surface-600"
+			>
+				<!-- config button -->
+				{#if localwebLlm}
+					<div class="flex justify-end">
+						<button
+							type="button"
+							class="btn variant-filled bg-primary-500"
+							on:click={() => (isConfigModalOpen = true)}
+						>
+							<span>
+								<Icon icon="majesticons:settings-cog-line" class="w-6 h-5" />
+							</span>
+							<span>Add local model</span>
+						</button>
+					</div>
+				{/if}
+
+				<ListBox class="w-full">
+					{#each providers as item (item.model)}
+						{#if item.local === localwebLlm}
+							<div class="relative group">
+								<ListBoxItem
+									on:click={() => handleSelectItem(item)}
+									active={selectedItem?.model === item.model}
+									value={item.model}
+									class="whitespace-nowrap"
+									group="llmSelector"
+									name="llmSelector"
+								>
+									<svelte:fragment slot="lead">
+										<Icon icon={item.icon} class="text-white-800/90 w-6 h-6" />
+									</svelte:fragment>
+									{item.title}
+								</ListBoxItem>
+								<button
+									type="button"
+									class="absolute right-1 top-1/2 transform bg-secondary-500/70 
+											-translate-y-1/2 btn-icon 
+											btn-icon-sm opacity-0 group-hover:opacity-100 
+											transition-opacity duration-[50ms] rounded-sm
+											"
+									on:click|stopPropagation={() => removeProvider(item.model)}
+								>
+									<Icon icon="mdi:close" class="w-4 h-4"/>
+								</button>
+							</div>
+						{/if}
+					{/each}
+				</ListBox>
+			</div>
+		{/if}
+	</div>
+	<div class="relative" bind:this={themeListBoxContainer}>
+		<button
+			type="button"
+			class="btn btn-sm 
+			flex items-center justify-center bg-surface-500/10 rounded 
+			hover:bg-secondary-600 transition duration-300 font-nunito
+			rounded-md"
+			on:click|stopPropagation={() => (isThemeListBoxVisible = !isThemeListBoxVisible)}
+		>
+			<span class="font-nunito">{selectedTheme}</span>
+			<LightSwitch />
+		</button>
+		{#if isThemeListBoxVisible}
+			<div
+				transition:fade
+				class="absolute top-full right-0 mt-2 z-50 min-w-[200px] w-max rounded-md
+			p-3 max-h-[80vh] overflow-y-auto bg-surface-200 dark:bg-surface-600"
+			>
+				<ListBox class="w-full">
+					{#each themes as theme}
+						<ListBoxItem
+							on:click={() => handleSelectTheme(theme)}
+							active={selectedTheme === theme}
+							value={theme}
+							class="whitespace-nowrap"
+							group="themeSelector"
+							name="themeSelector"
+						>
+							{theme}
+						</ListBoxItem>
+					{/each}
+				</ListBox>
+			</div>
+		{/if}
+	</div>
 </div>
 {#if isConfigModalOpen}
 	<ConfigModal bind:open={isConfigModalOpen} bind:selectedItem />
 {/if}
-<a
-	class="font-nunito btn btn-sm variant-ghost-surface rounded-md"
-	href="https://twitter.com/cronuser"
-	target="_blank"
-	rel="noreferrer"
->
-	<Icon icon="simple-icons:x" class="w-6 h-5" /></a
->
-<a
-	class="font-nunito btn btn-sm variant-ghost-surface rounded-md"
-	href="https://github.com/randomtask2000/MultiShot.AI"
-	target="_blank"
-	rel="noreferrer"
->
-	<Icon icon="simple-icons:github" class="w-6 h-5" /></a
->
