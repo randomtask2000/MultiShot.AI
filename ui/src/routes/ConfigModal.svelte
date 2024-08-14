@@ -80,6 +80,7 @@
 
     try {
       await engine.reload(selectedModel, config);
+      
       isDownloading = false;
       isModelInitialized = true;
       downloadStatus = "Model initialized successfully.";
@@ -99,9 +100,9 @@
               apiKeyName: "",
               local: true,
               selected: true
-  }
+            }
           ];
-  }
+        }
         return providers.map(p => p.model === selectedModel ? { ...p, selected: true } : { ...p, selected: false });
       });
 
@@ -118,11 +119,13 @@
 
   function updateEngineInitProgressCallback(report: { progress: number; text: string }) {
     statusMessage = report.text;
+    console.log(report.text);
   }
 
   function initProgressCallback(report: { progress: number; text: string }) {
     progressPercentage = Math.round(report.progress * 100);
     downloadStatus = `${report.text} (${progressPercentage}%)`;
+    console.log(progressPercentage);
   }
 
   engine.setInitProgressCallback(updateEngineInitProgressCallback);

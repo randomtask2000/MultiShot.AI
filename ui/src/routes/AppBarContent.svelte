@@ -106,7 +106,8 @@
 
 	function removeProvider(model: string): void {
 		llmProviderListStore.removeProvider(model);
-		providers = providers.filter((provider) => provider.model !== model);
+		// providers = providers.filter((provider) => provider.model !== model);
+		providers = get(llmProviderListStore);
 		if (selectedItem?.model === model) {
 			selectedItem = null;
 			selectedModelStore.setSelectedModel('');

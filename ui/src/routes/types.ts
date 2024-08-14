@@ -60,6 +60,16 @@ function createPersistentLlmProviderList() {
     },
     {
       "provider": "openai",
+      "model": "gpt-4o",
+      "title": "GPT-4o",
+      "icon": "simple-icons:openai",
+      "subtitle": "Best for complex tasks",
+      "systemMessage": "You are a highly skilled AI assistant",
+      "apiKeyName": "OPENAI_API",
+      "local": false
+    },
+    {
+      "provider": "openai",
       "model": "gpt-3.5-turbo",
       "title": "GPT-3.5 Turbo",
       "icon": "simple-icons:openai",
