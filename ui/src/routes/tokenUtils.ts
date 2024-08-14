@@ -96,20 +96,43 @@ export function printMessage(pid: string, tokens: string): void {
     }
 }
 
-export async function fetchAi(history: Token[], selectedItem: LlmProvider) {
-    if (selectedItem.provider === "webllm") {
+export async function fetchAi(history: Token[], selectedLlmProvider: LlmProvider) {
+    if (selectedLlmProvider.provider === "webllm") {
         if (!engine) {
             engine = new webllm.MLCEngine();
-            await engine.reload(selectedItem.model);
+            engine.setAppConfig
+            await engine.reload(selectedLlmProvider.model);
         }
 
-        const messages: webllm.ChatCompletionMessageParam[] = history.map(token => ({
-            role: token.role as "system" | "user" | "assistant",
-            content: token.content
-        }));
+        // To deal with a limited context of webllm, 
+        // I'm deleting history greater than n decsending order
+        // TODO: solve the following error 
+        // ContextWindowSizeExceededError: Prompt tokens exceed context window size: 
+        // number of prompt tokens: 10; context window size: 1024
+        // Consider shortening the prompt, or increase `context_window_size`, or using 
+        // sliding window via `sliding_window_size`.
+
+        // Extract messages while keeping total content under 2056 characters
+        let totalLength = 0;
+        const extractedMessages: webllm.ChatCompletionMessageParam[] = [];
+
+        for (let i = history.length - 1; i >= 0; i--) {
+            const token = history[i];
+            const messageLength = token.content.length;
+
+            if (totalLength + messageLength <= 2056) {
+                extractedMessages.unshift({
+                    role: token.role as "system" | "user" | "assistant",
+                    content: token.content
+                });
+                totalLength += messageLength;
+            } else {
+                break;
+            }
+        }
 
         const stream = await engine.chat.completions.create({
-            messages,
+            messages: extractedMessages,
             stream: true,
             temperature: 1.0,
             top_p: 1
@@ -129,7 +152,7 @@ export async function fetchAi(history: Token[], selectedItem: LlmProvider) {
             }
         };
     } else {
-        const content = JSON.stringify({ messages: history, llm: selectedItem });
+        const content = JSON.stringify({ messages: history, llm: selectedLlmProvider });
         return await fetch('http://localhost:8000/chat/', {
             method: 'POST',
             headers: {

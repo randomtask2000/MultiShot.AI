@@ -149,7 +149,7 @@
 				class="font-nunito text-sm 
 				bg-gradient-to-br 
 				text-base font-bold 
-				from-secondary-800 to-tertiary-500 
+				from-secondary-800 to-tertiary-900 
 				dark:from-secondary-100/80 dark:to-tertiary-100/80 
 				bg-clip-text text-transparent box-decoration-clone"
 				>{selectedItem ? selectedItem.title : 'Select Model'}</span

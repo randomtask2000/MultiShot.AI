@@ -79,9 +79,12 @@
         class="card p-4 variant-soft rounded-tl-none space-y-2"
     >
         <header class="flex justify-between items-center">
-            <p class="font-bold capitalize">{bubble.name}</p>
-            <small class="opacity-50">{bubble.timestamp}</small>
-        </header>
+        <div class="flex items-center space-x-2">
+          <p class="font-bold capitalize">{bubble.name}</p>
+          <small class="opacity-50">{bubble.llmProvider?.model || ''}</small>
+        </div>
+        <small class="opacity-50 self-end">{bubble.timestamp}</small>
+      </header>
         <div bind:this={contentElement} id={bubble.pid} class="font-nunito text-left"></div>
     </div>
 </div>
