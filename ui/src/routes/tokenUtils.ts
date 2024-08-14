@@ -34,7 +34,7 @@ export function storeTokenHistory(
             createdAt: new Date(),
             text: title,
             tokenHistory: [...tokenHistory],
-            llmProvider: { ...currentLlmProvider } // Ensure a deep copy is stored
+            llmProvider: { ...currentLlmProvider }
         };
         addItem(newItem);
         clearResult();
@@ -47,10 +47,7 @@ export function scrollChatBottom(resultDiv: HTMLDivElement, behavior: ScrollBeha
 
 export function handleScroll(elemChat: HTMLDivElement): boolean {
     const bottomThreshold = 20;
-    if (elemChat) {
-        return elemChat.scrollHeight - elemChat.scrollTop - elemChat.clientHeight <= bottomThreshold;
-    }
-    return false;
+    return elemChat ? (elemChat.scrollHeight - elemChat.scrollTop - elemChat.clientHeight <= bottomThreshold) : false;
 }
 
 export function addBubble(selectedLlm: LlmProvider, resultDiv: HTMLDivElement, person: string, type: "user" | "ai"): { bubbleId: string, pid: string } {
@@ -58,7 +55,7 @@ export function addBubble(selectedLlm: LlmProvider, resultDiv: HTMLDivElement, p
         console.error('resultDiv is not initialized');
         return { bubbleId: '', pid: '' };
     }
-    if (!person) person = "person";
+    person = person || "person";
     const parentDiv = document.createElement('div');
     const bubbleId = `div${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const bubbleData: Bubble = {
@@ -71,17 +68,8 @@ export function addBubble(selectedLlm: LlmProvider, resultDiv: HTMLDivElement, p
         llmProvider: selectedLlm,
         pid: `pid${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
     };
-    let bubble;
-    switch (type) {
-        case "user":
-            bubble = new BubbleUser({ target: parentDiv, props: { bubble: bubbleData } });
-            break;
-        case "ai":
-            bubble = new BubbleSystem({ target: parentDiv, props: { bubble: bubbleData } });
-            break;
-        default:
-            throw new Error("Unsupported type");
-    }
+    const bubble = type === "user" ? new BubbleUser({ target: parentDiv, props: { bubble: bubbleData } }) :
+                                     new BubbleSystem({ target: parentDiv, props: { bubble: bubbleData } });
     parentDiv.id = bubbleId;
     resultDiv.appendChild(parentDiv);
     return { bubbleId, pid: bubbleData.pid };
@@ -100,35 +88,34 @@ export async function fetchAi(history: Token[], selectedLlmProvider: LlmProvider
     if (selectedLlmProvider.provider === "webllm") {
         if (!engine) {
             engine = new webllm.MLCEngine();
-            engine.setAppConfig
             await engine.reload(selectedLlmProvider.model);
         }
 
-        // To deal with a limited context of webllm, 
-        // I'm deleting history greater than n decsending order
-        // TODO: solve the following error 
-        // ContextWindowSizeExceededError: Prompt tokens exceed context window size: 
-        // number of prompt tokens: 10; context window size: 1024
-        // Consider shortening the prompt, or increase `context_window_size`, or using 
-        // sliding window via `sliding_window_size`.
-
         // Extract messages while keeping total content under 2056 characters
+        const shouldExtract = false; // Set this to false to disable the extraction
+
         let totalLength = 0;
-        const extractedMessages: webllm.ChatCompletionMessageParam[] = [];
+        let extractedMessages: webllm.ChatCompletionMessageParam[] = [];
 
-        for (let i = history.length - 1; i >= 0; i--) {
-            const token = history[i];
-            const messageLength = token.content.length;
-
-            if (totalLength + messageLength <= 2056) {
-                extractedMessages.unshift({
-                    role: token.role as "system" | "user" | "assistant",
-                    content: token.content
-                });
-                totalLength += messageLength;
-            } else {
-                break;
-            }
+        if (shouldExtract) {
+            for (let i = history.length - 1; i >= 0; i--) {
+                const token = history[i];
+                const messageLength = token.content.length;
+                if (totalLength + messageLength <= 2056) {
+                    extractedMessages.unshift({
+                        role: token.role as "system" | "user" | "assistant",
+                        content: token.content
+                    });
+                    totalLength += messageLength;
+                } else {
+                    break;
+                }
+            } 
+        } else {
+            extractedMessages = history.map(token => ({
+                role: token.role as "system" | "user" | "assistant",
+                content: token.content
+            }));
         }
 
         const stream = await engine.chat.completions.create({

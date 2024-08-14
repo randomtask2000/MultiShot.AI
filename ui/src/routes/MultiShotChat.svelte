@@ -18,7 +18,7 @@
     initializeWebLLM
   } from './tokenUtils';
   import Icon from '@iconify/svelte';
-  import { AppBar } from '@skeletonlabs/skeleton';
+  import { AppBar, ProgressRadial } from '@skeletonlabs/skeleton';
   import ChatHistorySidebar from './ChatHistorySidebar.svelte';
   import AppBarContent from './AppBarContent.svelte';
   import { get } from 'svelte/store';
@@ -26,6 +26,8 @@
   
   // Declare selectedItem as a prop
   export let selectedLlmProvider: LlmProvider | null = null;
+
+  let isLoading = false;
 
 onMount(() => {
   listStore.init();
@@ -111,7 +113,7 @@ const clearResultDiv = () => {
 };
 
 const checkForReturnKey = (event: KeyboardEvent) => {
-  if (event.key === 'Enter' && !event.shiftKey) {
+  if (event.key === 'Enter' && !event.shiftKey && !isLoading) {
     event.preventDefault();
     sendUserTokenAiHistory();
   }
@@ -127,6 +129,11 @@ async function sendUserTokenAiHistory() {
     return;
   }
 
+  if (isLoading) {
+    return;
+  }
+
+  isLoading = true;
   const token = getToken();
   tokenHistory.push({ role: "user", content: token, llmInfo: selectedLlmProvider });
   let { pid: divIdUser } = addBubble(selectedLlmProvider, resultDiv, "User", "user");
@@ -139,6 +146,7 @@ async function sendUserTokenAiHistory() {
   const content = await printResponse(resultDiv, response.body.getReader() as GenericReader, new TextDecoder('utf-8'), aiPid);
   tokenHistory.push({ role: "assistant", content, llmInfo: selectedLlmProvider });
   clearToken();
+  isLoading = false;
 }
 
 let elemChat: HTMLDivElement;
@@ -268,9 +276,9 @@ function stopResize() {
           hover:border-primary-500
           focus-within:shadow-[0_0_15px_rgba(var(--color-primary-500),0.7)] 
           focus-within:border-primary-500">
-            <button class="input-group-shim" on:click={sendUserTokenAiHistory}>+</button>
+            <button class="input-group-shim" on:click={sendUserTokenAiHistory} disabled={isLoading}>+</button>
             <button class="w-12 h-full bg-transparent border-none flex items-center justify-center" 
-            on:click={handleAddItem} name="save">
+            on:click={handleAddItem} name="save" disabled={isLoading}>
               <Icon icon="ic:twotone-save-alt" class="w-6 h-6" />
             </button>
             <textarea
@@ -284,19 +292,27 @@ function stopResize() {
               placeholder="Write a message..."
               rows="1"
               on:keydown={checkForReturnKey}
+              disabled={isLoading}
             ></textarea>
-            <button
-              class="absolute -right-3 top-1 bottom-1 bg-transparent flex items-center 
-              justify-center transition-all duration-300 ease-in-out hover:scale-110"
-              on:click={sendUserTokenAiHistory}
-              name="send"
-            >
-              <Icon
-                icon="ph:arrow-circle-up-fill"
-                class="w-9 h-9 transition-all duration-300 ease-in-out 
-                hover:text-variant-filled-red hover:drop-shadow-[0_0_20px_rgba(59,230,246,7)] "
-              />
-            </button>
+            {#if isLoading}
+              <div class="absolute -right-3 top-1 bottom-1 flex items-center justify-center">
+                <ProgressRadial width="w-9" />
+              </div>
+            {:else}
+              <button
+                class="absolute -right-3 top-1 bottom-1 bg-transparent flex items-center 
+                justify-center transition-all duration-300 ease-in-out hover:scale-110"
+                on:click={sendUserTokenAiHistory}
+                name="send"
+                disabled={isLoading}
+              >
+                <Icon
+                  icon="ph:arrow-circle-up-fill"
+                  class="w-9 h-9 transition-all duration-300 ease-in-out 
+                  hover:text-variant-filled-red hover:drop-shadow-[0_0_20px_rgba(59,230,246,7)] "
+                />
+              </button>
+            {/if}
           </div>
         </div>
       </div>
