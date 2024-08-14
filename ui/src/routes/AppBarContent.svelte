@@ -5,7 +5,7 @@
 	import Icon from '@iconify/svelte';
 	import { ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
 	import { fade } from 'svelte/transition';
-	import { themeStore, selectedModelStore, localWebLlmStore, llmProviderListStore } from './store';
+	import { themeStore, selectedModelStore, localWebLlmStore, llmProviderListStore, listStore } from './store';
 	import { LightSwitch } from '@skeletonlabs/skeleton';
 	import { autoModeWatcher } from '@skeletonlabs/skeleton';
 	import { setInitialClassState } from '@skeletonlabs/skeleton';
@@ -41,7 +41,7 @@
 	});
 
 	function handleSelectItem(item: LlmProvider): void {
-		selectedItem = item;
+		selectedItem = { ...item };
 		selectedModelStore.setSelectedModel(item.model);
 		isListBoxVisible = false;
 	}
@@ -52,9 +52,9 @@
 	}
 
 	// Subscribe to the LlmProviderList store and selectedModelStore
-	let providers: LlmProvider[];
+	let llmProviders: LlmProvider[];
 	LlmProviderList.subscribe((value) => {
-		providers = value;
+		llmProviders = value;
 		updateSelectedItem();
 	});
 
@@ -64,14 +64,24 @@
 
 	function updateSelectedItem() {
 		const selectedModelValue = get(selectedModelStore);
-		if (selectedModelValue && providers) {
-			selectedItem = providers.find((item) => item.model === selectedModelValue) || null;
-		} else if (!selectedItem && providers && providers.length > 0) {
-			const desiredSelector = 'gpt-4o-mini';
-			selectedItem = providers.find((item) => item.model === desiredSelector) || providers[0];
+		if (selectedModelValue && llmProviders) {
+			const storedProvider = llmProviders.find(item => item.model === selectedModelValue);
+			if (storedProvider) {
+				selectedItem = { ...storedProvider };
+			} else {
+				// If not found in providers, check the chat history
+				const chatHistory = get(listStore);
+				const lastChatItem = chatHistory[chatHistory.length - 1];
+				if (lastChatItem && lastChatItem.llmProvider) {
+					selectedItem = { ...lastChatItem.llmProvider };
+				} else {
+					// Fallback to default selection
+					selectedItem = { ...llmProviders.find((item) => item.model === 'gpt-4o-mini') } || { ...llmProviders[0] };
+				}
+			}
 		}
 	}
-
+	
 	let isListBoxVisible = false;
 	let isThemeListBoxVisible = false;
 	let listBoxContainer: HTMLElement;
@@ -106,8 +116,7 @@
 
 	function removeProvider(model: string): void {
 		llmProviderListStore.removeProvider(model);
-		// providers = providers.filter((provider) => provider.model !== model);
-		providers = get(llmProviderListStore);
+		llmProviders = get(llmProviderListStore);
 		if (selectedItem?.model === model) {
 			selectedItem = null;
 			selectedModelStore.setSelectedModel('');
@@ -176,7 +185,7 @@
 				{/if}
 
 				<ListBox class="w-full">
-					{#each providers as item (item.model)}
+					{#each llmProviders as item (item.model)}
 						{#if item.local === localwebLlm}
 							<div class="relative group">
 								<ListBoxItem

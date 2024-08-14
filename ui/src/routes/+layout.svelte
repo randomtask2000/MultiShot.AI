@@ -26,5 +26,5 @@
 <!-- App Shell -->
 <AppShell>
   <slot />
-  <MyJsChat bind:selectedItem />
+  <MyJsChat bind:selectedLlmProvider={selectedItem} />
 </AppShell>

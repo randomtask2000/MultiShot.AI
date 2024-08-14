@@ -4,16 +4,8 @@
     import { onMount, afterUpdate } from 'svelte';
     import { StreamParser } from './markdownUtils';
     import Icon from '@iconify/svelte';
-
-    interface Bubble {
-        color: string;
-        name: string;
-        timestamp: string;
-        message: string;
-        avatar: string;
-        icon: string;
-        pid: string;
-    }
+    import type { LlmProvider, Bubble } from './types'; // Adjust the import path as needed
+	import { llmProviderListStore } from './store';
 
     export let bubble: Bubble;
 
@@ -81,7 +73,7 @@
     in:fly="{{ y: 5, duration: 400 }}"
 >
     <!-- <Avatar src={bubble.avatar} width="w-12" /> -->
-    <Icon icon={bubble.icon} class="w-12 h-12" />
+    <Icon icon={bubble.llmProvider?.icon || 'default-icon'} class="w-12 h-12" />
     <div
         use:shake
         class="card p-4 variant-soft rounded-tl-none space-y-2"

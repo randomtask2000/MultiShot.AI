@@ -42,6 +42,7 @@ export class ChatHistoryManager {
   }
 
   static clearChatHistory(): void {
+    localStorage.removeItem('chatHistory');
     listStore.clearList();
   }
 

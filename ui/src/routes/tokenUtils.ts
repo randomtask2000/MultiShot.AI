@@ -2,7 +2,7 @@
 import { type ChatHistoryItem } from './types';
 import BubbleUser from './BubbleUser.svelte';
 import BubbleSystem from './BubbleSystem.svelte';
-import { type Token, type GenericReader, type LlmProvider } from './types';
+import { type Token, type GenericReader, type LlmProvider, type Bubble } from './types';
 import {
   renderMarkdownWithCodeBlock,
   renderMarkdown,
@@ -23,7 +23,8 @@ export async function initializeWebLLM(model: string) {
 export function storeTokenHistory(
     tokenHistory: Token[],
     addItem: (item: ChatHistoryItem) => void,
-    clearResult: () => void
+    clearResult: () => void,
+    currentLlmProvider: LlmProvider
 ): void {
     if (tokenHistory.length > 0) {
         const lastToken = tokenHistory[tokenHistory.length - 1];
@@ -33,7 +34,7 @@ export function storeTokenHistory(
             createdAt: new Date(),
             text: title,
             tokenHistory: [...tokenHistory],
-            llmProvider: lastToken.llmInfo
+            llmProvider: { ...currentLlmProvider } // Ensure a deep copy is stored
         };
         addItem(newItem);
         clearResult();
@@ -45,14 +46,14 @@ export function scrollChatBottom(resultDiv: HTMLDivElement, behavior: ScrollBeha
 }
 
 export function handleScroll(elemChat: HTMLDivElement): boolean {
-    const bottomThreshold = 20; // pixels from bottom
+    const bottomThreshold = 20;
     if (elemChat) {
         return elemChat.scrollHeight - elemChat.scrollTop - elemChat.clientHeight <= bottomThreshold;
     }
     return false;
 }
 
-export function addBubble(selectedItem: LlmProvider, resultDiv: HTMLDivElement, person: string, type: "user" | "ai"): { bubbleId: string, pid: string } {
+export function addBubble(selectedLlm: LlmProvider, resultDiv: HTMLDivElement, person: string, type: "user" | "ai"): { bubbleId: string, pid: string } {
     if (!resultDiv) {
         console.error('resultDiv is not initialized');
         return { bubbleId: '', pid: '' };
@@ -60,13 +61,14 @@ export function addBubble(selectedItem: LlmProvider, resultDiv: HTMLDivElement, 
     if (!person) person = "person";
     const parentDiv = document.createElement('div');
     const bubbleId = `div${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    const bubbleData = {
+    const bubbleData: Bubble = {
         color: 'variant-soft-primary',
         name: person,
         timestamp: new Date().toLocaleTimeString(),
         message: "",
         avatar: `https://i.pravatar.cc/?img=${type === "user" ? Math.floor(Math.random() * 11) + 10 : Math.floor(Math.random() * 11) + 10}`,
-        icon: selectedItem.icon,
+        icon: selectedLlm.icon,
+        llmProvider: selectedLlm,
         pid: `pid${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
     };
     let bubble;
@@ -94,7 +96,6 @@ export function printMessage(pid: string, tokens: string): void {
     }
 }
 
-// Modify the fetchAi function to handle WebLLM models
 export async function fetchAi(history: Token[], selectedItem: LlmProvider) {
     if (selectedItem.provider === "webllm") {
         if (!engine) {
@@ -139,7 +140,6 @@ export async function fetchAi(history: Token[], selectedItem: LlmProvider) {
     }
 }
 
-// Modify the printResponse function to handle WebLLM models
 export async function printResponse(
     resultDiv: HTMLDivElement,
     reader: GenericReader,
@@ -178,7 +178,6 @@ export async function printResponse(
             lastResponse += token;
             parser.processChunk(token);
 
-            // Add a small delay to make the cursor blinking visible
             await new Promise(resolve => setTimeout(resolve, 10));
         }
         return reader.read().then(processResult);

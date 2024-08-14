@@ -12,6 +12,17 @@ export interface LlmProvider {
   local?: boolean;
 }
 
+export interface Bubble {
+  color: string;
+  name: string;
+  timestamp: string;
+  message: string;
+  avatar: string;
+  icon: string;
+  llmProvider: LlmProvider;
+  pid: string;
+}
+
 export interface DataObject {
   item: string;
 }

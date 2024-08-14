@@ -1,13 +1,7 @@
-<script>
+<script lang="ts">
     import { Avatar } from '@skeletonlabs/skeleton';
-    export let bubble = {
-        color: 'variant-soft-primary',
-        name: 'system|user',
-        timestamp: '02:00 PM',
-        message: 'Hello from Svelte!',
-        avatar: 'https://example.com/newAvatarUrl.png',
-        pid: 'pid1',
-    };
+    import type { Bubble } from './types';
+    export let bubble: Bubble;
 </script>
 <div class="grid grid-cols-[1fr_auto] gap-2 justify-end">
   <div class="card p-4 variant-soft rounded-tl-none space-y-2">

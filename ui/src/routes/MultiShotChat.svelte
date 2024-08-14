@@ -25,7 +25,7 @@
   import AppHeader from './AppHeader.svelte';
   
   // Declare selectedItem as a prop
-  export let selectedItem: LlmProvider | null = null;
+  export let selectedLlmProvider: LlmProvider | null = null;
 
 onMount(() => {
   listStore.init();
@@ -34,16 +34,14 @@ onMount(() => {
   checkWindowSize();
   window.addEventListener('resize', checkWindowSize);
 
-  if (!selectedItem) {
-    const providers: LlmProvider[] = get(LlmProviderList);
-    if (providers && providers.length > 0) {
-      selectedItem = providers[0];
-      if (selectedItem.provider === "webllm") {
-         initializeWebLLM(selectedItem.model);
-      }
-    } else {
-      console.error('No LLM providers available');
+  const providers: LlmProvider[] = get(LlmProviderList);
+  if (providers && providers.length > 0) {
+    selectedLlmProvider = selectedLlmProvider || providers[0]; // Use existing selectedItem if available
+    if (selectedLlmProvider.provider === "webllm") {
+       initializeWebLLM(selectedLlmProvider.model);
     }
+  } else {
+    console.error('No LLM providers available');
   }
 
   return () => {
@@ -51,10 +49,15 @@ onMount(() => {
   };
 });
 
+
 function handleAddItem() {
-  storeTokenHistory(tokenHistory, listStore.addItem, clearResultDiv);
-  tokenHistory = [];
-  clearToken();
+  if (selectedLlmProvider) {
+    storeTokenHistory(tokenHistory, listStore.addItem, clearResultDiv, selectedLlmProvider);
+    tokenHistory = [];
+    clearToken();
+  } else {
+    console.error('No LLM provider selected');
+  }
 }
 
 function handleClearList() {
@@ -63,19 +66,23 @@ function handleClearList() {
 
 function restoreChat(item: ChatHistoryItem): void {
   tokenHistory = [...item.tokenHistory];
-  selectedItem = item.llmProvider;
+  selectedLlmProvider = { ...item.llmProvider }; // Use the stored llmProvider
   clearResultDiv();
   tokenHistory.forEach((token) => {
-    const type: 'user' | 'ai' = token.role === 'user' ? 'user' : 'ai';
-    const { bubbleId, pid } = addBubble(selectedItem, resultDiv, type, type);
-    if (bubbleId !== undefined && pid !== undefined) {
-      const contentElement = document.getElementById(pid);
-      if (contentElement) {
-        renderMarkdownWithCodeBlock(token.content, contentElement);
+    if (selectedLlmProvider) {
+      const type: 'user' | 'ai' = token.role === 'user' ? 'user' : 'ai';
+      const { bubbleId, pid } = addBubble(token.llmInfo, resultDiv, type, type);
+      if (bubbleId !== undefined && pid !== undefined) {
+        const contentElement = document.getElementById(pid);
+        if (contentElement) {
+          renderMarkdownWithCodeBlock(token.content, contentElement);
+        }
+        setTimeout(() => {
+          scrollChatBottom(resultDiv, 'smooth');
+        }, 500);
       }
-      setTimeout(() => {
-        scrollChatBottom(resultDiv, 'smooth');
-      }, 500);
+    } else {
+      console.error('No LLM provider selected');
     }
   });
 }
@@ -115,22 +122,22 @@ function getToken() {
 }
 
 async function sendUserTokenAiHistory() {
-  if (!selectedItem) {
+  if (!selectedLlmProvider) {
     console.error('No LLM provider selected');
     return;
   }
 
   const token = getToken();
-  tokenHistory.push({ role: "user", content: token, llmInfo: selectedItem });
-  let { pid: divIdUser } = addBubble(selectedItem, resultDiv, "User", "user");
+  tokenHistory.push({ role: "user", content: token, llmInfo: selectedLlmProvider });
+  let { pid: divIdUser } = addBubble(selectedLlmProvider, resultDiv, "User", "user");
   printMessage(divIdUser, token);
-  const response = await fetchAi(tokenHistory, selectedItem);
+  const response = await fetchAi(tokenHistory, selectedLlmProvider);
   if (!response.body) {
     throw new Error('Response body is null');
   }
-  let { pid: aiPid } = addBubble(selectedItem, resultDiv, "AI", "ai");
+  let { pid: aiPid } = addBubble(selectedLlmProvider, resultDiv, "AI", "ai");
   const content = await printResponse(resultDiv, response.body.getReader() as GenericReader, new TextDecoder('utf-8'), aiPid);
-  tokenHistory.push({ role: "assistant", content, llmInfo: selectedItem });
+  tokenHistory.push({ role: "assistant", content, llmInfo: selectedLlmProvider });
   clearToken();
 }
 
@@ -151,7 +158,7 @@ function clearChat() {
 
 async function handleModelChange(newModel: LlmProvider) {
   if (newModel) {
-    selectedItem = newModel;
+    selectedLlmProvider = newModel;
     if (newModel.provider === "webllm") {
       await initializeWebLLM(newModel.model);
     }
@@ -239,7 +246,7 @@ function stopResize() {
       
           <AppHeader
           {sidebarVisible}
-          bind:selectedItem
+          bind:selectedItem={selectedLlmProvider}
           {toggleSidebar}
           {clearChat}
         />
@@ -251,7 +258,8 @@ function stopResize() {
           <div id="result" bind:this={resultDiv} class="min-h-full"></div>
         </div>
         <div id="inputContainer" class="bg-surface-500/30 p-4 flex-shrink-0 relative">
-          <div id="resizeHandle" class="absolute left-0 right-0 top-0 h-2 cursor-ns-resize z-10" on:mousedown={startResize}>&nbsp;</div>
+          <div id="resizeHandle" class="absolute left-0 right-0 top-0 h-2 cursor-ns-resize z-10" 
+          on:mousedown={startResize}>&nbsp;</div>
           <div id="inputGroup" class="input-group input-group-divider border-1 
           grid-cols-[auto_auto_1fr_auto] rounded-full 
           overflow-hidden pr-11 relative
@@ -261,7 +269,8 @@ function stopResize() {
           focus-within:shadow-[0_0_15px_rgba(var(--color-primary-500),0.7)] 
           focus-within:border-primary-500">
             <button class="input-group-shim" on:click={sendUserTokenAiHistory}>+</button>
-            <button class="w-12 h-full bg-transparent border-none flex items-center justify-center" on:click={handleAddItem} name="save">
+            <button class="w-12 h-full bg-transparent border-none flex items-center justify-center" 
+            on:click={handleAddItem} name="save">
               <Icon icon="ic:twotone-save-alt" class="w-6 h-6" />
             </button>
             <textarea

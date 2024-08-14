@@ -8,20 +8,29 @@ function createListStore() {
   return {
     subscribe,
     addItem: (item: ChatHistoryItem) => update(items => {
-      const updatedItems = [...items, item];
+      const updatedItems = [...items, {
+        ...item,
+        llmProvider: { ...item.llmProvider } // Ensure a deep copy is stored
+      }];
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem('chatHistory', JSON.stringify(updatedItems));
       }
       return updatedItems;
     }),
-    clearList: () => set([]),
     init: () => {
       if (typeof localStorage !== 'undefined') {
         const stored = localStorage.getItem('chatHistory');
         if (stored) {
-          set(JSON.parse(stored));
+          const parsedItems = JSON.parse(stored);
+          set(parsedItems.map((item: ChatHistoryItem) => ({
+            ...item,
+            llmProvider: { ...item.llmProvider } // Ensure a deep copy is retrieved
+          })));
         }
       }
+    },
+    clearList: () => {
+      update(items => []);
     },
     addModel: (model: string) => {
       const downloadedModels = JSON.parse(localStorage.getItem('downloadedModels') || '[]');
