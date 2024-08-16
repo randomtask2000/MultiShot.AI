@@ -1,6 +1,4 @@
-import json
-from pydantic import BaseModel
-from typing import NamedTuple
+from pydantic import BaseModel, Field
 from typing import List
 
 
@@ -16,6 +14,8 @@ class LlmProvider(BaseModel):
     icon: str
     subtitle: str
     systemMessage: str
+    # apiBase: Optional[str] = None
+    apiBase: str = Field(default=None)  # Using Field to set the default value to None
     apiKeyName: str
 
 

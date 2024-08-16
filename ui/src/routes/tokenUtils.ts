@@ -68,8 +68,8 @@ export function addBubble(selectedLlm: LlmProvider, resultDiv: HTMLDivElement, p
         llmProvider: selectedLlm,
         pid: `pid${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
     };
-    const bubble = type === "user" ? new BubbleUser({ target: parentDiv, props: { bubble: bubbleData } }) :
-                                     new BubbleSystem({ target: parentDiv, props: { bubble: bubbleData } });
+    // const bubble = type === "user" ? new BubbleUser({ target: parentDiv, props: { bubble: bubbleData } }) :
+    //                                  new BubbleSystem({ target: parentDiv, props: { bubble: bubbleData } });
     parentDiv.id = bubbleId;
     resultDiv.appendChild(parentDiv);
     return { bubbleId, pid: bubbleData.pid };
@@ -81,72 +81,6 @@ export function printMessage(pid: string, tokens: string): void {
         const parser = new StreamParser(element);
         parser.processChunk(tokens);
         parser.finish();
-    }
-}
-
-export async function fetchAi(history: Token[], selectedLlmProvider: LlmProvider) {
-    if (selectedLlmProvider.provider === "webllm") {
-        if (!engine) {
-            engine = new webllm.MLCEngine();
-            await engine.reload(selectedLlmProvider.model);
-        }
-
-        // Extract messages while keeping total content under 2056 characters
-        const shouldExtract = false; // Set this to false to disable the extraction
-
-        let totalLength = 0;
-        let extractedMessages: webllm.ChatCompletionMessageParam[] = [];
-
-        if (shouldExtract) {
-            for (let i = history.length - 1; i >= 0; i--) {
-                const token = history[i];
-                const messageLength = token.content.length;
-                if (totalLength + messageLength <= 2056) {
-                    extractedMessages.unshift({
-                        role: token.role as "system" | "user" | "assistant",
-                        content: token.content
-                    });
-                    totalLength += messageLength;
-                } else {
-                    break;
-                }
-            } 
-        } else {
-            extractedMessages = history.map(token => ({
-                role: token.role as "system" | "user" | "assistant",
-                content: token.content
-            }));
-        }
-
-        const stream = await engine.chat.completions.create({
-            messages: extractedMessages,
-            stream: true,
-            temperature: 1.0,
-            top_p: 1
-        });
-
-        const iterator = stream[Symbol.asyncIterator]();
-
-        return {
-            body: {
-                getReader: () => ({
-                    async read() {
-                        const { done, value } = await iterator.next();
-                        if (done) return { done: true, value: undefined };
-                        return { done: false, value: value.choices[0].delta.content };
-                    }
-                })
-            }
-        };
-    } else {
-        const content = JSON.stringify({ messages: history, llm: selectedLlmProvider });
-        return await fetch('http://localhost:8000/chat/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: content
-        });
     }
 }
 
@@ -197,3 +131,83 @@ export async function printResponse(
 }
 
 export { renderMarkdownWithCodeBlock, renderMarkdown, renderMarkdownHistory };
+
+/*
+* fetch ai code!
+*
+*
+* */
+
+
+export async function fetchAi(history: Token[], selectedLlmProvider: LlmProvider) {
+    if (selectedLlmProvider.provider === "webllm") {
+        return await handleWithRetry((attempt) => handleWebllmProvider(history, selectedLlmProvider, 2, attempt), 2);
+    } else {
+        const content = JSON.stringify({ messages: history, llm: selectedLlmProvider });
+        return await fetch('http://localhost:8000/chat/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: content
+        });
+    }
+}
+
+async function handleWebllmProvider(
+  history: Token[],
+  selectedLlmProvider: LlmProvider,
+  retries: number,
+  attempt: number
+) {
+    if (!engine) {
+        engine = new webllm.MLCEngine();
+        await engine.reload(selectedLlmProvider.model);
+    }
+
+    if (attempt > 0 && history.length > 2) {
+        history = [history[0], history[history.length - 1]];
+        console.log("History length is being pruned to first and last to handle context limits")
+    }
+
+    // Extract messages while keeping total content under 2056 characters
+    let extractedMessages: webllm.ChatCompletionMessageParam[] = [];
+
+    extractedMessages = history.map(token => ({
+        role: token.role as "system" | "user" | "assistant",
+        content: token.content
+    }));
+
+    const stream = await engine.chat.completions.create({
+        messages: extractedMessages,
+        stream: true,
+        temperature: 1.0,
+        top_p: 1
+    });
+
+    const iterator = stream[Symbol.asyncIterator]();
+
+    return {
+        body: {
+            getReader: () => ({
+                async read() {
+                    const { done, value } = await iterator.next();
+                    if (done) return { done: true, value: undefined };
+                    return { done: false, value: value.choices[0].delta.content };
+                }
+            })
+        }
+    };
+}
+
+async function handleWithRetry(fn: (attempt: number) => Promise<any>, retries: number) {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+            return await fn(attempt);
+        } catch (error) {
+            if (attempt === retries) {
+                throw error; // rethrow if it's the last attempt
+            }
+        }
+    }
+}
