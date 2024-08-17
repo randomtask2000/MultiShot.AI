@@ -68,8 +68,9 @@ export function addBubble(selectedLlm: LlmProvider, resultDiv: HTMLDivElement, p
         llmProvider: selectedLlm,
         pid: `pid${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
     };
-    // const bubble = type === "user" ? new BubbleUser({ target: parentDiv, props: { bubble: bubbleData } }) :
-    //                                  new BubbleSystem({ target: parentDiv, props: { bubble: bubbleData } });
+    // leave this in or else it's not working
+    const bubble = type === "user" ? new BubbleUser({ target: parentDiv, props: { bubble: bubbleData } }) :
+                                     new BubbleSystem({ target: parentDiv, props: { bubble: bubbleData } });
     parentDiv.id = bubbleId;
     resultDiv.appendChild(parentDiv);
     return { bubbleId, pid: bubbleData.pid };
