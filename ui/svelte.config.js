@@ -8,6 +8,7 @@ const config = {
 	extensions: ['.svelte'],
 	// Consult https://kit.svelte.dev/docs/integrations#preprocessors
 	// for more information about preprocessors
+	// more comments
 	preprocess: [vitePreprocess()],
 
 	vitePlugin: {
