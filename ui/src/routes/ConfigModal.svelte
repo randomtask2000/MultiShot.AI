@@ -79,6 +79,11 @@
     };
 
     try {
+      // Check if caches API is available
+      if (typeof caches === 'undefined') {
+        throw new Error('Caches API is not available in this environment.');
+      }
+
       await engine.reload(selectedModel, config);
       
       isDownloading = false;
