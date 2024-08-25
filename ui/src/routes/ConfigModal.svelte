@@ -21,8 +21,6 @@
   let progressPercentage = 0;
   let statusMessage = '';
 
-  const engine = new webllm.MLCEngine();
-
   onMount(() => {
     availableModels = webllm.prebuiltAppConfig.model_list.map(m => m.model_id);
   });
@@ -79,13 +77,25 @@
     };
 
     try {
-      // Check if caches API is available
-      if (typeof caches === 'undefined') {
-        throw new Error('Caches API is not available in this environment.');
-      }
+      const engine: webllm.MLCEngineInterface = await webllm.CreateMLCEngine(
+        selectedModel,
+        {
+          initProgressCallback: initProgressCallback,
+          logLevel: "INFO",
+        },
+        {
+          context_window_size: 2048,
+        }
+      );
 
-      await engine.reload(selectedModel, config);
-      
+      // If you need chat functionality
+      const reply = await engine.chat.completions.create({
+        messages: [{ role: "user", content: "Hello, how are you?" }],
+        temperature: 1.0,
+        max_tokens: 256,
+      });
+
+      console.log(reply);
       isDownloading = false;
       isModelInitialized = true;
       downloadStatus = "Model initialized successfully.";
@@ -122,19 +132,11 @@
     }
   }
 
-  function updateEngineInitProgressCallback(report: { progress: number; text: string }) {
-    statusMessage = report.text;
-    //console.log(report.text);
-  }
-
-  function initProgressCallback(report: { progress: number; text: string }) {
+  function initProgressCallback(report: webllm.InitProgressReport) {
     progressPercentage = Math.round(report.progress * 100);
     downloadStatus = `${report.text} (${progressPercentage}%)`;
-    //console.log(progressPercentage);
+    console.log(progressPercentage);
   }
-
-  engine.setInitProgressCallback(updateEngineInitProgressCallback);
-  engine.setInitProgressCallback(initProgressCallback);
 </script>
 
 <dialog bind:this={dialog} on:close={closeModal} 
