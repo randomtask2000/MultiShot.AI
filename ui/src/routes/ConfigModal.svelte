@@ -95,6 +95,23 @@
         max_tokens: 256,
       });
 
+      // Check if WebLLM is available
+      if (typeof webllm === 'undefined') {
+        throw new Error("WebLLM is not available. Make sure the library is properly loaded.");
+      }
+
+      // Check if the engine is operational
+      if (!engine || typeof engine.reload !== 'function') {
+        throw new Error("WebLLM engine is not properly initialized or operational.");
+      }
+
+      await engine.reload(selectedModel, config);
+      
+      // // Check if the model was successfully loaded
+      // if (!engine..isReady()) {
+      //   throw new Error("Failed to initialize the model. The engine is not ready after reload.");
+      // }
+
       console.log(reply);
       isDownloading = false;
       isModelInitialized = true;
@@ -124,9 +141,14 @@
       // Update the store with the new model
       listStore.addModel(selectedModel);
       selectedModelStore.setSelectedModel(selectedModel);
-    } catch (error) {
-      console.error("Error initializing WebLLM engine:", error);
-      downloadStatus = "Error: Failed to initialize the model. Please try again.";
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error("Error initializing WebLLM engine:", error);
+          downloadStatus = `Error: ${error.message}`;
+        } else {
+          console.error("An unknown error occurred:", error);
+          downloadStatus = "An unknown error occurred";
+        }
     } finally {
       isDownloading = false;
     }
