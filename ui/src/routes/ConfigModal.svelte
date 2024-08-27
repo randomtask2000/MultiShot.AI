@@ -3,6 +3,7 @@
   import Icon from '@iconify/svelte';
   import { ProgressRadial } from '@skeletonlabs/skeleton';
   import * as webllm from "@mlc-ai/web-llm";
+  import type { AppConfig } from "@mlc-ai/web-llm";
   import { LlmProviderList } from './types';
   import { listStore, llmProviderListStore, selectedModelStore } from './store';
   import type { LlmProvider } from './types';
@@ -77,6 +78,24 @@
     };
 
     try {
+
+      const appConfig = webllm.prebuiltAppConfig;
+      // CHANGE THIS TO SEE EFFECTS OF BOTH, CODE BELOW DO NOT NEED TO CHANGE
+      appConfig.useIndexedDBCache = true;
+
+      if (appConfig.useIndexedDBCache) {
+        console.log("Using IndexedDB Cache");
+      } else {
+        console.log("Using Cache API");
+      }
+
+      if (typeof caches === 'undefined') {
+        console.log("Cache API is not available in the current environment.");
+//        downloadStatus = "Cache API is not available.";
+//        isDownloading = false;
+//        return;
+      }
+
       const engine: webllm.MLCEngineInterface = await webllm.CreateMLCEngine(
         selectedModel,
         {
