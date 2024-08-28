@@ -79,15 +79,15 @@
 
     try {
 
-      const appConfig = webllm.prebuiltAppConfig;
-      // CHANGE THIS TO SEE EFFECTS OF BOTH, CODE BELOW DO NOT NEED TO CHANGE
-      appConfig.useIndexedDBCache = true;
-
-      if (appConfig.useIndexedDBCache) {
-        console.log("Using IndexedDB Cache");
-      } else {
-        console.log("Using Cache API");
-      }
+      // const appConfig = webllm.prebuiltAppConfig;
+      // // CHANGE THIS TO SEE EFFECTS OF BOTH, CODE BELOW DO NOT NEED TO CHANGE
+      // appConfig.useIndexedDBCache = true;
+      //
+      // if (appConfig.useIndexedDBCache) {
+      //   console.log("Using IndexedDB Cache");
+      // } else {
+      //   console.log("Using Cache API");
+      // }
 
       if (typeof caches === 'undefined') {
         console.log("Cache API is not available in the current environment.");
