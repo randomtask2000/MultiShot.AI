@@ -103,7 +103,7 @@
           logLevel: "INFO",
         },
         {
-          context_window_size: 2048,
+          context_window_size: 4096, // 2048,
         }
       );
 
