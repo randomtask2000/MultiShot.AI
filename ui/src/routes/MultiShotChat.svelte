@@ -20,7 +20,6 @@
   import Icon from '@iconify/svelte';
   import { AppBar, ProgressRadial } from '@skeletonlabs/skeleton';
   import ChatHistorySidebar from './ChatHistorySidebar.svelte';
-  import AppBarContent from './AppBarContent.svelte';
   import { get } from 'svelte/store';
   import AppHeader from './AppHeader.svelte';
   
@@ -123,7 +122,18 @@ function getToken() {
   return tokenVar;
 }
 
+/**
+ * Sends the user's token to the AI history and processes the response.
+ * 
+ * This function handles the user's input token, adds it to the token history,
+ * sends it to the AI for processing, and then handles the AI's response by
+ * adding it to the token history and displaying it in the UI.
+ * 
+ * @throws {Error} If no LLM provider is selected.
+ * @throws {Error} If the response body is null.
+ */
 async function sendUserTokenAiHistory() {
+
   if (!selectedLlmProvider) {
     console.error('No LLM provider selected');
     return;
@@ -136,14 +146,20 @@ async function sendUserTokenAiHistory() {
   isLoading = true;
   const token = getToken();
   tokenHistory.push({ role: "user", content: token, llmInfo: selectedLlmProvider });
+  
+  // Add user input bubble
   let { pid: divIdUser } = addBubble(selectedLlmProvider, resultDiv, "User", "user");
   printMessage(divIdUser, token);
+
   const response = await fetchAi(tokenHistory, selectedLlmProvider);
   if (!response.body) {
     throw new Error('Response body is null');
   }
+  
+  // Add response from LLM bubble
   let { pid: aiPid } = addBubble(selectedLlmProvider, resultDiv, "AI", "ai");
   const content = await printResponse(resultDiv, response.body.getReader() as GenericReader, new TextDecoder('utf-8'), aiPid);
+  
   tokenHistory.push({ role: "assistant", content, llmInfo: selectedLlmProvider });
   clearToken();
   isLoading = false;
