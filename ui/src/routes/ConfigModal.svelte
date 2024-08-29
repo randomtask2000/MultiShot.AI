@@ -79,21 +79,8 @@
 
     try {
 
-      // const appConfig = webllm.prebuiltAppConfig;
-      // // CHANGE THIS TO SEE EFFECTS OF BOTH, CODE BELOW DO NOT NEED TO CHANGE
-      // appConfig.useIndexedDBCache = true;
-      //
-      // if (appConfig.useIndexedDBCache) {
-      //   console.log("Using IndexedDB Cache");
-      // } else {
-      //   console.log("Using Cache API");
-      // }
-
       if (typeof caches === 'undefined') {
         console.log("Cache API is not available in the current environment.");
-//        downloadStatus = "Cache API is not available.";
-//        isDownloading = false;
-//        return;
       }
 
       const engine: webllm.MLCEngineInterface = await webllm.CreateMLCEngine(
@@ -125,11 +112,7 @@
       }
 
       await engine.reload(selectedModel, config);
-      
-      // // Check if the model was successfully loaded
-      // if (!engine..isReady()) {
-      //   throw new Error("Failed to initialize the model. The engine is not ready after reload.");
-      // }
+
 
       console.log(reply);
       isDownloading = false;
