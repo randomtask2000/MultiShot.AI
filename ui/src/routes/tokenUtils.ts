@@ -151,17 +151,23 @@ export async function printResponse(
 
 export { renderMarkdownWithCodeBlock, renderMarkdown, renderMarkdownHistory };
 
-/*
-* fetch ai code!
-*
-*
-* */
-
-
+/**
+ * Fetches AI response based on the provided history and selected LLM provider.
+ * 
+ * @param history - An array of tokens representing the chat history.
+ * @param selectedLlmProvider - The LLM provider to use for generating the AI response.
+ * 
+ * @returns A promise that resolves to the AI response.
+ * 
+ * @throws Will attempt to retry the request if the provider is "webllm" up to a specified number of times.
+ * For other providers, it will directly fetch the response from the specified endpoint.
+ */
 export async function fetchAi(history: Token[], selectedLlmProvider: LlmProvider) {
     if (selectedLlmProvider.provider === "webllm") {
+        // Attempts to handle the request with retry mechanism for "webllm" provider.
         return await handleWithRetry((attempt) => handleWebllmProvider(history, selectedLlmProvider, 2, attempt), 2);
     } else {
+        // Constructs the request payload and fetches the response from the local server for other providers.
         const content = JSON.stringify({ messages: history, llm: selectedLlmProvider });
         return await fetch('http://localhost:8000/chat/', {
             method: 'POST',
