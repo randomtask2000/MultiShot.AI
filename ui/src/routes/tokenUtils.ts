@@ -179,30 +179,45 @@ export async function fetchAi(history: Token[], selectedLlmProvider: LlmProvider
     }
 }
 
+/**
+ * Handles the AI response generation for the "webllm" provider.
+ * 
+ * @param history - An array of tokens representing the chat history.
+ * @param selectedLlmProvider - The LLM provider to use for generating the AI response.
+ * @param retries - The number of retries allowed for handling the request.
+ * @param attempt - The current attempt number.
+ * 
+ * @returns A promise that resolves to an object simulating a ReadableStream for streaming the AI response.
+ * 
+ * @throws Will log a message and prune the history to the first and last elements if the attempt is greater than 0 and history length is more than 2.
+ * If the engine is not initialized, it will initialize and reload the model specified by the selectedLlmProvider.
+ */
 async function handleWebllmProvider(
-  history: Token[],
-  selectedLlmProvider: LlmProvider,
-  retries: number,
-  attempt: number
+    history: Token[],
+    selectedLlmProvider: LlmProvider,
+    retries: number,
+    attempt: number
 ) {
+    // Initialize the engine if it's not already initialized.
     if (!engine) {
         engine = new webllm.MLCEngine();
         await engine.reload(selectedLlmProvider.model);
     }
 
+    // Prune the history to the first and last elements if conditions are met.
     if (attempt > 0 && history.length > 2) {
         history = [history[0], history[history.length - 1]];
-        console.log("History length is being pruned to first and last to handle context limits")
+        console.log("History length is being pruned to first and last to handle context limits");
     }
 
-    // Extract messages while keeping total content under 2056 characters
+    // Extract messages from history while keeping the total content under 2056 characters.
     let extractedMessages: webllm.ChatCompletionMessageParam[] = [];
-
     extractedMessages = history.map(token => ({
         role: token.role as "system" | "user" | "assistant",
         content: token.content
     }));
 
+    // Create a stream for generating AI responses.
     const stream = await engine.chat.completions.create({
         messages: extractedMessages,
         stream: true,
@@ -210,8 +225,10 @@ async function handleWebllmProvider(
         top_p: 1
     });
 
+    // Create an async iterator for the stream.
     const iterator = stream[Symbol.asyncIterator]();
 
+    // Return an object simulating a ReadableStream for streaming the AI response.
     return {
         body: {
             getReader: () => ({
@@ -224,6 +241,7 @@ async function handleWebllmProvider(
         }
     };
 }
+
 
 async function handleWithRetry(fn: (attempt: number) => Promise<any>, retries: number) {
     for (let attempt = 1; attempt <= retries; attempt++) {
