@@ -50,6 +50,18 @@ export function handleScroll(elemChat: HTMLDivElement): boolean {
     return elemChat ? (elemChat.scrollHeight - elemChat.scrollTop - elemChat.clientHeight <= bottomThreshold) : false;
 }
 
+/**
+ * Adds a chat bubble to the specified result div element.
+ * 
+ * @param selectedLlm - The LLM provider to be associated with the bubble.
+ * @param resultDiv - The HTMLDivElement where the bubble will be appended.
+ * @param person - The name of the person associated with the bubble. Defaults to "person" if not provided.
+ * @param type - Specifies whether the bubble is for a "user" or "ai".
+ * 
+ * @returns An object containing the bubbleId and pid of the created bubble.
+ * 
+ * @throws Will log an error to the console and return an empty bubbleId and pid if the resultDiv is not initialized.
+ */
 export function addBubble(selectedLlm: LlmProvider, resultDiv: HTMLDivElement, person: string, type: "user" | "ai"): { bubbleId: string, pid: string } {
     if (!resultDiv) {
         console.error('resultDiv is not initialized');
@@ -70,11 +82,11 @@ export function addBubble(selectedLlm: LlmProvider, resultDiv: HTMLDivElement, p
     };
     // leave this in or else it's not working
     const bubble = type === "user" ? new BubbleUser({ target: parentDiv, props: { bubble: bubbleData } }) :
-                                     new BubbleSystem({ target: parentDiv, props: { bubble: bubbleData } });
+    new BubbleSystem({ target: parentDiv, props: { bubble: bubbleData } });
     parentDiv.id = bubbleId;
     resultDiv.appendChild(parentDiv);
     return { bubbleId, pid: bubbleData.pid };
-}    
+}
 
 /**
 * Prints a message to a specific element identified by its pid.
