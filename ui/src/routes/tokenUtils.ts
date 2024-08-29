@@ -74,8 +74,14 @@ export function addBubble(selectedLlm: LlmProvider, resultDiv: HTMLDivElement, p
     parentDiv.id = bubbleId;
     resultDiv.appendChild(parentDiv);
     return { bubbleId, pid: bubbleData.pid };
-}
+}    
 
+/**
+* Prints a message to a specific element identified by its pid.
+* 
+* @param pid - The unique identifier of the element where the message will be printed.
+* @param tokens - The message content to be printed.
+*/
 export function printMessage(pid: string, tokens: string): void {
     const element = document.getElementById(pid);
     if (element) {
