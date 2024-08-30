@@ -68,8 +68,8 @@ export function addBubble(selectedLlm: LlmProvider, resultDiv: HTMLDivElement, p
         return { bubbleId: '', pid: '' };
     }
     person = person || "person";
-    const parentDiv = document.createElement('div');
-    const bubbleId = `div${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const parentDiv: HTMLDivElement = document.createElement('div');
+    const bubbleId: string = `div${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const bubbleData: Bubble = {
         color: 'variant-soft-primary',
         name: person,
@@ -81,8 +81,8 @@ export function addBubble(selectedLlm: LlmProvider, resultDiv: HTMLDivElement, p
         pid: `pid${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
     };
     // leave this in or else it's not working
-    const bubble = type === "user" ? new BubbleUser({ target: parentDiv, props: { bubble: bubbleData } }) :
-    new BubbleSystem({ target: parentDiv, props: { bubble: bubbleData } });
+    const bubble: BubbleUser | BubbleSystem = type === "user" ? new BubbleUser({ target: parentDiv, props: { bubble: bubbleData } }) :
+        new BubbleSystem({ target: parentDiv, props: { bubble: bubbleData } });
     parentDiv.id = bubbleId;
     resultDiv.appendChild(parentDiv);
     return { bubbleId, pid: bubbleData.pid };
@@ -100,6 +100,16 @@ export function printMessage(pid: string, tokens: string): void {
         const parser = new StreamParser(element);
         parser.processChunk(tokens);
         parser.finish();
+    }
+}
+
+export function printUserMessage(pid: string, tokens: string): void {
+    const element = document.getElementById(pid);
+    if (element) {
+        // set element innerHTML to tokens
+        element.innerHTML = tokens;
+    } else {
+        console.warn(`Element with id ${pid} not found`);
     }
 }
 

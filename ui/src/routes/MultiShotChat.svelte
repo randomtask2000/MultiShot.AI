@@ -15,7 +15,7 @@
     fetchAi,
     printResponse,
     renderMarkdownWithCodeBlock,
-    initializeWebLLM
+    initializeWebLLM, printUserMessage
   } from './tokenUtils';
   import Icon from '@iconify/svelte';
   import { AppBar, ProgressRadial } from '@skeletonlabs/skeleton';
@@ -88,7 +88,7 @@ function restoreChat(item: ChatHistoryItem): void {
   });
 }
 
-let tokenVar: string = '';
+let textAreaInputTokens: string = '';
 let tokenHistory: Token[] = [];
 let resultDiv: HTMLDivElement;
 let sidebarVisible = true;
@@ -102,7 +102,7 @@ function checkWindowSize() {
 }
 
 const clearToken = () => {
-  tokenVar = '';
+  textAreaInputTokens = '';
 };
 
 const clearResultDiv = () => {
@@ -119,7 +119,7 @@ const checkForReturnKey = (event: KeyboardEvent) => {
 };
 
 function getToken() {
-  return tokenVar;
+  return textAreaInputTokens;
 }
 
 /**
@@ -144,12 +144,14 @@ async function sendUserTokenAiHistory() {
   }
 
   isLoading = true;
+
+
   const token = getToken();
   tokenHistory.push({ role: "user", content: token, llmInfo: selectedLlmProvider });
   
-  // Add user input bubble
-  let { pid: divIdUser } = addBubble(selectedLlmProvider, resultDiv, "User", "user");
-  printMessage(divIdUser, token);
+  // // Add user input bubble
+  // let { pid: divIdUser } = addBubble(selectedLlmProvider, resultDiv, "User", "user");
+  // printMessage(divIdUser, token);
 
   const response = await fetchAi(tokenHistory, selectedLlmProvider);
   if (!response.body) {
@@ -163,6 +165,7 @@ async function sendUserTokenAiHistory() {
   tokenHistory.push({ role: "assistant", content, llmInfo: selectedLlmProvider });
   clearToken();
   isLoading = false;
+  userBubbleIsBusy = false;
 }
 
 let elemChat: HTMLDivElement;
@@ -224,6 +227,51 @@ function stopResize() {
   document.removeEventListener('mouseup', stopResize);
 }
 
+  /**
+   * Indicates whether the user's chat bubble is currently busy.
+   *
+   * @function userBubbleIsBusy
+   * @returns {boolean} True if the user's chat bubble is busy, otherwise false.
+   */
+let userBubbleIsBusy: boolean = false;
+  /**
+   * Filters a list of bubble objects based on a specific user PID (Process Identifier).
+   *
+   * @param {Array} bubbles - An array of bubble objects, where each bubble object contains
+   *                            various properties including a user PID.
+   * @param {number} userPid - The PID of the user for whom bubbles need to be filtered.
+   * @returns {Array} - A filtered array of bubble objects belonging to the specified user PID.
+   */
+let userBubblePid: string = "";
+  /**
+   * reactive svelte code that creates a new user chat bubble when the textAreaInputTokens
+   * variable changes and a user bubble is not currently busy.
+   */
+$: {
+  if (textAreaInputTokens) {
+    if (!selectedLlmProvider) {
+      console.error('No LLM provider selected');
+    } else if (!userBubbleIsBusy) {
+      // Add user input bubble
+      const { pid } = addBubble(selectedLlmProvider, resultDiv, "User", "user");
+
+      userBubblePid = pid;
+      userBubbleIsBusy = true;
+    }
+    const userBubbleElement = document.getElementById(userBubblePid);
+    if (userBubbleElement) {
+      userBubbleElement.innerHTML = textAreaInputTokens;
+    }
+  }
+}
+
+function handleKeyDown(event: KeyboardEvent) {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    sendUserTokenAiHistory();
+  }
+}
+
 </script>
 
 <style lang="postcss">
@@ -267,15 +315,12 @@ function stopResize() {
       duration-300 ease-in-out"
       style="width: {sidebarVisible ? 'calc(100% - 250px)' : '100%'};"
     >
-      
           <AppHeader
           {sidebarVisible}
           bind:selectedItem={selectedLlmProvider}
           {toggleSidebar}
           {clearChat}
         />
-
-
       <div id="chat" class="flex flex-col flex-grow overflow-hidden">
         <div id="resultOuter" bind:this={elemChat}
              class="flex-grow bg-surface-800/30 p-4 overflow-y-auto">
@@ -298,16 +343,16 @@ function stopResize() {
               <Icon icon="ic:twotone-save-alt" class="w-6 h-6" />
             </button>
             <textarea
-              bind:value={tokenVar}
+              bind:value={textAreaInputTokens}
               bind:this={textareaElement}
               on:input={autoResizeTextarea}
+              on:keydown={handleKeyDown}
               class="w-full font-nunito bg-transparent border-0 ring-0 
               red-selection auto-resize-textarea pr-10"
               name="tokenInput"
               id="tokenInput"
               placeholder="Write a message..."
               rows="1"
-              on:keydown={checkForReturnKey}
               disabled={isLoading}
             ></textarea>
             {#if isLoading}
