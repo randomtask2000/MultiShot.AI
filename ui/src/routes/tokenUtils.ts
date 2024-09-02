@@ -13,12 +13,13 @@ import * as webllm from "@mlc-ai/web-llm";
 
 let engine: webllm.MLCEngine | null = null;
 
-export async function initializeWebLLM(model: string) {
-    if (!engine) {
-        engine = new webllm.MLCEngine();
-        await engine.reload(model);
-    }
-}
+// export async function initializeWebLLM(model: string) {
+//     if (!engine) {
+//         engine = new webllm.MLCEngine();
+//         await engine.reload(model);
+//     }
+// }
+
 
 export function storeTokenHistory(
     tokenHistory: Token[],
@@ -189,6 +190,8 @@ export async function fetchAi(history: Token[], selectedLlmProvider: LlmProvider
     }
 }
 
+
+let reLoaded:boolean = false;
 /**
  * Handles the AI response generation for the "webllm" provider.
  * 
@@ -210,12 +213,27 @@ async function handleWebllmProvider(
 ) {
     // Initialize the engine if it's not already initialized.
     if (!engine) {
-        engine = new webllm.MLCEngine();
-        await engine.reload(selectedLlmProvider.model);
+        initializeWebLLM(selectedLlmProvider.model);
+    } else if (!reLoaded) {
+        //engine.progr
+        // await engine.reload(selectedLlmProvider.model);
+        // console.log(`model reloaded: ${selectedLlmProvider.model}`);
+        // const engine: webllm.MLCEngineInterface = await webllm.CreateMLCEngine(
+        //     selectedLlmProvider.model,
+        //     {
+        //       initProgressCallback: initProgressCallback,
+        //       logLevel: "INFO",
+        //     },
+        //     {
+        //       context_window_size: 4096, // 2048,
+        //     }
+        //   );
+        //initializeWebLLM(selectedLlmProvider.model);
+        reLoaded = true;
     }
 
     // Prune the history to the first and last elements if conditions are met.
-    if (attempt > 0 && history.length > 2) {
+    if (attempt > 1 && history.length > 2) {
         history = [history[0], history[history.length - 1]];
         console.log("History length is being pruned to first and last to handle context limits");
     }
@@ -263,4 +281,35 @@ async function handleWithRetry(fn: (attempt: number) => Promise<any>, retries: n
             }
         }
     }
+}
+
+export async function initializeWebLLM(
+    model: string,
+    progressCallback?: (report: webllm.InitProgressReport) => void
+) {
+    if (!engine) {
+        engine = await webllm.CreateMLCEngine(
+            model,
+            {
+                initProgressCallback: progressCallback,
+                logLevel: "INFO",
+            },
+            {
+                context_window_size: 4096, // 2048,
+            }
+        );
+    }
+}
+
+export async function initializeWebLLMWithForce(
+    model: string,
+    progressCallback?: (report: webllm.InitProgressReport) => void,
+    forceRecreate: boolean = false
+) {
+    if (forceRecreate && engine) {
+        await engine.unload();
+        engine = null;
+    }
+    
+    await initializeWebLLM(model, progressCallback);
 }

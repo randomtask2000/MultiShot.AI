@@ -11,44 +11,81 @@
     storeTokenHistory,
     scrollChatBottom,
     addBubble,
-    printMessage,
     fetchAi,
     printResponse,
     renderMarkdownWithCodeBlock,
-    initializeWebLLM, printUserMessage
+    initializeWebLLM,
+    initializeWebLLMWithForce
   } from './tokenUtils';
   import Icon from '@iconify/svelte';
-  import { AppBar, ProgressRadial } from '@skeletonlabs/skeleton';
+  import { ProgressRadial } from '@skeletonlabs/skeleton';
   import ChatHistorySidebar from './ChatHistorySidebar.svelte';
   import { get } from 'svelte/store';
   import AppHeader from './AppHeader.svelte';
+  import * as webllm from "@mlc-ai/web-llm";
   
   // Declare selectedItem as a prop
   export let selectedLlmProvider: LlmProvider | null = null;
 
-  let isLoading = false;
+  let isLoadingLlmResponse = false;
+  let progressPercentage = 0;
+  let downloadStatus = '';
+  let loadbubbleBussy = false;
+  let loadingBubblePid: string = "";
+  let loadingInputBubbleElement: HTMLDivElement | null = null;
 
-onMount(() => {
-  listStore.init();
-  themeStore.init();
-  llmProviderListStore.init();
-  checkWindowSize();
-  window.addEventListener('resize', checkWindowSize);
+  async function initProgressCallback(report: webllm.InitProgressReport) {
+    progressPercentage = Math.round(report.progress * 100);
+    downloadStatus = `${report.text}`;
+    console.log(progressPercentage);
 
-  const providers: LlmProvider[] = get(LlmProviderList);
-  if (providers && providers.length > 0) {
-    selectedLlmProvider = selectedLlmProvider || providers[0]; // Use existing selectedItem if available
-    if (selectedLlmProvider.provider === "webllm") {
-       initializeWebLLM(selectedLlmProvider.model);
+    if (progressPercentage < 100) {
+      if (!selectedLlmProvider) {
+        console.error('No LLM provider selected');
+      } else if (!loadbubbleBussy) {
+        // Add user input bubble
+        const { pid } = addBubble(selectedLlmProvider, resultDiv, "System", "ai");
+
+        loadingBubblePid = pid;
+        loadbubbleBussy = true;
+      }
+      const element = document.getElementById(loadingBubblePid);
+      loadingInputBubbleElement = element as HTMLDivElement;
+      if (loadingInputBubbleElement) {
+        loadingInputBubbleElement.innerHTML = downloadStatus;
+      } 
     }
-  } else {
-    console.error('No LLM providers available');
+    if (progressPercentage === 100) {
+      loadbubbleBussy = false;
+      const element = document.getElementById(loadingBubblePid);
+      loadingInputBubbleElement = element as HTMLDivElement;
+      if (loadingInputBubbleElement) {
+        loadingInputBubbleElement.innerHTML = "Model is loaded. You can start chatting now.";
+      }
+    }
   }
 
-  return () => {
-    window.removeEventListener('resize', checkWindowSize);
-  };
-});
+  onMount(() => {
+    listStore.init();
+    themeStore.init();
+    llmProviderListStore.init();
+    checkWindowSize();
+    window.addEventListener('resize', checkWindowSize);
+
+    const providers: LlmProvider[] = get(LlmProviderList);
+    if (providers && providers.length > 0) {
+      selectedLlmProvider = selectedLlmProvider || providers[0];
+      if (selectedLlmProvider.provider === "webllm") {
+        initializeWebLLM(selectedLlmProvider.model, initProgressCallback);
+      }
+    } else {
+      console.error('No LLM providers available');
+    }
+
+    return () => {
+      window.removeEventListener('resize', checkWindowSize);
+    };
+  });
 
 
 function handleAddItem() {
@@ -111,13 +148,6 @@ const clearResultDiv = () => {
   }
 };
 
-const checkForReturnKey = (event: KeyboardEvent) => {
-  if (event.key === 'Enter' && !event.shiftKey && !isLoading) {
-    event.preventDefault();
-    sendUserTokenAiHistory();
-  }
-};
-
 function getToken() {
   return textAreaInputTokens;
 }
@@ -132,145 +162,178 @@ function getToken() {
  * @throws {Error} If no LLM provider is selected.
  * @throws {Error} If the response body is null.
  */
-async function sendUserTokenAiHistory() {
-
-  if (!selectedLlmProvider) {
-    console.error('No LLM provider selected');
-    return;
-  }
-
-  if (isLoading) {
-    return;
-  }
-
-  isLoading = true;
-
-
-  const token = getToken();
-  tokenHistory.push({ role: "user", content: token, llmInfo: selectedLlmProvider });
-  
-  // // Add user input bubble
-  // let { pid: divIdUser } = addBubble(selectedLlmProvider, resultDiv, "User", "user");
-  // printMessage(divIdUser, token);
-
-  const response = await fetchAi(tokenHistory, selectedLlmProvider);
-  if (!response.body) {
-    throw new Error('Response body is null');
-  }
-  
-  // Add response from LLM bubble
-  let { pid: aiPid } = addBubble(selectedLlmProvider, resultDiv, "AI", "ai");
-  const content = await printResponse(resultDiv, response.body.getReader() as GenericReader, new TextDecoder('utf-8'), aiPid);
-  
-  tokenHistory.push({ role: "assistant", content, llmInfo: selectedLlmProvider });
-  clearToken();
-  isLoading = false;
-  userBubbleIsBusy = false;
-}
-
-let elemChat: HTMLDivElement;
-
-afterUpdate(() => {
-  scrollChatBottom(resultDiv);
-});
-
-function toggleSidebar() {
-  sidebarVisible = !sidebarVisible;
-}
-
-function clearChat() {
-  tokenHistory = [];
-  clearResultDiv();
-}
-
-async function handleModelChange(newModel: LlmProvider) {
-  if (newModel) {
-    selectedLlmProvider = newModel;
-    if (newModel.provider === "webllm") {
-      await initializeWebLLM(newModel.model);
-    }
-  } else {
-    console.error('Invalid model selected');
-  }
-}
-
-let textareaElement: HTMLTextAreaElement;
-let isResizing = false;
-let startY: number;
-let startHeight: number;
-
-function autoResizeTextarea() {
-  if (textareaElement) {
-    textareaElement.style.height = 'auto';
-    textareaElement.style.height = `${Math.min(textareaElement.scrollHeight, 192)}px`; // 192px = 12rem
-  }
-}
-
-function startResize(event: MouseEvent) {
-  isResizing = true;
-  startY = event.clientY;
-  startHeight = textareaElement.offsetHeight;
-  document.addEventListener('mousemove', resize);
-  document.addEventListener('mouseup', stopResize);
-}
-
-function resize(event: MouseEvent) {
-  if (isResizing) {
-    const newHeight = startHeight + startY - event.clientY;
-    textareaElement.style.height = `${Math.min(Math.max(newHeight, 40), 192)}px`; // 40px = 2.5rem, 192px = 12rem
-  }
-}
-
-function stopResize() {
-  isResizing = false;
-  document.removeEventListener('mousemove', resize);
-  document.removeEventListener('mouseup', stopResize);
-}
-
-  /**
-   * Indicates whether the user's chat bubble is currently busy.
-   *
-   * @function userBubbleIsBusy
-   * @returns {boolean} True if the user's chat bubble is busy, otherwise false.
-   */
-let userBubbleIsBusy: boolean = false;
-  /**
-   * Filters a list of bubble objects based on a specific user PID (Process Identifier).
-   *
-   * @param {Array} bubbles - An array of bubble objects, where each bubble object contains
-   *                            various properties including a user PID.
-   * @param {number} userPid - The PID of the user for whom bubbles need to be filtered.
-   * @returns {Array} - A filtered array of bubble objects belonging to the specified user PID.
-   */
-let userBubblePid: string = "";
-  /**
-   * reactive svelte code that creates a new user chat bubble when the textAreaInputTokens
-   * variable changes and a user bubble is not currently busy.
-   */
-$: {
-  if (textAreaInputTokens) {
+  async function sendUserTokenAiHistory() {
     if (!selectedLlmProvider) {
       console.error('No LLM provider selected');
-    } else if (!userBubbleIsBusy) {
-      // Add user input bubble
-      const { pid } = addBubble(selectedLlmProvider, resultDiv, "User", "user");
-
-      userBubblePid = pid;
-      userBubbleIsBusy = true;
+      return;
     }
-    const userBubbleElement = document.getElementById(userBubblePid);
-    if (userBubbleElement) {
-      userBubbleElement.innerHTML = textAreaInputTokens;
+    if (isLoadingLlmResponse) {
+      return;
+    }
+    isLoadingLlmResponse = true;
+    const token = getToken();
+    tokenHistory.push({ role: "user", content: token, llmInfo: selectedLlmProvider });
+
+    const response = await fetchAi(tokenHistory, selectedLlmProvider);
+    if (!response.body) {
+      throw new Error('Response body is null');
+    }
+    
+    // Add response from LLM bubble
+    let { pid: aiPid } = addBubble(selectedLlmProvider, resultDiv, "AI", "ai");
+    const content = await printResponse(resultDiv, response.body.getReader() as GenericReader, new TextDecoder('utf-8'), aiPid);
+    
+    tokenHistory.push({ role: "assistant", content, llmInfo: selectedLlmProvider });
+    clearToken();
+    isLoadingLlmResponse = false;
+    userBubbleIsBusy = false;
+  }
+
+  let chatResultOuterBinding: HTMLDivElement;
+
+  afterUpdate(() => {
+    scrollChatBottom(resultDiv);
+  });
+
+  function toggleSidebar() {
+    sidebarVisible = !sidebarVisible;
+  }
+
+  function clearChat() {
+    tokenHistory = [];
+    clearResultDiv();
+  }
+
+  async function handleModelChange(newModel: LlmProvider) {
+    if (newModel) {
+      selectedLlmProvider = newModel;
+      if (newModel.provider === "webllm") {
+        await initializeWebLLM(newModel.model);
+      }
+    } else {
+      console.error('Invalid model selected');
     }
   }
-}
 
-function handleKeyDown(event: KeyboardEvent) {
-  if (event.key === 'Enter' && !event.shiftKey) {
-    event.preventDefault();
-    sendUserTokenAiHistory();
+  let textareaElementBinding: HTMLTextAreaElement; // textarea for user input tokens
+  let inputContainerBinding: HTMLDivElement; // this the area that contains the textarea for user input tokens
+  let isResizing = false;
+  let startY: number;
+  let startHeight: number;
+
+  function autoResizeTextarea() {
+    if (textareaElementBinding) {
+      textareaElementBinding.style.height = 'auto';
+      textareaElementBinding.style.height = `${Math.min(textareaElementBinding.scrollHeight, 192)}px`; // 192px = 12rem
+    }
   }
-}
+
+  function startResize(event: MouseEvent) {
+    isResizing = true;
+    startY = event.clientY;
+    startHeight = textareaElementBinding.offsetHeight;
+    document.addEventListener('mousemove', resize);
+    document.addEventListener('mouseup', stopResize);
+  }
+
+  function resize(event: MouseEvent) {
+    if (isResizing) {
+      const newHeight = startHeight + startY - event.clientY;
+      textareaElementBinding.style.height = `${Math.min(Math.max(newHeight, 40), 192)}px`; // 40px = 2.5rem, 192px = 12rem
+    }
+  }
+
+  function stopResize() {
+    isResizing = false;
+    document.removeEventListener('mousemove', resize);
+    document.removeEventListener('mouseup', stopResize);
+  }
+
+    /**
+     * Indicates whether the user's chat bubble is currently busy.
+     *
+     * @function userBubbleIsBusy
+     * @returns {boolean} True if the user's chat bubble is busy, otherwise false.
+     */
+  let userBubbleIsBusy: boolean = false;
+    /**
+     * Filters a list of bubble objects based on a specific user PID (Process Identifier).
+     *
+     * @param {Array} bubbles - An array of bubble objects, where each bubble object contains
+     *                            various properties including a user PID.
+     * @param {number} userPid - The PID of the user for whom bubbles need to be filtered.
+     * @returns {Array} - A filtered array of bubble objects belonging to the specified user PID.
+     */
+  let userBubblePid: string = "";
+    /**
+     * reactive svelte code that creates a new user chat bubble when the textAreaInputTokens
+     * variable changes and a user bubble is not currently busy.
+     */
+  $: {
+    if (textAreaInputTokens) {
+      if (!selectedLlmProvider) {
+        console.error('No LLM provider selected');
+      } else if (!userBubbleIsBusy) {
+        // Add user input bubble
+        const { pid } = addBubble(selectedLlmProvider, resultDiv, "User", "user");
+
+        userBubblePid = pid;
+        userBubbleIsBusy = true;
+      }
+      const userInputBubbleElement = document.getElementById(userBubblePid);
+      if (userInputBubbleElement) {
+        userInputBubbleElement.innerHTML = textAreaInputTokens;
+      }
+    }
+  }
+
+  $: if (selectedLlmProvider !== null) {
+    watchSelectedLlmProvider(selectedLlmProvider);
+  }
+
+  let initializationPromise: Promise<void> | null = null;
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function watchSelectedLlmProvider(selectedProvider: LlmProvider) {
+      if (debounceTimer !== null) {
+          clearTimeout(debounceTimer);
+      }
+
+      debounceTimer = setTimeout(async () => {
+          if (initializationPromise) {
+              console.log('Initialization in progress. Ignoring this call.');
+              return;
+          }
+
+          if (selectedProvider.provider === "webllm") {
+              initializationPromise = initializeWebLLMWithForce(selectedProvider.model, initProgressCallback, true);
+              try {
+                  await initializationPromise;
+                  console.log('Selected WebLLM Provider changed:', selectedProvider.provider);
+              } finally {
+                  initializationPromise = null;
+              }
+          }
+          
+          debounceTimer = null;
+      }, 200);  // Adjust debounce time as needed
+  }
+
+
+  /**
+   * Handles the 'Enter' key press event, ensuring that the default behavior (e.g., submitting a form) is prevented
+   * if certain conditions are met. Specifically, if the 'Enter' key is pressed without the 'Shift' key and
+   * the application is not currently in a loading state, the default action is prevented, and a function to send
+   * user token AI history is called.
+   *
+   * @param {KeyboardEvent} event - The keyboard event triggered by a key press.
+   */
+  const checkForReturnKey = (event: KeyboardEvent) => {
+    if (event.key === 'Enter' && !event.shiftKey && !isLoadingLlmResponse) {
+      event.preventDefault();
+      sendUserTokenAiHistory();
+    }
+  };
 
 </script>
 
@@ -315,18 +378,20 @@ function handleKeyDown(event: KeyboardEvent) {
       duration-300 ease-in-out"
       style="width: {sidebarVisible ? 'calc(100% - 250px)' : '100%'};"
     >
-          <AppHeader
-          {sidebarVisible}
-          bind:selectedItem={selectedLlmProvider}
-          {toggleSidebar}
-          {clearChat}
-        />
+    <AppHeader
+      {sidebarVisible}
+      bind:selectedItem={selectedLlmProvider}
+      {toggleSidebar}
+      {clearChat}
+    />
       <div id="chat" class="flex flex-col flex-grow overflow-hidden">
-        <div id="resultOuter" bind:this={elemChat}
+        <div id="resultOuter" bind:this={chatResultOuterBinding}
              class="flex-grow bg-surface-800/30 p-4 overflow-y-auto">
           <div id="result" bind:this={resultDiv} class="min-h-full"></div>
         </div>
-        <div id="inputContainer" class="bg-surface-500/30 p-4 flex-shrink-0 relative">
+        <div
+          bind:this={inputContainerBinding}
+          id="inputContainer" class="bg-surface-500/30 p-4 flex-shrink-0 relative">
           <div id="resizeHandle" class="absolute left-0 right-0 top-0 h-2 cursor-ns-resize z-10" 
           on:mousedown={startResize}>&nbsp;</div>
           <div id="inputGroup" class="input-group input-group-divider border-1 
@@ -337,25 +402,25 @@ function handleKeyDown(event: KeyboardEvent) {
           hover:border-primary-500
           focus-within:shadow-[0_0_15px_rgba(var(--color-primary-500),0.7)] 
           focus-within:border-primary-500">
-            <button class="input-group-shim" on:click={sendUserTokenAiHistory} disabled={isLoading}>+</button>
+            <button class="input-group-shim" on:click={sendUserTokenAiHistory} disabled={isLoadingLlmResponse}>+</button>
             <button class="w-12 h-full bg-transparent border-none flex items-center justify-center" 
-            on:click={handleAddItem} name="save" disabled={isLoading}>
+            on:click={handleAddItem} name="save" disabled={isLoadingLlmResponse}>
               <Icon icon="ic:twotone-save-alt" class="w-6 h-6" />
             </button>
             <textarea
               bind:value={textAreaInputTokens}
-              bind:this={textareaElement}
+              bind:this={textareaElementBinding}
               on:input={autoResizeTextarea}
-              on:keydown={handleKeyDown}
+              on:keydown={checkForReturnKey}
               class="w-full font-nunito bg-transparent border-0 ring-0 
               red-selection auto-resize-textarea pr-10"
               name="tokenInput"
               id="tokenInput"
               placeholder="Write a message..."
               rows="1"
-              disabled={isLoading}
+              disabled={isLoadingLlmResponse}
             ></textarea>
-            {#if isLoading}
+            {#if isLoadingLlmResponse}
               <div class="absolute -right-3 top-1 bottom-1 flex items-center justify-center">
                 <ProgressRadial width="w-9" />
               </div>
@@ -365,7 +430,7 @@ function handleKeyDown(event: KeyboardEvent) {
                 justify-center transition-all duration-300 ease-in-out hover:scale-110"
                 on:click={sendUserTokenAiHistory}
                 name="send"
-                disabled={isLoading}
+                disabled={isLoadingLlmResponse}
               >
                 <Icon
                   icon="ph:arrow-circle-up-fill"

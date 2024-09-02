@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, createEventDispatcher } from 'svelte';
 	import type { LlmProvider } from './types';
 	import { LlmProviderList } from './types';
 	import Icon from '@iconify/svelte';
@@ -76,7 +76,8 @@
 					selectedItem = { ...lastChatItem.llmProvider };
 				} else {
 					// Fallback to default selection
-					selectedItem = { ...llmProviders.find((item) => item.model === 'gpt-4o-mini') } || { ...llmProviders[0] };
+					const defaultItem = { ...llmProviders.find((item) => item.model === 'gpt-4o-mini') } || { ...llmProviders[0] };
+					selectedItem = defaultItem;
 				}
 			}
 		}
