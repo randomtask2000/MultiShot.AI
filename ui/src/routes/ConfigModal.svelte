@@ -38,7 +38,7 @@
     updateSelectedItem();
   }
 
-  function getIcon(modelName: string): string {
+  function getLlmIcon(modelName: string): string {
     if (modelName.toLowerCase().includes('llama')) {
       return "fluent-emoji-high-contrast:llama";
     } else if (modelName.toLowerCase().includes('mistral')) {
@@ -54,7 +54,7 @@
               provider: "webllm",
               model: selectedModel,
               title: selectedModel,
-              icon: getIcon(selectedModel),
+              icon: getLlmIcon(selectedModel),
               subtitle: "Local WebLLM model",
               systemMessage: "You are a helpful AI assistant.",
               apiKeyName: "",

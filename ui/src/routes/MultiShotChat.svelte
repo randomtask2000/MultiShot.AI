@@ -15,7 +15,8 @@
     printResponse,
     renderMarkdownWithCodeBlock,
     initializeWebLLM,
-    initializeWebLLMWithForce
+    initializeWebLLMWithForce,
+    engine
   } from './tokenUtils';
   import Icon from '@iconify/svelte';
   import { ProgressRadial } from '@skeletonlabs/skeleton';
@@ -23,7 +24,7 @@
   import { get } from 'svelte/store';
   import AppHeader from './AppHeader.svelte';
   import * as webllm from "@mlc-ai/web-llm";
-  
+ 
   // Declare selectedItem as a prop
   export let selectedLlmProvider: LlmProvider | null = null;
 
@@ -33,35 +34,55 @@
   let loadbubbleBussy = false;
   let loadingBubblePid: string = "";
   let loadingInputBubbleElement: HTMLDivElement | null = null;
+  let lastSelectedLlmProvider: LlmProvider | null = null;
 
+  /**
+   * Initializes the progress callback for loading a machine learning model. Writes system bubble.
+   *
+   * @param {webllm.InitProgressReport} report - The progress report containing the status and progress percentage.
+   * @return {Promise<void>} A promise that resolves when the progress has been updated successfully.
+   */
   async function initProgressCallback(report: webllm.InitProgressReport) {
-    progressPercentage = Math.round(report.progress * 100);
-    downloadStatus = `${report.text}`;
-    console.log(progressPercentage);
+    // if (selectedLlmProvider === lastSelectedLlmProvider) return;
+    // lastSelectedLlmProvider = selectedLlmProvider;
 
+    progressPercentage = Math.round(report.progress * 100);
+    downloadStatus = `Please wait model ${selectedLlmProvider?.model} to initialize. ${report.text}`;
+    //console.log(progressPercentage);
+
+    // Update the progress percentage and status at the start
     if (progressPercentage < 100) {
+      isLoadingLlmResponse = true;
       if (!selectedLlmProvider) {
         console.error('No LLM provider selected');
       } else if (!loadbubbleBussy) {
         // Add user input bubble
         const { pid } = addBubble(selectedLlmProvider, resultDiv, "System", "ai");
-
+        // we created the bubble and after only refer to it as a pid
         loadingBubblePid = pid;
         loadbubbleBussy = true;
       }
+      // find the element by pid and update the text
       const element = document.getElementById(loadingBubblePid);
       loadingInputBubbleElement = element as HTMLDivElement;
       if (loadingInputBubbleElement) {
         loadingInputBubbleElement.innerHTML = downloadStatus;
-      } 
-    }
-    if (progressPercentage === 100) {
-      loadbubbleBussy = false;
+      }
+    // we are finished and we report the last message
+    } else if (progressPercentage === 100) {
       const element = document.getElementById(loadingBubblePid);
       loadingInputBubbleElement = element as HTMLDivElement;
-      if (loadingInputBubbleElement) {
-        loadingInputBubbleElement.innerHTML = "Model is loaded. You can start chatting now.";
+      if (loadingInputBubbleElement !== null) {
+        loadingInputBubbleElement.innerHTML = `Model ${selectedLlmProvider?.model} is loaded. You can start chatting now.`;
+        setTimeout(() => {
+          if (loadingInputBubbleElement !== null) {
+            scrollChatBottom(loadingInputBubbleElement, 'smooth');
+          }
+        }, 100);
       }
+      progressPercentage = 0;
+      loadbubbleBussy = false;
+      isLoadingLlmResponse = false;
     }
   }
 
@@ -104,10 +125,12 @@ function handleClearList() {
 
 function restoreChat(item: ChatHistoryItem): void {
   tokenHistory = [...item.tokenHistory];
-  selectedLlmProvider = { ...item.llmProvider }; // Use the stored llmProvider
+
+  //selectedLlmProvider = { ...item.llmProvider }; // Use the stored llmProvider
+  let lastTokenInfo: LlmProvider | null = selectedLlmProvider;
   clearResultDiv();
   tokenHistory.forEach((token) => {
-    if (selectedLlmProvider) {
+    //if (selectedLlmProvider) {
       const type: 'user' | 'ai' = token.role === 'user' ? 'user' : 'ai';
       const { bubbleId, pid } = addBubble(token.llmInfo, resultDiv, type, type);
       if (bubbleId !== undefined && pid !== undefined) {
@@ -119,10 +142,14 @@ function restoreChat(item: ChatHistoryItem): void {
           scrollChatBottom(resultDiv, 'smooth');
         }, 500);
       }
-    } else {
-      console.error('No LLM provider selected');
-    }
+    // } else {
+    //   console.error('No LLM provider selected');
+    // }
+    lastTokenInfo = token.llmInfo;
   });
+  if (lastTokenInfo.model !== selectedLlmProvider.model) {
+    selectedLlmProvider = lastTokenInfo;
+  }
 }
 
 let textAreaInputTokens: string = '';
@@ -292,33 +319,23 @@ function getToken() {
   }
 
   let initializationPromise: Promise<void> | null = null;
-  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-  function watchSelectedLlmProvider(selectedProvider: LlmProvider) {
-      if (debounceTimer !== null) {
-          clearTimeout(debounceTimer);
+  async function watchSelectedLlmProvider(selectedProvider: LlmProvider) {
+      if (initializationPromise) {
+          console.log(`Initialization in progress for ${selectedProvider.model}. Ignoring this call.`);
+          return;
       }
 
-      debounceTimer = setTimeout(async () => {
-          if (initializationPromise) {
-              console.log('Initialization in progress. Ignoring this call.');
-              return;
-          }
-
-          if (selectedProvider.provider === "webllm") {
-              initializationPromise = initializeWebLLMWithForce(selectedProvider.model, initProgressCallback, true);
-              try {
-                  await initializationPromise;
-                  console.log('Selected WebLLM Provider changed:', selectedProvider.provider);
-              } finally {
+      if (selectedProvider.provider === "webllm") {
+          initializationPromise = initializeWebLLMWithForce(selectedProvider.model, initProgressCallback, true)
+              .then(() => {
+                  console.log('Selected WebLLM Provider changed:', selectedProvider.model);
+              })
+              .finally(() => {
                   initializationPromise = null;
-              }
-          }
-          
-          debounceTimer = null;
-      }, 200);  // Adjust debounce time as needed
+              });
+      }
   }
-
 
   /**
    * Handles the 'Enter' key press event, ensuring that the default behavior (e.g., submitting a form) is prevented

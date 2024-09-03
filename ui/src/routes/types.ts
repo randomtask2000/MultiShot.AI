@@ -51,6 +51,17 @@ export type WritableStore<T> = Writable<T>;
 function createPersistentLlmProviderList() {
   const initialProviders = [
     {
+      "provider": "webllm",
+      "model": "TinyLlama-1.1B-Chat-v1.0-q4f32_1-MLC-1k",
+      "title": "TinyLlama-1.1B-Chat-v1.0-q4f32_1-MLC-1k",
+      "icon": "arcticons:microsoft-bing",
+      "subtitle": "Faster for everyday tasks",
+      "systemMessage": "You are a highly skilled AI assistant and I love to talk tech. Your role involves guiding developers in setting up and configuring projects, creating and optimizing code, debugging issues, and providing best practices. You offer well-commented and formatted code snippets, in baby language for someone that doesn't like to read, and relevant references.",
+      "apiBase": "",
+      "apiKeyName": "",
+      "local": true
+    },
+    {
       "provider": "openai",
       "model": "gpt-4o-mini",
       "title": "GPT-4o-mini",

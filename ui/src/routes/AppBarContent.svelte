@@ -2,7 +2,7 @@
 	import { onMount, createEventDispatcher } from 'svelte';
 	import type { LlmProvider } from './types';
 	import { LlmProviderList } from './types';
-	import Icon from '@iconify/svelte';
+	import Icon, { getIcon } from '@iconify/svelte';
 	import { ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
 	import { fade } from 'svelte/transition';
 	import { themeStore, selectedModelStore, localWebLlmStore, llmProviderListStore, listStore } from './store';
@@ -12,6 +12,9 @@
 	import { SlideToggle } from '@skeletonlabs/skeleton';
 	import ConfigModal from './ConfigModal.svelte';
 	import { get } from 'svelte/store';
+	import { engine } from './tokenUtils';
+	import * as webllm from "@mlc-ai/web-llm";
+	//import { log } from 'console';
 
 	export let selectedItem: LlmProvider | null = null;
 
@@ -28,6 +31,14 @@
 		'crimson',
 		'my-blue-steel',
 	];
+	let availableModels: string[] = [];
+
+	$: if (webllm !== null) {
+		availableModels = webllm.prebuiltAppConfig.model_list.map(m => m.model_id);
+		console.log('WebLLM is available');
+	} else {
+		console.log('WebLLM is not available');
+	}
 
 	let isConfigModalOpen: boolean = false;
 
@@ -40,10 +51,74 @@
 		}
 	});
 
+	// Define the method to handle toggling of isListBoxVisible
+	function toggleListBoxVisibility(event: MouseEvent): void {
+		event.stopPropagation();
+		isListBoxVisible = !isListBoxVisible;
+	}
+
 	function handleSelectItem(item: LlmProvider): void {
-		selectedItem = { ...item };
-		selectedModelStore.setSelectedModel(item.model);
-		isListBoxVisible = false;
+		if (ListBoxItem.selectedValue !== item) {
+			selectedItem = { ...item };
+			selectedModelStore.setSelectedModel(item.model);
+		}
+		isListBoxVisible = !isListBoxVisible;
+	}
+
+/**
+ * Returns an icon string based on the provided model name.
+ *
+ * @param modelName - The name of the model to determine the icon for.
+ * @returns A string representing the icon to be used, based on the model name.
+ */
+function getLlmIcon(modelName: string): string {
+    if (modelName.toLowerCase().includes('llama')) {
+        const currentSecond = new Date().getSeconds();
+        return currentSecond % 2 === 0
+            ? "fluent-emoji-high-contrast:llama"
+            : "simple-icons:ollama";
+    } else if (modelName.toLowerCase().includes('mistral')) {
+        return "logos:mistral-ai-icon";
+    } else if (modelName.toLowerCase().includes('gemma') || modelName.toLowerCase().includes('gemini')) {
+        return "logos:google-gemini";
+    } else if (modelName.toLowerCase().includes('phi-')) {
+        return "arcticons:microsoft-bing";
+    } else if (modelName.toLowerCase().includes('qwen')) {
+        return "simple-icons:alibabacloud";
+    } else if (modelName.toLowerCase().includes('smollm')) {
+        return "simple-icons:saturn";
+    } else {
+        return "mdi:brain";
+    }
+}
+
+	function handleModelSelection(event: Event) {
+		const selectedModel = (event.target as HTMLSelectElement).value;
+
+		selectedItem = {
+			provider: "webllm",
+			model: selectedModel,
+			title: selectedModel,
+			icon: getLlmIcon(selectedModel),
+			subtitle: "Local WebLLM model",
+			systemMessage: "You are a helpful AI assistant.",
+			apiKeyName: "",
+			local: true
+		};
+		llmProviders.push(selectedItem);
+		//selectedModelStore.setSelectedModel(selectedModel);
+		//updateSelectedItem();
+
+		//isListBoxVisible = false;
+		ListBoxItem.selectedValue = selectedItem;
+
+		// setting isListBoxVisible to false after a delay of 500ms
+		//isListBoxVisible = false;
+		// setTimeout(() => {
+		// 	//isListBoxVisible = true;
+		// }, 500); // adjust the delay as needed
+		//isListBoxVisible = !isListBoxVisible;
+
 	}
 
 	function handleSelectTheme(theme: string): void {
@@ -76,14 +151,36 @@
 					selectedItem = { ...lastChatItem.llmProvider };
 				} else {
 					// Fallback to default selection
-					const defaultItem = { ...llmProviders.find((item) => item.model === 'gpt-4o-mini') } || { ...llmProviders[0] };
+					let defaultItem;
+					if (llmProviders.length > 0) {
+						defaultItem = { ...llmProviders.find((item) => item.model === 'TinyLlama-1.1B-Chat-v1.0-q4f32_1-MLC-1k') } || { ...llmProviders[0] };
+					} else {
+						selectedItem = {
+							provider: "webllm",
+							model: selectedModel,
+							title: selectedModel,
+							icon: getLlmIcon(selectedModel),
+							subtitle: "Local WebLLM model",
+							systemMessage: "You are a helpful AI assistant.",
+							apiKeyName: "",
+							local: true
+						};
+						llmProviders.push(selectedItem);
+						ListBoxItem.selectedValue = selectedItem;
+						defaultItem = selectedItem;
+					}
 					selectedItem = defaultItem;
 				}
 			}
 		}
 	}
-	
+
 	let isListBoxVisible = false;
+
+	$: isListBoxVisibleChanged = () => {
+		console.log('ListBox visibility changed:', isListBoxVisible);
+	};
+
 	let isThemeListBoxVisible = false;
 	let listBoxContainer: HTMLElement;
 	let themeListBoxContainer: HTMLElement;
@@ -104,6 +201,11 @@
 		return () => {
 			document.removeEventListener('click', handleClickOutside);
 		};
+		// load available models lazily
+		//availableModels = (await webllm.prebuiltAppConfig.model_list).map(m => m.model_id);
+		//const webllm = await import('path-to-webllm-module'); // Adjust the import path as necessary
+
+
 	});
 
 	let localwebLlm: boolean;
@@ -141,7 +243,7 @@
 			hover:bg-secondary-600 
 			transition duration-300 font-nunito
 			border-2 border-secondary-500/50"
-			on:click|stopPropagation={() => (isListBoxVisible = !isListBoxVisible)}
+			on:click={toggleListBoxVisibility}
 		>
 			<span>
 				<Icon icon={selectedItem ? selectedItem.icon : 'material-symbols:skull'} class="w-6 h-5" />
@@ -172,16 +274,22 @@
 				<!-- config button -->
 				{#if localwebLlm}
 					<div class="flex justify-end">
-						<button
-							type="button"
-							class="btn variant-filled bg-primary-500"
-							on:click={() => (isConfigModalOpen = true)}
-						>
-							<span>
-								<Icon icon="majesticons:settings-cog-line" class="w-6 h-5" />
-							</span>
-							<span>Add local model</span>
-						</button>
+												<!-- add web llm list here -->
+
+						<div class="flex justify-end">
+							<div>
+								<label for="model-selection" class="block mb-2">Select Model</label>
+								<select
+									id="model-selection"
+									class="w-full p-2 border rounded bg-surface-300"
+									on:change={handleModelSelection}
+								>
+									{#each availableModels as model}
+										<option value={model} selected={model === selectedItem?.model}>{model}</option>
+									{/each}
+								</select>
+							</div>
+						</div>
 					</div>
 				{/if}
 
