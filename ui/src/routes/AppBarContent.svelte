@@ -18,6 +18,13 @@
 
 	export let selectedItem: LlmProvider | null = null;
 
+	$: if (selectedItem !== null) {
+		localwebLlm = selectedItem.local;
+		console.log(`**** selectedItem is changed in AppBarContent to ${selectedItem}`);
+	}
+
+	const DEFAULT_MODEL = 'TinyLlama-1.1B-Chat-v1.0-q4f32_1-MLC-1k';
+
 	const themes = [
 		'skeleton',
 		'wintry',
@@ -34,6 +41,7 @@
 	let availableModels: string[] = [];
 
 	$: if (webllm !== null) {
+		// TODO: appears to be the first call
 		availableModels = webllm.prebuiltAppConfig.model_list.map(m => m.model_id);
 		console.log('WebLLM is available');
 	} else {
@@ -57,12 +65,18 @@
 		isListBoxVisible = !isListBoxVisible;
 	}
 
-	function handleSelectItem(item: LlmProvider): void {
-		if (ListBoxItem.selectedValue !== item) {
-			selectedItem = { ...item };
-			selectedModelStore.setSelectedModel(item.model);
+	export function handleSelectItem(item: LlmProvider): void {
+		try {
+			if (ListBoxItem && ListBoxItem.selectedValue !== item) {
+				selectedItem = { ...item };
+				localWebLlm = selectedItem.local;
+				selectedModelStore.setSelectedModel(item.model);
+				isListBoxVisible = !isListBoxVisible;
+				localwebLlm = selectedItem.local;
+			}
+		} catch (error) {
+			console.error(`***** Error calling 'handleSelectItem':`, error);
 		}
-		isListBoxVisible = !isListBoxVisible;
 	}
 
 /**
@@ -71,7 +85,7 @@
  * @param modelName - The name of the model to determine the icon for.
  * @returns A string representing the icon to be used, based on the model name.
  */
-function getLlmIcon(modelName: string): string {
+export function getLlmIcon(modelName: string): string {
     if (modelName.toLowerCase().includes('llama')) {
         const currentSecond = new Date().getSeconds();
         return currentSecond % 2 === 0
@@ -94,7 +108,6 @@ function getLlmIcon(modelName: string): string {
 
 	function handleModelSelection(event: Event) {
 		const selectedModel = (event.target as HTMLSelectElement).value;
-
 		selectedItem = {
 			provider: "webllm",
 			model: selectedModel,
@@ -106,19 +119,7 @@ function getLlmIcon(modelName: string): string {
 			local: true
 		};
 		llmProviders.push(selectedItem);
-		//selectedModelStore.setSelectedModel(selectedModel);
-		//updateSelectedItem();
-
-		//isListBoxVisible = false;
 		ListBoxItem.selectedValue = selectedItem;
-
-		// setting isListBoxVisible to false after a delay of 500ms
-		//isListBoxVisible = false;
-		// setTimeout(() => {
-		// 	//isListBoxVisible = true;
-		// }, 500); // adjust the delay as needed
-		//isListBoxVisible = !isListBoxVisible;
-
 	}
 
 	function handleSelectTheme(theme: string): void {
@@ -153,8 +154,9 @@ function getLlmIcon(modelName: string): string {
 					// Fallback to default selection
 					let defaultItem;
 					if (llmProviders.length > 0) {
-						defaultItem = { ...llmProviders.find((item) => item.model === 'TinyLlama-1.1B-Chat-v1.0-q4f32_1-MLC-1k') } || { ...llmProviders[0] };
+						defaultItem = { ...llmProviders.find((item) => item.model === DEFAULT_MODEL) } || { ...llmProviders[0] };
 					} else {
+						console.log(`Starting with default llm ${selectedModel}`);
 						selectedItem = {
 							provider: "webllm",
 							model: selectedModel,
@@ -271,11 +273,10 @@ function getLlmIcon(modelName: string): string {
 				class="absolute top-full right-0 mt-2 z-50 min-w-[200px]
 					w-max rounded-md p-3 bg-surface-200 dark:bg-surface-600"
 			>
-				<!-- config button -->
+				<!-- add webllm dropdown -->
 				{#if localwebLlm}
 					<div class="flex justify-end">
-												<!-- add web llm list here -->
-
+						<!-- add web llm list here -->
 						<div class="flex justify-end">
 							<div>
 								<label for="model-selection" class="block mb-2">Select Model</label>
@@ -292,7 +293,7 @@ function getLlmIcon(modelName: string): string {
 						</div>
 					</div>
 				{/if}
-
+				<!-- list of models -->
 				<ListBox class="w-full">
 					{#each llmProviders as item (item.model)}
 						{#if item.local === localwebLlm}

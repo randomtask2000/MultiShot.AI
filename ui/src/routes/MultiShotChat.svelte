@@ -24,6 +24,7 @@
   import { get } from 'svelte/store';
   import AppHeader from './AppHeader.svelte';
   import * as webllm from "@mlc-ai/web-llm";
+  import handleSelectItem from './AppBarContent.svelte'
  
   // Declare selectedItem as a prop
   export let selectedLlmProvider: LlmProvider | null = null;
@@ -74,11 +75,17 @@
       loadingInputBubbleElement = element as HTMLDivElement;
       if (loadingInputBubbleElement !== null) {
         loadingInputBubbleElement.innerHTML = `Model ${selectedLlmProvider?.model} is loaded. You can start chatting now.`;
+        isLoadingLlmResponse = false;
+        try {
+          handleSelectItem(selectedLlmProvider);
+        } catch (error) {
+          console.error(`Error handling selected ${selectedLlmProvider?.model}`);
+        }
         setTimeout(() => {
           if (loadingInputBubbleElement !== null) {
             scrollChatBottom(loadingInputBubbleElement, 'smooth');
           }
-        }, 100);
+        }, 500);
       }
       progressPercentage = 0;
       loadbubbleBussy = false;
@@ -130,7 +137,6 @@ function restoreChat(item: ChatHistoryItem): void {
   let lastTokenInfo: LlmProvider | null = selectedLlmProvider;
   clearResultDiv();
   tokenHistory.forEach((token) => {
-    //if (selectedLlmProvider) {
       const type: 'user' | 'ai' = token.role === 'user' ? 'user' : 'ai';
       const { bubbleId, pid } = addBubble(token.llmInfo, resultDiv, type, type);
       if (bubbleId !== undefined && pid !== undefined) {
@@ -142,9 +148,6 @@ function restoreChat(item: ChatHistoryItem): void {
           scrollChatBottom(resultDiv, 'smooth');
         }, 500);
       }
-    // } else {
-    //   console.error('No LLM provider selected');
-    // }
     lastTokenInfo = token.llmInfo;
   });
   if (lastTokenInfo.model !== selectedLlmProvider.model) {
