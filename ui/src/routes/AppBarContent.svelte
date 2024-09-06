@@ -18,9 +18,14 @@
 
 	export let selectedItem: LlmProvider | null = null;
 
+	// This is where we start the webllm engine with the premise that we load the first entry in the list
+	// TODO: this is a hack to get around the fact that the selectedItem is not updated when the user selects a new item
 	$: if (selectedItem !== null) {
 		localwebLlm = selectedItem.local;
 		console.log(`**** selectedItem is changed in AppBarContent to ${selectedItem}`);
+	} else if (selectedItem == null && llmProviders !== null)	{
+		selectedItem = llmProviders[0];
+		console.log(`**** selectedItem was null and is set in AppBarContent to ${selectedItem}`);
 	}
 
 	const DEFAULT_MODEL = 'TinyLlama-1.1B-Chat-v1.0-q4f32_1-MLC-1k';
@@ -74,6 +79,7 @@
 				ListBoxItem !== null &&
 				ListBoxItem !== undefined &&
 				ListBoxItem.selectedValue !== item) {
+
 				selectedItem = { ...item };
 				localWebLlm = selectedItem.local;
 				selectedModelStore.setSelectedModel(item.model);
