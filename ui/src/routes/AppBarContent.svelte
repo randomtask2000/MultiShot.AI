@@ -67,7 +67,13 @@
 
 	export function handleSelectItem(item: LlmProvider): void {
 		try {
-			if (ListBoxItem && ListBoxItem.selectedValue !== item) {
+			if (localWebLlm !== null &&
+				localWebLlm !== undefined &&
+				item !== null &&
+				item !== undefined &&
+				ListBoxItem !== null &&
+				ListBoxItem !== undefined &&
+				ListBoxItem.selectedValue !== item) {
 				selectedItem = { ...item };
 				localWebLlm = selectedItem.local;
 				selectedModelStore.setSelectedModel(item.model);
@@ -206,8 +212,6 @@ export function getLlmIcon(modelName: string): string {
 		// load available models lazily
 		//availableModels = (await webllm.prebuiltAppConfig.model_list).map(m => m.model_id);
 		//const webllm = await import('path-to-webllm-module'); // Adjust the import path as necessary
-
-
 	});
 
 	let localwebLlm: boolean;

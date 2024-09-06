@@ -268,9 +268,9 @@ export async function initializeWebLLM(
                 initProgressCallback: progressCallback,
                 logLevel: "INFO",
             },
-            {
-                context_window_size: 4096, // 2048,
-            }
+            // {
+            //     context_window_size: 4096, // 2048,
+            // }
         );
     }
 }

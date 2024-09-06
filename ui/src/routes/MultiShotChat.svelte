@@ -100,6 +100,8 @@
     checkWindowSize();
     window.addEventListener('resize', checkWindowSize);
 
+    return () => clearTimeout(timer);
+
     const providers: LlmProvider[] = get(LlmProviderList);
     if (providers && providers.length > 0) {
       selectedLlmProvider = selectedLlmProvider || providers[0];
@@ -115,6 +117,13 @@
     };
   });
 
+  let timer: number | ReturnType<typeof setTimeout>; // Compatible type for both environments
+
+  $: if (isLoadingLlmResponse) {
+    timer = setTimeout(() => {
+      isLoadingLlmResponse = false;
+    }, 60000);
+  }
 
 function handleAddItem() {
   if (selectedLlmProvider) {
@@ -438,7 +447,6 @@ function getToken() {
               id="tokenInput"
               placeholder="Write a message..."
               rows="1"
-              disabled={isLoadingLlmResponse}
             ></textarea>
             {#if isLoadingLlmResponse}
               <div class="absolute -right-3 top-1 bottom-1 flex items-center justify-center">

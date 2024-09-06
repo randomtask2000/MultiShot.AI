@@ -1,7 +1,7 @@
 {
     "configurations": [
         {
-            "name": "fast (ui)",
+            "name": "server",
             "type": "fastapi",
             "workingDir": "$PROJECT_DIR$/../",
             "environment": {
@@ -13,15 +13,28 @@
         },
         {
             "type": "npm",
-            "name": "Run UI",
+            "name": "ui",
             "command": "run dev",
-            "commandArguments": ["--", "--port=3333"],
+            "commandArguments": ["--", "--port=3333"]
         },
         {
             "type": "browser",
-            "name": "browser Run",
-            "url": "http://localhost:3333",
+            "name": "browser",
+            "url": "http://localhost:3333"
         },
-        
+        {
+            "type": "command",
+            "name": "ui + browser",
+            "dependsOn": ["ui", "browser"],
+            "program": "echo",
+            "args": ["final"]
+        },
+        {
+            "type": "command",
+            "name": "server + ui + browser",
+            "dependsOn": ["server", "ui", "browser"],
+            "program": "echo",
+            "args": ["final"]
+        }
     ]
 }
