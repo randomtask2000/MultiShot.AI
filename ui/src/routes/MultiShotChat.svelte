@@ -15,8 +15,7 @@
     printResponse,
     renderMarkdownWithCodeBlock,
     initializeWebLLM,
-    initializeWebLLMWithForce,
-    engine
+    initializeWebLLMWithForce
   } from './tokenUtils';
   import Icon from '@iconify/svelte';
   import { ProgressRadial } from '@skeletonlabs/skeleton';
@@ -34,8 +33,9 @@
   let downloadStatus = '';
   let loadbubbleBussy = false;
   let loadingBubblePid: string = "";
-  let loadingInputBubbleElement: HTMLDivElement | null = null;
-  let lastSelectedLlmProvider: LlmProvider | null = null;
+  let loadingInputBubbleDiv: HTMLDivElement | null = null;
+  //let timeSpanElement: HTMLDivElement | null = null;
+  //let lastSelectedLlmProvider: LlmProvider | null = null;
 
   /**
    * Initializes the progress callback for loading a machine learning model. Writes system bubble.
@@ -44,52 +44,56 @@
    * @return {Promise<void>} A promise that resolves when the progress has been updated successfully.
    */
   async function initProgressCallback(report: webllm.InitProgressReport) {
-    // if (selectedLlmProvider === lastSelectedLlmProvider) return;
-    // lastSelectedLlmProvider = selectedLlmProvider;
+    if (selectedLlmProvider) {
+      progressPercentage = Math.round(report.progress * 100);
+      downloadStatus = `Please wait model ${selectedLlmProvider?.model} to initialize. ${report.text}`;
+      //console.log(progressPercentage);
+      // Update the progress percentage and status at the start
+      if (progressPercentage < 100) {
+        isLoadingLlmResponse = true;
+        if (!selectedLlmProvider) {
+          console.error('No LLM provider selected');
+        } else if (!loadbubbleBussy) {
+          // Add user input bubble
+          const { pid } = addBubble(selectedLlmProvider, resultDiv, "System", "ai");
+          // we created the bubble and after only refer to it as a pid
+          loadingBubblePid = pid;
+          loadbubbleBussy = true;
 
-    progressPercentage = Math.round(report.progress * 100);
-    downloadStatus = `Please wait model ${selectedLlmProvider?.model} to initialize. ${report.text}`;
-    //console.log(progressPercentage);
-
-    // Update the progress percentage and status at the start
-    if (progressPercentage < 100) {
-      isLoadingLlmResponse = true;
-      if (!selectedLlmProvider) {
-        console.error('No LLM provider selected');
-      } else if (!loadbubbleBussy) {
-        // Add user input bubble
-        const { pid } = addBubble(selectedLlmProvider, resultDiv, "System", "ai");
-        // we created the bubble and after only refer to it as a pid
-        loadingBubblePid = pid;
-        loadbubbleBussy = true;
-      }
-      // find the element by pid and update the text
-      const element = document.getElementById(loadingBubblePid);
-      loadingInputBubbleElement = element as HTMLDivElement;
-      if (loadingInputBubbleElement) {
-        loadingInputBubbleElement.innerHTML = downloadStatus;
-      }
-    // we are finished and we report the last message
-    } else if (progressPercentage === 100) {
-      const element = document.getElementById(loadingBubblePid);
-      loadingInputBubbleElement = element as HTMLDivElement;
-      if (loadingInputBubbleElement !== null) {
-        loadingInputBubbleElement.innerHTML = `Model ${selectedLlmProvider?.model} is loaded. You can start chatting now.`;
-        isLoadingLlmResponse = false;
-        try {
-          handleSelectItem(selectedLlmProvider);
-        } catch (error) {
-          console.error(`Error handling selected ${selectedLlmProvider?.model}`);
-        }
-        setTimeout(() => {
-          if (loadingInputBubbleElement !== null) {
-            scrollChatBottom(loadingInputBubbleElement, 'smooth');
+          // find the element by pid and update the text
+          const loadingInputBubbleElement = document.getElementById(loadingBubblePid);
+          loadingInputBubbleDiv = loadingInputBubbleElement as HTMLDivElement;
+          if (loadingInputBubbleDiv) {
+            loadingInputBubbleDiv.innerHTML = downloadStatus;
+            // let pidTimeSpan:string = `${loadingBubblePid}-timespan`;
+            // timeSpanElement = document.getElementById(pidTimeSpan) as HTMLDivElement;
+            // updateTimespanElement(timeSpanElement);
           }
-        }, 500);
+        }
+        // we are finished and we report the last message
+      } else if (progressPercentage === 100) {
+        const element = document.getElementById(loadingBubblePid);
+        loadingInputBubbleDiv = element as HTMLDivElement;
+        if (loadingInputBubbleDiv !== null) {
+          loadingInputBubbleDiv.innerHTML = `Model ${selectedLlmProvider?.model} is loaded. You can start chatting now.`;
+          isLoadingLlmResponse = false;
+          try {
+            handleSelectItem(selectedLlmProvider);
+          } catch (error) {
+            console.error(`Error handling selected ${selectedLlmProvider?.model}`);
+          }
+          setTimeout(() => {
+            if (loadingInputBubbleDiv !== null) {
+              scrollChatBottom(loadingInputBubbleDiv, 'smooth');
+            }
+          }, 500);
+        }
+        progressPercentage = 0;
+        loadbubbleBussy = false;
+        isLoadingLlmResponse = false;
       }
-      progressPercentage = 0;
-      loadbubbleBussy = false;
-      isLoadingLlmResponse = false;
+    } else {
+      console.error('No LLM provider selected');
     }
   }
 
@@ -138,7 +142,10 @@ function handleAddItem() {
 function handleClearList() {
   ChatHistoryManager.clearChatHistory();
 }
-
+/**
+ * Handles the selection of a chat history item.
+ * @param item
+ */
 function restoreChat(item: ChatHistoryItem): void {
   tokenHistory = [...item.tokenHistory];
 
@@ -188,7 +195,9 @@ const clearResultDiv = () => {
 };
 
 function getToken() {
-  return textAreaInputTokens;
+  const temp = textAreaInputTokens;
+  textAreaInputTokens = '';
+  return temp;
 }
 
 /**

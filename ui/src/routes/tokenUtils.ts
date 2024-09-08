@@ -10,6 +10,7 @@ import {
   StreamParser
 } from './markdownUtils';
 import * as webllm from "@mlc-ai/web-llm";
+//import { ContextWindowSizeExceededError } from '@mlc-ai/web-llm/lib/error';
 
 export let engine: webllm.MLCEngine | null = null;
 
@@ -154,6 +155,16 @@ export async function printResponse(
 
 export { renderMarkdownWithCodeBlock, renderMarkdown, renderMarkdownHistory };
 
+function removeMessagesByLength(messages: Token[]): Token[] {
+    return messages.filter(message => {
+    if (message.content.length > 1024) {
+        console.log(`Pruning message: ${message.content.substring(0, 50)}...`);
+        return false;
+    }
+    return true;
+});
+
+  }
 /**
  * Fetches AI response based on the provided history and selected LLM provider.
  * 
@@ -168,7 +179,14 @@ export { renderMarkdownWithCodeBlock, renderMarkdown, renderMarkdownHistory };
 export async function fetchAi(history: Token[], selectedLlmProvider: LlmProvider) {
     if (selectedLlmProvider.provider === "webllm") {
         // Attempts to handle the request with retry mechanism for "webllm" provider.
-        return await handleWithRetry((attempt) => handleWebllmProvider(history, selectedLlmProvider, 2, attempt), 2);
+        if (history.length > 1) {
+            //history = [history[0], history[history.length - 1]];
+            //TODO: this is a hack to get around the context limit of .... tokens for webllm
+            history = removeMessagesByLength(history);
+            console.log("History length is being pruned to first and last to handle context limits");
+        }
+        //return await handleWithRetry((attempt) => handleWebllmProvider(history, selectedLlmProvider, maxRetries, attempt), maxRetries);
+        return await handleWebllmProvider(history, selectedLlmProvider, maxRetries, 0);
     } else {
         // Constructs the request payload and fetches the response from the local server for other providers.
         const content = JSON.stringify({ messages: history, llm: selectedLlmProvider });
@@ -181,7 +199,7 @@ export async function fetchAi(history: Token[], selectedLlmProvider: LlmProvider
         });
     }
 }
-
+const maxRetries: number = 3;
 /**
  * Handles the AI response generation for the "webllm" provider.
  * 
@@ -200,49 +218,66 @@ async function handleWebllmProvider(
     selectedLlmProvider: LlmProvider,
     retries: number,
     attempt: number
-) {
-    // Initialize the engine if it's not already initialized.
-    if (!engine) {
+  ) {
+    try {
+      // Initialize the engine if it's not already initialized.
+      if (!engine) {
         initializeWebLLM(selectedLlmProvider.model);
-    } 
-    
-    // Prune the history to the first and last elements if conditions are met.
-    if (attempt > 1 && history.length > 2) {
-        history = [history[0], history[history.length - 1]];
-        console.log("History length is being pruned to first and last to handle context limits");
-    }
-
-    // Extract messages from history while keeping the total content under 2056 characters.
-    let extractedMessages: webllm.ChatCompletionMessageParam[] = [];
-    extractedMessages = history.map(token => ({
+      }
+      // Prune the history to the first and last elements if conditions are met.
+        //   if (attempt > 1 && history.length > 2) {
+        //     history = [history[0], history[history.length - 1]];
+        //     console.log("History length is being pruned to first and last to handle context limits");
+        //   }
+      // Extract messages from history while keeping the total content under 2056 characters.
+      let extractedMessages: webllm.ChatCompletionMessageParam[] = [];
+      extractedMessages = history.map(token => ({
         role: token.role as "system" | "user" | "assistant",
         content: token.content
-    }));
-
-    // Create a stream for generating AI responses.
-    const stream = await engine.chat.completions.create({
+      }));
+      // Create a stream for generating AI responses.
+      const stream = await engine.chat.completions.create({
         messages: extractedMessages,
         stream: true,
         temperature: 1.0,
         top_p: 1
-    });
+      });
+      // Create an async iterator for the stream.
+      const iterator = stream[Symbol.asyncIterator]();
+      // Return an object simulating a ReadableStream for streaming the AI response.
+      return createStreamResponse(iterator);
+    } catch (error) {
+      console.error('Error in handleWebllmProvider:', error);
+      throw new CustomError('Error in handleWebllmProvider', error as Error);
+    }
+  }
 
-    // Create an async iterator for the stream.
-    const iterator = stream[Symbol.asyncIterator]();
-
-    // Return an object simulating a ReadableStream for streaming the AI response.
+function createStreamResponse(iterator: AsyncIterator<any>) {
     return {
-        body: {
-            getReader: () => ({
-                async read() {
-                    const { done, value } = await iterator.next();
-                    if (done) return { done: true, value: undefined };
-                    return { done: false, value: value.choices[0].delta.content };
-                }
-            })
-        }
+      body: {
+        getReader: () => ({
+          async read() {
+            try {
+              const { done, value } = await iterator.next();
+              if (done) return { done: true, value: undefined };
+              return { done: false, value: value.choices[0].delta.content };
+            } catch (error) {
+              console.error('Context window size exceeded:', error);
+              throw new CustomError('Context window size exceeded', error as Error);
+            }
+          }
+        })
+      }
     };
-}
+  }
+
+  class CustomError extends Error {
+    constructor(message: string, public originalError: Error) {
+      super(message);
+      this.name = 'CustomError';
+    }
+  }
+
 
 
 async function handleWithRetry(fn: (attempt: number) => Promise<any>, retries: number) {
