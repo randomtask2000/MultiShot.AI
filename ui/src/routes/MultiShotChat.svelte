@@ -34,8 +34,7 @@
   let loadbubbleBussy = false;
   let loadingBubblePid: string = "";
   let loadingInputBubbleDiv: HTMLDivElement | null = null;
-  //let timeSpanElement: HTMLDivElement | null = null;
-  //let lastSelectedLlmProvider: LlmProvider | null = null;
+  let lastSelectedLlmProvider: LlmProvider | null = null;
 
   /**
    * Initializes the progress callback for loading a machine learning model. Writes system bubble.
@@ -44,7 +43,7 @@
    * @return {Promise<void>} A promise that resolves when the progress has been updated successfully.
    */
   async function initProgressCallback(report: webllm.InitProgressReport) {
-    if (selectedLlmProvider) {
+    if (selectedLlmProvider && selectedLlmProvider != lastSelectedLlmProvider) {
       progressPercentage = Math.round(report.progress * 100);
       downloadStatus = `Please wait model ${selectedLlmProvider?.model} to initialize. ${report.text}`;
       //console.log(progressPercentage);
@@ -93,6 +92,7 @@
         progressPercentage = 0;
         loadbubbleBussy = false;
         isLoadingLlmResponse = false;
+        lastSelectedLlmProvider = selectedLlmProvider;
       }
     } else {
       console.error('No LLM provider selected');

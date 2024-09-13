@@ -72,51 +72,52 @@
 
 	export function handleSelectItem(item: LlmProvider): void {
 		try {
-			if (localWebLlm !== null &&
-				localWebLlm !== undefined &&
+			console.log("***** handleSelectItem called");
+			if (//localWebLlm !== null &&
+				//localWebLlm !== undefined &&
 				item !== null &&
 				item !== undefined &&
 				ListBoxItem !== null &&
 				ListBoxItem !== undefined &&
-				ListBoxItem.selectedValue !== item) {
+				selectedItem?.model !== item.model
+			) {
 
 				selectedItem = { ...item };
-				localWebLlm = selectedItem.local;
 				selectedModelStore.setSelectedModel(item.model);
 				isListBoxVisible = !isListBoxVisible;
-				localwebLlm = selectedItem.local;
+				localwebLlm = true;
 			}
 		} catch (error) {
 			console.error(`***** Error calling 'handleSelectItem':`, error);
 		}
 	}
 
-/**
- * Returns an icon string based on the provided model name.
- *
- * @param modelName - The name of the model to determine the icon for.
- * @returns A string representing the icon to be used, based on the model name.
- */
-export function getLlmIcon(modelName: string): string {
-    if (modelName.toLowerCase().includes('llama')) {
-        const currentSecond = new Date().getSeconds();
-        return currentSecond % 2 === 0
-            ? "fluent-emoji-high-contrast:llama"
-            : "simple-icons:ollama";
-    } else if (modelName.toLowerCase().includes('mistral')) {
-        return "logos:mistral-ai-icon";
-    } else if (modelName.toLowerCase().includes('gemma') || modelName.toLowerCase().includes('gemini')) {
-        return "logos:google-gemini";
-    } else if (modelName.toLowerCase().includes('phi-')) {
-        return "arcticons:microsoft-bing";
-    } else if (modelName.toLowerCase().includes('qwen')) {
-        return "simple-icons:alibabacloud";
-    } else if (modelName.toLowerCase().includes('smollm')) {
-        return "simple-icons:saturn";
-    } else {
-        return "mdi:brain";
-    }
-}
+	/**
+	 * Returns an icon string based on the provided model name.
+	 *
+	 * @param modelName - The name of the model to determine the icon for.
+	 * @returns A string representing the icon to be used, based on the model name.
+	 */
+	export function getLlmIcon(modelName: string): string {
+		if (modelName.toLowerCase().includes('llama')) {
+			const currentSecond = new Date().getSeconds();
+			return currentSecond % 2 === 0
+				? "fluent-emoji-high-contrast:llama"
+				: "simple-icons:ollama";
+		} else if (modelName.toLowerCase().includes('mistral')) {
+			return "logos:mistral-ai-icon";
+		} else if (modelName.toLowerCase().includes('gemma') || modelName.toLowerCase().includes('gemini')) {
+			return "logos:google-gemini";
+		} else if (modelName.toLowerCase().includes('phi-')) {
+			return "arcticons:microsoft-bing";
+		} else if (modelName.toLowerCase().includes('qwen')) {
+			return "simple-icons:alibabacloud";
+		} else if (modelName.toLowerCase().includes('smollm')) {
+			return "simple-icons:saturn";
+		} else {
+			return "mdi:brain";
+		}
+	}
 
 	function handleModelSelection(event: Event) {
 		const selectedModel = (event.target as HTMLSelectElement).value;
@@ -295,6 +296,8 @@ export function getLlmIcon(modelName: string): string {
 									class="w-full p-2 border rounded bg-surface-300"
 									on:change={handleModelSelection}
 								>
+								<!-- handle webllm model selection -->
+								<!-- available models list via list box-->
 									{#each availableModels as model}
 										<option value={model} selected={model === selectedItem?.model}>{model}</option>
 									{/each}
@@ -306,36 +309,35 @@ export function getLlmIcon(modelName: string): string {
 				<!-- list of models -->
 				<ListBox class="w-full">
 					{#each llmProviders as item (item.model)}
-						{#if item.local === localwebLlm}
-							<div class="relative group">
-								<ListBoxItem
-									on:click={() => handleSelectItem(item)}
-									active={selectedItem?.model === item.model}
-									value={item.model}
-									class="whitespace-nowrap"
-									group="llmSelector"
-									name="llmSelector"
-								>
-									<svelte:fragment slot="lead">
-										<Icon icon={item.icon} class="text-white-800/90 w-6 h-6" />
-									</svelte:fragment>
-									{item.title}
-								</ListBoxItem>
-								<button
-									type="button"
-									class="absolute right-1 top-1/2 transform bg-secondary-500/70 
-											-translate-y-1/2 btn-icon 
-											btn-icon-sm opacity-0 group-hover:opacity-100 
-											transition-opacity duration-[50ms] rounded-sm
-											"
-									on:click|stopPropagation={() => removeProvider(item.model)}
-								>
-									<Icon icon="mdi:close" class="w-4 h-4"/>
-								</button>
-							</div>
-						{/if}
+					  {#if item.local === localwebLlm}
+						<div class="relative group hover:bg-secondary-500/70 rounded"> <!-- this is the selection outer boundery -->
+						  <ListBoxItem
+							on:click={() => handleSelectItem(item)}
+							active={selectedItem?.model === item.model}
+							value={item.model}
+							class="whitespace-nowrap"
+							group="llmSelector"
+							name="llmSelector"
+						  >
+							<!-- listbox items with local webllm entries -->
+							<svelte:fragment slot="lead">
+							  <Icon icon={item.icon} class="text-white-800/90 w-6 h-6" />
+							</svelte:fragment>
+							{item.title}
+						  </ListBoxItem>
+						  <button
+							type="button"
+							class="absolute right-1 top-1/2 transform bg-secondary-500/70 
+							-translate-y-1/2 btn-icon btn-icon-sm opacity-0 group-hover:opacity-100 
+							transition-opacity duration-[50ms] rounded-sm"
+							on:click|stopPropagation={() => removeProvider(item.model)}
+						  >
+							<Icon icon="mdi:close" class="w-4 h-4" />
+						  </button>
+						</div>
+					  {/if}
 					{/each}
-				</ListBox>
+				  </ListBox>
 			</div>
 		{/if}
 	</div>
@@ -355,20 +357,23 @@ export function getLlmIcon(modelName: string): string {
 			<div
 				transition:fade
 				class="absolute top-full right-0 mt-2 z-50 min-w-[200px] w-max rounded-md
-			p-3 max-h-[80vh] overflow-y-auto bg-surface-200 dark:bg-surface-600"
+			p-3 max-h-[80vh] overflow-y-auto bg-surface-200 dark:bg-surface-600" 
 			>
 				<ListBox class="w-full">
 					{#each themes as theme}
-						<ListBoxItem
-							on:click={() => handleSelectTheme(theme)}
-							active={selectedTheme === theme}
-							value={theme}
-							class="whitespace-nowrap"
-							group="themeSelector"
-							name="themeSelector"
-						>
-							{theme}
-						</ListBoxItem>
+						<div class="flex items-center justify-between w-full text-left
+                hover:bg-secondary-500/70 rounded transition duration-300 font-nunito">
+							<ListBoxItem
+								on:click={() => handleSelectTheme(theme)}
+								active={selectedTheme === theme}
+								value={theme}
+								class="whitespace-nowrap"
+								group="themeSelector"
+								name="themeSelector"
+							>
+								{theme}
+							</ListBoxItem>
+						</div>
 					{/each}
 				</ListBox>
 			</div>

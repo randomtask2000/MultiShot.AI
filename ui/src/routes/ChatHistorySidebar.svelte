@@ -105,7 +105,8 @@
           <li class="group relative">
             <button
               on:click={() => onRestoreChat(item)}
-              class="flex items-center justify-between w-full p-2 text-left hover:bg-surface-500/30 rounded transition duration-300 font-nunito"
+              class="flex items-center justify-between w-full p-2 text-left
+                hover:bg-secondary-500/70 rounded transition duration-300 font-nunito"
             >
               <span class="truncate">{@html item.text}</span>
               <div class="flex items-center relative">
@@ -133,7 +134,8 @@
             <li class="group relative">
               <button
                 on:click={() => onRestoreChat(item)}
-                class="flex items-center justify-between w-full p-2 text-left hover:bg-surface-500/30 rounded transition duration-300 font-nunito"
+                class="flex items-center justify-between w-full p-2 text-left
+                hover:bg-secondary-500/70 rounded transition duration-300 font-nunito"
               >
                 <span class="truncate">{@html item.text}</span>
                 <div class="flex items-center relative">
