@@ -51,7 +51,7 @@
       if (progressPercentage < 100) {
         isLoadingLlmResponse = true;
         if (!selectedLlmProvider) {
-          console.error('No LLM provider selected');
+          console.error('selectedLlmProvider: No LLM provider selected');
         } else if (!loadbubbleBussy) {
           // Add user input bubble
           const { pid } = addBubble(selectedLlmProvider, resultDiv, "System", "ai");
@@ -95,7 +95,7 @@
         lastSelectedLlmProvider = selectedLlmProvider;
       }
     } else {
-      console.error('No LLM provider selected');
+      console.error('initProgressCallback: No LLM provider selected');
     }
   }
 
@@ -137,7 +137,7 @@ function handleAddItem() {
     tokenHistory = [];
     clearToken();
   } else {
-    console.error('No LLM provider selected');
+    console.error('handleAddItem: No LLM provider selected');
   }
 }
 
@@ -214,7 +214,7 @@ function getToken() {
  */
   async function sendUserTokenAiHistory() {
     if (!selectedLlmProvider) {
-      console.error('No LLM provider selected');
+      console.error('sendUserTokenAiHistory: No LLM provider selected');
       return;
     }
     if (isLoadingLlmResponse) {
@@ -322,7 +322,7 @@ function getToken() {
   $: {
     if (textAreaInputTokens) {
       if (!selectedLlmProvider) {
-        console.error('No LLM provider selected');
+        console.error('textAreaInputTokens: No LLM provider selected');
       } else if (!userBubbleIsBusy) {
         // Add user input bubble
         const { pid } = addBubble(selectedLlmProvider, resultDiv, "User", "user");

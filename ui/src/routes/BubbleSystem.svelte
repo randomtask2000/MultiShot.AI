@@ -109,7 +109,6 @@
 >
   <Icon icon={bubble.llmProvider?.icon || 'default-icon'} class="w-12 h-12" />
   <div
-    use:shake
     class="card p-4 variant-soft rounded-tl-none space-y-2"
   >
     <header class="flex justify-between items-center">

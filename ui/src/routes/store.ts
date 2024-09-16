@@ -1,6 +1,7 @@
-// store.ts
 import { writable, type Writable } from 'svelte/store';
 import type { ChatHistoryItem, LlmProvider } from './types';
+
+const isBrowser = typeof window !== 'undefined';
 
 function createListStore() {
   const { subscribe, set, update } = writable<ChatHistoryItem[]>([]);
@@ -10,21 +11,21 @@ function createListStore() {
     addItem: (item: ChatHistoryItem) => update(items => {
       const updatedItems = [...items, {
         ...item,
-        llmProvider: { ...item.llmProvider } // Ensure a deep copy is stored
+        llmProvider: { ...item.llmProvider }
       }];
-      if (typeof localStorage !== 'undefined') {
+      if (isBrowser) {
         localStorage.setItem('chatHistory', JSON.stringify(updatedItems));
       }
       return updatedItems;
     }),
     init: () => {
-      if (typeof localStorage !== 'undefined') {
+      if (isBrowser) {
         const stored = localStorage.getItem('chatHistory');
         if (stored) {
           const parsedItems = JSON.parse(stored);
           set(parsedItems.map((item: ChatHistoryItem) => ({
             ...item,
-            llmProvider: { ...item.llmProvider } // Ensure a deep copy is retrieved
+            llmProvider: { ...item.llmProvider }
           })));
         }
       }
@@ -33,38 +34,40 @@ function createListStore() {
       update(items => []);
     },
     addModel: (model: string) => {
-      const downloadedModels = JSON.parse(localStorage.getItem('downloadedModels') || '[]');
-      if (!downloadedModels.includes(model)) {
-        downloadedModels.push(model);
-        localStorage.setItem('downloadedModels', JSON.stringify(downloadedModels));
+      if (isBrowser) {
+        const downloadedModels = JSON.parse(localStorage.getItem('downloadedModels') || '[]');
+        if (!downloadedModels.includes(model)) {
+          downloadedModels.push(model);
+          localStorage.setItem('downloadedModels', JSON.stringify(downloadedModels));
+        }
       }
     },
     getDownloadedModels: () => {
-      return JSON.parse(localStorage.getItem('downloadedModels') || '[]');
+      return isBrowser ? JSON.parse(localStorage.getItem('downloadedModels') || '[]') : [];
     }
   };
 }
 
 export const listStore = createListStore();
+export const defaultTheme = 'modern';
 
 function createThemeStore() {
-  const defaultTheme = 'rocket';
-  const { subscribe, set } = writable(
-    (typeof localStorage !== 'undefined' && localStorage.getItem('selectedTheme')) || defaultTheme
-  );
+  const { subscribe, set } = writable(defaultTheme);
 
   return {
     subscribe,
     setTheme: (theme: string) => {
       set(theme);
-      if (typeof localStorage !== 'undefined') {
+      if (isBrowser) {
         localStorage.setItem('selectedTheme', theme);
       }
     },
     init: () => {
-      const storedTheme = typeof localStorage !== 'undefined' && localStorage.getItem('selectedTheme');
-      if (storedTheme) {
-        set(storedTheme);
+      if (isBrowser) {
+        const storedTheme = localStorage.getItem('selectedTheme');
+        if (storedTheme) {
+          set(storedTheme);
+        }
       }
     }
   };
@@ -72,10 +75,22 @@ function createThemeStore() {
 
 export const themeStore = createThemeStore();
 
-function createLlmProviderListStore() {
+interface LlmProviderStore {
+  subscribe: Writable<LlmProvider[]>['subscribe'];
+  init: () => void;
+  addProvider: (provider: LlmProvider) => void;
+  removeProvider: (model: string) => void;
+  setLocalWebLlm: (model: string, isLocal: boolean) => void;
+}
+
+function createLlmProviderListStore(): LlmProviderStore {
   const { subscribe, set, update } = writable<LlmProvider[]>([]);
 
-  const isBrowser = typeof window !== 'undefined';
+  function persistToLocalStorage(providers: LlmProvider[]): void {
+    if (isBrowser) {
+      localStorage.setItem('llmProviderList', JSON.stringify(providers));
+    }
+  }
 
   return {
     subscribe,
@@ -83,29 +98,35 @@ function createLlmProviderListStore() {
       if (isBrowser) {
         const stored = localStorage.getItem('llmProviderList');
         if (stored) {
-          set(JSON.parse(stored));
+          set(JSON.parse(stored) as LlmProvider[]);
         }
       }
     },
-    addProvider: (provider: LlmProvider) => update(providers => {
-      const updatedProviders = [...providers, provider];
-      if (isBrowser) {
-        localStorage.setItem('llmProviderList', JSON.stringify(updatedProviders));
+    addProvider: (provider: LlmProvider) => update((providers: LlmProvider[]) => {
+      const existingProviderIndex = providers.findIndex(p => p.model === provider.model);
+      let updatedProviders: LlmProvider[];
+      if (existingProviderIndex !== -1) {
+        updatedProviders = [
+          ...providers.slice(0, existingProviderIndex),
+          provider,
+          ...providers.slice(existingProviderIndex + 1)
+        ];
+      } else {
+        updatedProviders = [...providers, provider];
       }
+      persistToLocalStorage(updatedProviders);
       return updatedProviders;
     }),
-    removeProvider: (model: string) => update(providers => {
+    removeProvider: (model: string) => update((providers: LlmProvider[]) => {
       const updatedProviders = providers.filter(p => p.model !== model);
-      if (isBrowser) {
-        localStorage.setItem('llmProviderList', JSON.stringify(updatedProviders));
-      }
+      persistToLocalStorage(updatedProviders);
       return updatedProviders;
     }),
-    updateAndPersist: (updater: (providers: LlmProvider[]) => LlmProvider[]) => update(providers => {
-      const updatedProviders = updater(providers);
-      if (isBrowser) {
-        localStorage.setItem('llmProviderList', JSON.stringify(updatedProviders));
-      }
+    setLocalWebLlm: (model: string, isLocal: boolean) => update((providers: LlmProvider[]) => {
+      const updatedProviders = providers.map(provider => 
+        provider.model === model ? { ...provider, local: isLocal } : provider
+      );
+      persistToLocalStorage(updatedProviders);
       return updatedProviders;
     }),
   };
@@ -120,12 +141,12 @@ function createSelectedModelStore() {
     subscribe,
     setSelectedModel: (model: string) => {
       set(model);
-      if (typeof localStorage !== 'undefined') {
+      if (isBrowser) {
         localStorage.setItem('selectedModel', model);
       }
     },
     init: () => {
-      if (typeof localStorage !== 'undefined') {
+      if (isBrowser) {
         const storedModel = localStorage.getItem('selectedModel');
         if (storedModel) {
           set(storedModel);
@@ -138,20 +159,18 @@ function createSelectedModelStore() {
 export const selectedModelStore = createSelectedModelStore();
 
 function createLocalWebLlmStore() {
-  const { subscribe, set } = writable(
-    typeof localStorage !== 'undefined' && localStorage.getItem('localwebLlm') === 'true'
-  );
+  const { subscribe, set } = writable(false);
 
   return {
     subscribe,
     setLocalWebLlm: (value: boolean) => {
       set(value);
-      if (typeof localStorage !== 'undefined') {
+      if (isBrowser) {
         localStorage.setItem('localwebLlm', value.toString());
       }
     },
     init: () => {
-      if (typeof localStorage !== 'undefined') {
+      if (isBrowser) {
         const storedValue = localStorage.getItem('localwebLlm');
         if (storedValue !== null) {
           set(storedValue === 'true');
@@ -163,8 +182,11 @@ function createLocalWebLlmStore() {
 
 export const localWebLlmStore = createLocalWebLlmStore();
 
-// Initialize the stores only in the browser
-if (typeof window !== 'undefined') {
+// Initialize the stores
+if (isBrowser) {
+  listStore.init();
+  themeStore.init();
   llmProviderListStore.init();
+  selectedModelStore.init();
   localWebLlmStore.init();
 }
