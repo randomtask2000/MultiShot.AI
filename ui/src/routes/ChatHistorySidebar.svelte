@@ -169,11 +169,11 @@
       Export Chat History
     </button>
     <label
-      class="flex items-center justify-center w-full p-2 bg-surface-500/10 rounded 
-      hover:bg-secondary-600 transition duration-300 font-nunito font-normal"
+      class="text-bold flex items-center justify-center w-full p-2 bg-surface-500/10 rounded 
+      hover:bg-secondary-600 transition duration-300 font-nunito font-bold"
     >
       <Icon icon="mdi:import" class="mr-2" />
-      Import Chat History
+      <span class="font-bold">Import Chat History</span>
       <input
         type="file"
         accept=".json"
@@ -181,6 +181,16 @@
         class="hidden"
       />
     </label>
+    <!-- 
+    <button
+      on:click={handleImport}
+      class="flex items-center justify-center w-full p-2 bg-surface-500/10 rounded 
+      hover:bg-secondary-600 transition duration-300 font-nunito font-normal"
+    >
+    <Icon icon="mdi:import" class="mr-2" />
+      Import Chat History
+    </button> 
+    -->
     <button
       on:click={handleClearList}
       class="flex items-center justify-center w-full p-2 bg-surface-500/10 rounded 
