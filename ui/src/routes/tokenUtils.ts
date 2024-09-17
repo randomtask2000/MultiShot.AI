@@ -1,5 +1,5 @@
 // tokenUtils.ts
-import { type ChatHistoryItem } from './types';
+import { AnimationType, type ChatHistoryItem } from './types';
 import BubbleUser from './BubbleUser.svelte';
 import BubbleSystem from './BubbleSystem.svelte';
 import { type Token, type GenericReader, type LlmProvider, type Bubble } from './types';
@@ -56,7 +56,11 @@ export function handleScroll(elemChat: HTMLDivElement): boolean {
  * 
  * @throws Will log an error to the console and return an empty bubbleId and pid if the resultDiv is not initialized.
  */
-export function addBubble(selectedLlm: LlmProvider, resultDiv: HTMLDivElement, person: string, type: "user" | "ai"): { bubbleId: string, pid: string } {
+export function addBubble(selectedLlm: LlmProvider, resultDiv: HTMLDivElement, 
+    person: string, type: "user" | "ai", 
+    selectedAnimationMultiShot: AnimationType = AnimationType.None): 
+    { bubbleId: string, pid: string } {
+
     if (!resultDiv) {
         console.error('resultDiv is not initialized');
         return { bubbleId: '', pid: '' };
@@ -72,7 +76,8 @@ export function addBubble(selectedLlm: LlmProvider, resultDiv: HTMLDivElement, p
         avatar: `https://i.pravatar.cc/?img=${type === "user" ? Math.floor(Math.random() * 11) + 10 : Math.floor(Math.random() * 11) + 10}`,
         icon: selectedLlm.icon,
         llmProvider: selectedLlm,
-        pid: `pid${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+        pid: `pid${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        animationType: selectedAnimationMultiShot
     };
     // leave this in or else it's not working
     const bubble: BubbleUser | BubbleSystem = type === "user" ? new BubbleUser({ target: parentDiv, props: { bubble: bubbleData } }) :

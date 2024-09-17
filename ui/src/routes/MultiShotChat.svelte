@@ -5,7 +5,7 @@
     type GenericReader, 
     LlmProviderList, 
     type ChatHistoryItem } from './types';
-  import { listStore, themeStore, llmProviderListStore } from './store';
+  import { listStore, themeStore, llmProviderListStore, selectedAnimationStore } from './store';
   import { ChatHistoryManager } from './chatHistoryManager';
   import {
     storeTokenHistory,
@@ -23,7 +23,8 @@
   import { get } from 'svelte/store';
   import AppHeader from './AppHeader.svelte';
   import * as webllm from "@mlc-ai/web-llm";
-  import handleSelectItem from './AppBarContent.svelte'
+  import handleSelectItem from './AppBarContent.svelte';
+  import { AnimationType } from './types';
  
   // Declare selectedItem as a prop
   export let selectedLlmProvider: LlmProvider | null = null;
@@ -35,6 +36,14 @@
   let loadingBubblePid: string = "";
   let loadingInputBubbleDiv: HTMLDivElement | null = null;
   let lastSelectedLlmProvider: LlmProvider | null = null;
+
+  let selectedAnimation: AnimationType;
+
+
+  $: if (selectedAnimation !== null) {
+    console.log(`&&&&&& changed bubble animation setting to: ${selectedAnimation}`);
+    handleAnimationChange(selectedAnimation); 
+  }
 
   /**
    * Initializes the progress callback for loading a machine learning model. Writes system bubble.
@@ -54,7 +63,7 @@
           console.error('No LLM provider selected');
         } else if (!loadbubbleBussy) {
           // Add user input bubble
-          const { pid } = addBubble(selectedLlmProvider, resultDiv, "System", "ai");
+          const { pid } = addBubble(selectedLlmProvider, resultDiv, "System", "ai", selectedAnimation);
           // we created the bubble and after only refer to it as a pid
           loadingBubblePid = pid;
           loadbubbleBussy = true;
@@ -99,14 +108,22 @@
     }
   }
 
+
   onMount(() => {
     listStore.init();
     themeStore.init();
     llmProviderListStore.init();
+    selectedAnimationStore.init();
     checkWindowSize();
     window.addEventListener('resize', checkWindowSize);
 
-    return () => clearTimeout(timer);
+    // Subscribe to the selectedAnimationStore
+    const unsubscribe = selectedAnimationStore.subscribe(value => {
+      selectedAnimation = value;
+    });
+
+    // Initialize selectedAnimation with the current value from the store
+    selectedAnimation = selectedAnimationStore.get();
 
     const providers: LlmProvider[] = get(LlmProviderList);
     if (providers && providers.length > 0) {
@@ -120,8 +137,14 @@
 
     return () => {
       window.removeEventListener('resize', checkWindowSize);
+      unsubscribe(); // Unsubscribe when the component is destroyed
+      clearTimeout(timer); // Clear the timer (assuming you still have this elsewhere in your component)
     };
   });
+
+function handleAnimationChange(newAnimation: AnimationType) {
+  selectedAnimationStore.setAnimation(newAnimation);
+}
 
   let timer: number | ReturnType<typeof setTimeout>; // Compatible type for both environments
 
@@ -156,7 +179,7 @@ function restoreChat(item: ChatHistoryItem): void {
   clearResultDiv();
   tokenHistory.forEach((token) => {
       const type: 'user' | 'ai' = token.role === 'user' ? 'user' : 'ai';
-      const { bubbleId, pid } = addBubble(token.llmInfo, resultDiv, type, type);
+      const { bubbleId, pid } = addBubble(token.llmInfo, resultDiv, type, type, selectedAnimation);
       if (bubbleId !== undefined && pid !== undefined) {
         const contentElement = document.getElementById(pid);
         if (contentElement) {
@@ -230,7 +253,7 @@ function getToken() {
     }
     
     // Add response from LLM bubble
-    let { pid: aiPid } = addBubble(selectedLlmProvider, resultDiv, "AI", "ai");
+    let { pid: aiPid } = addBubble(selectedLlmProvider, resultDiv, "AI", "ai", selectedAnimation);
     const content = await printResponse(resultDiv, response.body.getReader() as GenericReader, new TextDecoder('utf-8'), aiPid);
     
     tokenHistory.push({ role: "assistant", content, llmInfo: selectedLlmProvider });
@@ -325,7 +348,7 @@ function getToken() {
         console.error('No LLM provider selected');
       } else if (!userBubbleIsBusy) {
         // Add user input bubble
-        const { pid } = addBubble(selectedLlmProvider, resultDiv, "User", "user");
+        const { pid } = addBubble(selectedLlmProvider, resultDiv, "User", "user", selectedAnimation);
 
         userBubblePid = pid;
         userBubbleIsBusy = true;
@@ -421,6 +444,7 @@ function getToken() {
     <AppHeader
       {sidebarVisible}
       bind:selectedItem={selectedLlmProvider}
+      bind:selectedAnimation={selectedAnimation}
       {toggleSidebar}
       {clearChat}
     />

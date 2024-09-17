@@ -3,9 +3,19 @@
     import { onMount } from 'svelte';
     import { StreamParser } from './markdownUtils';
     import Icon from '@iconify/svelte';
-    import type { Bubble } from './types'; // Adjust the import path as needed
+    import { AnimationType, type Bubble } from './types';  // Adjust the import path as needed
 
     export let bubble: Bubble;
+
+    // Add a prop to select the animation type
+    //export let animationType: AnimationType = AnimationType.None;
+
+    /**
+        <BubbleSystem bubble={someBubble} animationType={AnimationType.Shake} />
+        <BubbleSystem bubble={someBubble} animationType={AnimationType.Zoom} />
+        <BubbleSystem bubble={someBubble} animationType={AnimationType.Both} />
+        <BubbleSystem bubble={someBubble} animationType={AnimationType.None} />
+     */
 
     let bubbleContentDiv: HTMLElement;
     let bubbleStatsDiv: HTMLElement;
@@ -16,7 +26,6 @@
       parser = new StreamParser(bubbleContentDiv);
     }
 
-    //$: if (parser && bubble.message !== currentMessage) {
     $: if (parser) {
       console.log("bubble");
       const newChunk = bubble.message.slice(currentMessage.length);
@@ -73,6 +82,65 @@
         };
     }
 
+    function bubbleZoomAnimation(node: HTMLElement) {
+        let lastContent = node.textContent;
+
+        function checkAndZoom() {
+            const currentContent = node.textContent;
+
+            if (currentContent !== lastContent) {
+                node.animate([
+                    { transform: 'scale(1)' },
+                    { transform: 'scale(1.02)' },
+                    { transform: 'scale(1)' }
+                ], {
+                    duration: 300,
+                    easing: 'ease-in-out'
+                });
+            }
+
+            lastContent = currentContent;
+        }
+
+        const observer = new MutationObserver(checkAndZoom);
+        observer.observe(node, { childList: true, characterData: true, subtree: true });
+
+        return {
+            destroy() {
+                observer.disconnect();
+            }
+        };
+    }
+
+    // Function to apply both animations
+    function applyBothAnimations(node: HTMLElement) {
+        const shakeAction = shake(node);
+        const zoomAction = bubbleZoomAnimation(node);
+
+        return {
+            destroy() {
+                shakeAction.destroy();
+                zoomAction.destroy();
+            }
+        };
+    }
+
+    // Function to determine which animation to use
+    function useAnimation(node: HTMLElement) {
+        switch (bubble.animationType) {
+            case AnimationType.Shake:
+                return shake(node);
+            case AnimationType.Zoom:
+                return bubbleZoomAnimation(node);
+            case AnimationType.Both:
+                return applyBothAnimations(node);
+            case AnimationType.None:
+                return {}; // No animation
+            default:
+                return shake(node);
+        }
+    }
+
     function formatLargestTimeUnit(ms: number): string {
         const seconds = Math.floor(ms / 1000);
         const minutes = Math.floor(seconds / 60);
@@ -97,7 +165,6 @@
       const endTime: Date = new Date();
       const timeSpanCalc = endTime.getTime() - startTime.getTime();
       if (bubbleStatsDiv){
-        //bubbleContentDiv2.textContent = `timeSpan: ${timeSpan}; startTime: ${startTime.getTime()}; endTime: ${endTime.getTime()}; timeSpanCalc: ${timeSpanCalc.toString()}`;
         bubbleStatsDiv.textContent = formatLargestTimeUnit(timeSpanCalc);
       }
     }
@@ -109,7 +176,7 @@
 >
   <Icon icon={bubble.llmProvider?.icon || 'default-icon'} class="w-12 h-12" />
   <div
-    use:shake
+    use:useAnimation
     class="card p-4 variant-soft rounded-tl-none space-y-2"
   >
     <header class="flex justify-between items-center">

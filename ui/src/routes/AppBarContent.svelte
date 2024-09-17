@@ -14,7 +14,33 @@
 	import { get } from 'svelte/store';
 	import { engine } from './tokenUtils';
 	import * as webllm from "@mlc-ai/web-llm";
-	//import { log } from 'console';
+	import { writable } from 'svelte/store';
+	import { selectedAnimationStore } from './store';
+	
+	// bubble animation config
+    import { AnimationType } from './types';
+    
+    let isAnimationSettingsVisible = false;
+    let animationSettingsContainer: HTMLElement;
+    
+    // Add this to your existing imports and state
+	export let selectedAnimation: AnimationType;
+
+	function handleAnimationChange(type: AnimationType) {
+		selectedAnimation = type;
+		selectedAnimationStore.setAnimation(selectedAnimation);
+		console.log('%%%%% Selected animation changed:', JSON.stringify(selectedAnimation));
+		// You can add more logic here to handle the animation change
+		//dispatch('animationChange', selectedAnimation);
+	}
+
+	$: {
+		if (selectedAnimation) {
+			console.log('####### Selected animation changed:', JSON.stringify(selectedAnimation));
+			// You can add more logic here to handle the animation change
+		}
+	}
+	// ends here
 
 	export let selectedItem: LlmProvider | null = null;
 
@@ -72,8 +98,7 @@
 	export function handleSelectItem(item: LlmProvider): void {
 		try {
 			console.log("***** handleSelectItem called");
-			if (//localWebLlm !== null &&
-				//localWebLlm !== undefined &&
+			if (
 				item !== null &&
 				item !== undefined &&
 				ListBoxItem !== null &&
@@ -206,6 +231,9 @@
 		if (themeListBoxContainer && !themeListBoxContainer.contains(event.target as Node)) {
 			isThemeListBoxVisible = false;
 		}
+		if (animationSettingsContainer && !animationSettingsContainer.contains(event.target as Node)) {
+            isAnimationSettingsVisible = false;
+        }
 	}
 
 	onMount(() => {
@@ -360,7 +388,7 @@
 			<div
 				transition:fade
 				class="absolute top-full right-0 mt-2 z-50 min-w-[200px] w-max rounded-md
-			p-3 max-h-[80vh] overflow-y-auto bg-surface-200 dark:bg-surface-600" 
+						p-3 max-h-[80vh] overflow-y-auto bg-surface-200 dark:bg-surface-600" 
 			>
 				<ListBox class="w-full">
 					{#each themes as theme}
@@ -382,7 +410,52 @@
 			</div>
 		{/if}
 	</div>
+	<!-- animation selector -->
+	<div class="relative" bind:this={animationSettingsContainer}>
+		<button
+			type="button"
+			class="btn btn-sm flex items-center justify-center bg-surface-500/10 rounded 
+				   hover:bg-secondary-600 transition duration-300 font-nunito rounded-md"
+			on:click|stopPropagation={() => (isAnimationSettingsVisible = !isAnimationSettingsVisible)}
+		>
+			<Icon icon="mdi:cog" class="w-5 h-5" />
+		</button>
+		
+		{#if isAnimationSettingsVisible}
+			<div
+				transition:fade
+				class="absolute top-full right-0 mt-2 z-50 min-w-[200px] w-max rounded-md
+					   p-3 bg-surface-200 dark:bg-surface-600"
+			>
+				<h3 class="mb-2 font-bold">Animation Settings</h3>
+				<div class="space-y-2">
+					<button
+						class="btn btn-sm w-full {selectedAnimation === AnimationType.None ? 'variant-filled' : 'variant-ghost'}"
+						on:click={() => handleAnimationChange(AnimationType.None)}
+					>
+						None
+					</button>
+					<button
+						class="btn btn-sm w-full {selectedAnimation === AnimationType.Shake ? 'variant-filled' : 'variant-ghost'}"
+						on:click={() => handleAnimationChange(AnimationType.Shake)}
+					>
+						Shake
+					</button>
+					<button
+						class="btn btn-sm w-full {selectedAnimation === AnimationType.Zoom ? 'variant-filled' : 'variant-ghost'}"
+						on:click={() => handleAnimationChange(AnimationType.Zoom)}
+					>
+						Zoom
+					</button>
+					<button
+						class="btn btn-sm w-full {selectedAnimation === AnimationType.Both ? 'variant-filled' : 'variant-ghost'}"
+						on:click={() => handleAnimationChange(AnimationType.Both)}
+					>
+						Both
+					</button>
+				</div>
+			</div>
+		{/if}
+	</div>
+	<!-- ends here -->
 </div>
-{#if isConfigModalOpen}
-	<ConfigModal bind:open={isConfigModalOpen} bind:selectedItem />
-{/if}

@@ -2,7 +2,9 @@
   import Icon from '@iconify/svelte';
   import AppBarContent from './AppBarContent.svelte';
   import type { LlmProvider } from './types';
+  import { AnimationType } from './types';
 
+  export let selectedAnimation: AnimationType;
   export let sidebarVisible: boolean;
   export let selectedItem: LlmProvider | null;
   export let toggleSidebar: () => void;
@@ -33,7 +35,9 @@
   </div>
 
   <div class="flex-grow flex items-center justify-end">
-    <AppBarContent bind:selectedItem />
+    <AppBarContent 
+    bind:selectedItem 
+    bind:selectedAnimation />
   </div>
   <div class="pr-5 pl-5 flex-grow flex items-center justify-end space-x-5 h-full">
     <a

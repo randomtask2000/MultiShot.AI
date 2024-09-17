@@ -1,6 +1,15 @@
 import { writable } from 'svelte/store';
 import type { Writable } from 'svelte/store';
 
+// Define an enum for animation types
+export enum AnimationType {
+    None = 'none',
+    Shake = 'shake',
+    Zoom = 'zoom',
+    Both = 'both'
+}
+
+
 export interface LlmProvider {
   model: string;
   provider: string;
@@ -22,6 +31,7 @@ export interface Bubble {
   icon: string;
   llmProvider: LlmProvider;
   pid: string;
+  animationType: AnimationType;
 }
 
 export interface DataObject {

@@ -1,6 +1,7 @@
 // store.ts
 import { writable, type Writable } from 'svelte/store';
 import type { ChatHistoryItem, LlmProvider } from './types';
+import { AnimationType } from './types';
 
 function createListStore() {
   const { subscribe, set, update } = writable<ChatHistoryItem[]>([]);
@@ -163,8 +164,46 @@ function createLocalWebLlmStore() {
 
 export const localWebLlmStore = createLocalWebLlmStore();
 
+function createSelectedAnimationStore() {
+  const defaultAnimation = AnimationType.None;
+  const { subscribe, set, update } = writable<AnimationType>(
+    (typeof localStorage !== 'undefined' && localStorage.getItem('selectedAnimation') as AnimationType) || defaultAnimation
+  );
+
+  let currentAnimation = defaultAnimation;
+
+  return {
+    subscribe,
+    setAnimation: (animation: AnimationType) => {
+      currentAnimation = animation;
+      set(animation);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('selectedAnimation', animation);
+      }
+    },
+    get: () => currentAnimation,
+    init: () => {
+      if (typeof localStorage !== 'undefined') {
+        const storedAnimation = localStorage.getItem('selectedAnimation') as AnimationType;
+        if (storedAnimation && Object.values(AnimationType).includes(storedAnimation)) {
+          currentAnimation = storedAnimation;
+          set(storedAnimation);
+        } else {
+          currentAnimation = defaultAnimation;
+          set(defaultAnimation);
+        }
+      }
+    }
+  };
+}
+
+export const selectedAnimationStore = createSelectedAnimationStore();
+
+
 // Initialize the stores only in the browser
 if (typeof window !== 'undefined') {
   llmProviderListStore.init();
   localWebLlmStore.init();
+  selectedAnimationStore.init(); // Add this line
 }
+
