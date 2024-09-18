@@ -43,16 +43,14 @@
 	// ends here
 
 	export let selectedItem: LlmProvider | null = null;
-
 	// This is where we start the webllm engine with the premise that we load the first entry in the list
 	// TODO: this is a hack to get around the fact that the selectedItem is not updated when the user selects a new item
 	$: if (selectedItem !== null) {
 		console.log(`**** selectedItem is changed in AppBarContent to ${selectedItem}`);
 	} else if (selectedItem == null && llmProviders !== null){
 		selectedItem = llmProviders[0];
-		console.log(`**** selectedItem was null and is set in AppBarContent to ${selectedItem}`);
+		console.log(`**** selectedItem was null and is set in AppBarContent to ${selectedItem.model}`);
 	}
-
 	const DEFAULT_MODEL = 'TinyLlama-1.1B-Chat-v1.0-q4f32_1-MLC-1k';
 
 	const themes = [
@@ -68,6 +66,7 @@
 		'crimson',
 		'my-blue-steel',
 	];
+
 	let availableModels: string[] = [];
 
 	$: if (webllm !== null) {
@@ -89,7 +88,6 @@
 		}
 	});
 
-	// Define the method to handle toggling of isListBoxVisible
 	function toggleListBoxVisibility(event: MouseEvent): void {
 		event.stopPropagation();
 		isListBoxVisible = !isListBoxVisible;
@@ -105,10 +103,10 @@
 				ListBoxItem !== undefined &&
 				selectedItem?.model !== item.model
 			) {
-
 				selectedItem = { ...item };
 				selectedModelStore.setSelectedModel(item.model);
 				isListBoxVisible = !isListBoxVisible;
+				localWebLlmStore.setLocalWebLlm(item.local || false);
 				localwebLlm = true;
 			}
 		} catch (error) {
@@ -155,7 +153,7 @@
 			apiKeyName: "",
 			local: true
 		};
-		llmProviders.push(selectedItem);
+		llmProviderListStore.addProvider(selectedItem);
 		ListBoxItem.selectedValue = selectedItem;
 	}
 
@@ -164,7 +162,6 @@
 		isThemeListBoxVisible = false;
 	}
 
-	// Subscribe to the LlmProviderList store and selectedModelStore
 	let llmProviders: LlmProvider[];
 	LlmProviderList.subscribe((value) => {
 		llmProviders = value;
@@ -182,13 +179,11 @@
 			if (storedProvider) {
 				selectedItem = { ...storedProvider };
 			} else {
-				// If not found in providers, check the chat history
 				const chatHistory = get(listStore);
 				const lastChatItem = chatHistory[chatHistory.length - 1];
 				if (lastChatItem && lastChatItem.llmProvider) {
 					selectedItem = { ...lastChatItem.llmProvider };
 				} else {
-					// Fallback to default selection
 					let defaultItem;
 					if (llmProviders.length > 0) {
 						defaultItem = { ...llmProviders.find((item) => item.model === DEFAULT_MODEL) } || { ...llmProviders[0] };
@@ -243,9 +238,6 @@
 		return () => {
 			document.removeEventListener('click', handleClickOutside);
 		};
-		// load available models lazily
-		//availableModels = (await webllm.prebuiltAppConfig.model_list).map(m => m.model_id);
-		//const webllm = await import('path-to-webllm-module'); // Adjust the import path as necessary
 	});
 
 	let localwebLlm: boolean;
@@ -276,6 +268,7 @@
 		autoModeWatcher.toString() +
 		')();</script>'}</svelte:head>
 
+<!-- selected model list box button -->
 <div class="flex items-center space-x-5">
 	<div class="relative" bind:this={listBoxContainer}>
 		<button
@@ -301,47 +294,35 @@
 				bg-clip-text text-transparent box-decoration-clone"
 				>{selectedItem ? selectedItem.title : 'Select Model'}</span
 			>
-			<SlideToggle
-				name="slide"
-				bind:checked={localwebLlm}
-				on:change={handleLocalWebLlmChange}
-				active=""
-				size="sm">{localwebLlm ? 'local' : 'remote'}</SlideToggle
-			>
+			
 		</button>
+		<!-- list models -->
 		{#if isListBoxVisible}
 			<div
 				transition:fade
 				class="absolute top-full right-0 mt-2 z-50 min-w-[200px]
 					w-max rounded-md p-3 bg-surface-200 dark:bg-surface-600"
 			>
-				<!-- add webllm dropdown -->
 				{#if localwebLlm}
 					<div class="flex justify-end">
-						<!-- add web llm list here -->
-						<div class="flex justify-end">
-							<div>
-								<label for="model-selection" class="block mb-2">Select Model</label>
-								<select
-									id="model-selection"
-									class="w-full p-2 border rounded bg-surface-300"
-									on:change={handleModelSelection}
-								>
-								<!-- handle webllm model selection -->
-								<!-- available models list via list box-->
-									{#each availableModels as model}
-										<option value={model} selected={model === selectedItem?.model}>{model}</option>
-									{/each}
-								</select>
-							</div>
+						<div>
+							<label for="model-selection" class="block mb-2">Select Model</label>
+							<select
+								id="model-selection"
+								class="w-full p-2 border rounded bg-surface-300"
+								on:change={handleModelSelection}
+							>
+								{#each availableModels as model}
+									<option value={model} selected={model === selectedItem?.model}>{model}</option>
+								{/each}
+							</select>
 						</div>
 					</div>
 				{/if}
-				<!-- list of models -->
 				<ListBox class="w-full">
 					{#each llmProviders as item (item.model)}
 					  {#if item.local === localwebLlm}
-						<div class="relative group hover:bg-secondary-500/70 rounded"> <!-- this is the selection outer boundery -->
+						<div class="relative group hover:bg-secondary-500/70 rounded">
 						  <ListBoxItem
 							on:click={() => handleSelectItem(item)}
 							active={selectedItem?.model === item.model}
@@ -350,7 +331,6 @@
 							group="llmSelector"
 							name="llmSelector"
 						  >
-							<!-- listbox items with local webllm entries -->
 							<svelte:fragment slot="lead">
 							  <Icon icon={item.icon} class="text-white-800/90 w-6 h-6" />
 							</svelte:fragment>
@@ -371,6 +351,17 @@
 				  </ListBox>
 			</div>
 		{/if}
+	</div>
+	<div class="relative">
+		<SlideToggle
+			name="slide"
+			class="btn btn-sm 
+			flex items-center justify-center bg-surface-500/10 rounded 
+			hover:bg-secondary-600 transition duration-300 font-nunito
+			rounded-md"
+			bind:checked={localwebLlm}
+			size="sm">{localwebLlm ? 'local' : 'remote'}</SlideToggle
+		>
 	</div>
 	<div class="relative" bind:this={themeListBoxContainer}>
 		<button
