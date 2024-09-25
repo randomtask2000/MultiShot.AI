@@ -184,12 +184,12 @@ function removeMessagesByLength(messages: Token[]): Token[] {
 export async function fetchAi(history: Token[], selectedLlmProvider: LlmProvider) {
     if (selectedLlmProvider.provider === "webllm") {
         // Attempts to handle the request with retry mechanism for "webllm" provider.
-        if (history.length > 1) {
-            //history = [history[0], history[history.length - 1]];
-            //TODO: this is a hack to get around the context limit of .... tokens for webllm
-            history = removeMessagesByLength(history);
-            console.log("History length is being pruned to first and last to handle context limits");
-        }
+        // if (history.length > 1) {
+        //     //history = [history[0], history[history.length - 1]];
+        //     //TODO: this is a hack to get around the context limit of .... tokens for webllm
+        //     history = removeMessagesByLength(history);
+        //     console.log("History length is being pruned to first and last to handle context limits");
+        // }
         //return await handleWithRetry((attempt) => handleWebllmProvider(history, selectedLlmProvider, maxRetries, attempt), maxRetries);
         return await handleWebllmProvider(history, selectedLlmProvider, maxRetries, 0);
     } else {
@@ -225,10 +225,7 @@ async function handleWebllmProvider(
     attempt: number
   ) {
     try {
-      // Initialize the engine if it's not already initialized.
-      if (!engine) {
-        initializeWebLLM(selectedLlmProvider.model);
-      }
+
       // Prune the history to the first and last elements if conditions are met.
         //   if (attempt > 1 && history.length > 2) {
         //     history = [history[0], history[history.length - 1]];
@@ -240,6 +237,13 @@ async function handleWebllmProvider(
         role: token.role as "system" | "user" | "assistant",
         content: token.content
       }));
+
+      // Initialize the engine if it's not already initialized.
+      if (!engine) {
+        //initializeWebLLM(selectedLlmProvider.model);
+        initializeWebLLMContextWindowSize(selectedLlmProvider.model);
+      }
+
       // Create a stream for generating AI responses.
       const stream = await engine.chat.completions.create({
         messages: extractedMessages,
@@ -256,6 +260,7 @@ async function handleWebllmProvider(
       throw new CustomError('Error in handleWebllmProvider', error as Error);
     }
   }
+
 
 function createStreamResponse(iterator: AsyncIterator<any>) {
     return {
@@ -302,15 +307,40 @@ export async function initializeWebLLM(
     progressCallback?: (report: webllm.InitProgressReport) => void
 ) {
     if (!engine) {
+        //engine = await webllm.CreateMLCEngine(
+        //     model,
+        //     {
+        //         initProgressCallback: progressCallback,
+        //         logLevel: "INFO",
+        //     }
+        // );
+        initializeWebLLMContextWindowSize(model, progressCallback);
+    }
+}
+
+export async function initializeWebLLMContextWindowSize(
+    model: string,
+    progressCallback?: (report: webllm.InitProgressReport) => void,
+    contextWindowSize: number = 4096
+) {
+    if (!engine) {
         engine = await webllm.CreateMLCEngine(
             model,
             {
                 initProgressCallback: progressCallback,
                 logLevel: "INFO",
             },
-            // {
-            //     context_window_size: 4096, // 2048,
-            // }
+            {
+                temperature: 0.0,
+                top_p: 0.9,
+                // context_window_size: 8192,
+                context_window_size: -1,
+                sliding_window_size: 4096,
+                // sliding window with glued start
+                attention_sink_size: 256,
+            }
+
+            
         );
     }
 }
