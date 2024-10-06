@@ -1,173 +1,207 @@
 <script lang="ts">
-    import { fly } from 'svelte/transition';
-    import { onMount } from 'svelte';
-    import { StreamParser } from './markdownUtils';
-    import Icon from '@iconify/svelte';
-    import { AnimationType, type Bubble } from './types';  // Adjust the import path as needed
+import { fly } from 'svelte/transition';
+import { onMount, afterUpdate } from 'svelte';
+import { StreamParser } from './markdownUtils';
+import Icon from '@iconify/svelte';
+import { AnimationType, type Bubble } from './types'; // Adjust the import path as needed
 
-    export let bubble: Bubble;
+export let bubble: Bubble;
+let bubbleContentDiv: HTMLElement;
+let parser: StreamParser;
+let currentMessage = '';
+let statsElement: HTMLElement;
+let startTime: Date;
+let elapsedTime = 0;
+let timerInterval: NodeJS.Timeout;
+let isAnimationCompleted = false;
 
-    // Add a prop to select the animation type
-    //export let animationType: AnimationType = AnimationType.None;
+$: if (bubbleContentDiv && !parser) {
+  parser = new StreamParser(
+    bubbleContentDiv,
+    () => {
+      isAnimationCompleted = true;
+    },
+    stopTimer
+  );
+}
 
-    /**
-        <BubbleSystem bubble={someBubble} animationType={AnimationType.Shake} />
-        <BubbleSystem bubble={someBubble} animationType={AnimationType.Zoom} />
-        <BubbleSystem bubble={someBubble} animationType={AnimationType.Both} />
-        <BubbleSystem bubble={someBubble} animationType={AnimationType.None} />
-     */
+$: if (parser) {
+  console.log("bubble");
+  const newChunk = bubble.message.slice(currentMessage.length);
+  parser.processChunk(newChunk);
+  currentMessage = bubble.message;
+  
+  if (parser.isAnimationCompleted()) {
+    isAnimationCompleted = true;
+    stopTimer();
+  }
+} else {
+  stopTimer()
+}
 
-    let bubbleContentDiv: HTMLElement;
-    let bubbleStatsDiv: HTMLElement;
-    let parser: StreamParser;
-    let currentMessage = '';
 
-    $: if (bubbleContentDiv && !parser) {
-      parser = new StreamParser(bubbleContentDiv);
+$: if (currentMessage) {
+  console.log("bubble.message");
+}
+
+$: if (!parser) {
+  stopTimer();
+}
+
+// Start the timer when the component mounts
+onMount(() => {
+  startTime = new Date();
+  startTimer();
+  return () => {
+    if (parser) {
+      parser.finish();
+      stopTimer();
+    }
+  };
+});
+
+function startTimer() {
+  stopTimer(); // Ensure any existing timer is stopped
+  timerInterval = setInterval(() => {
+    const now = new Date();
+    elapsedTime = now.getTime() - startTime.getTime();
+  }, 1000);
+}
+
+function stopTimer() {
+  console.log("stopTimer");
+  if (timerInterval) {
+    clearInterval(timerInterval);
+  }
+  if (isAnimationCompleted) {
+    console.log("Animation completed!");
+    // You can add any additional logic here that should run when the animation is completed
+  }
+}
+
+// Reactive statement to update the stats element
+$: if (statsElement) {
+  statsElement.textContent = formatLargestTimeUnit(elapsedTime);
+}
+
+function shake(node: HTMLElement) {
+  let lastHeight = node.offsetHeight;
+  let lastContent = node.textContent;
+
+  function checkAndShake() {
+    const currentHeight = node.offsetHeight;
+    const currentContent = node.textContent;
+
+    if (currentHeight > lastHeight || currentContent !== lastContent) {
+      node.animate([
+        { transform: 'translate(0.3px, 0.3px) rotate(0deg)' },
+        { transform: 'translate(-0.3px, -0.5px) rotate(-0.3deg)' },
+        { transform: 'translate(-0.7px, 0px) rotate(0.3deg)' },
+        { transform: 'translate(0.7px, 0.5px) rotate(0deg)' },
+        { transform: 'translate(0.3px, -0.3px) rotate(0.3deg)' },
+        { transform: 'translate(-0.3px, 0.5px) rotate(-0.3deg)' }
+      ], {
+        duration: 500,
+        easing: 'ease-in-out'
+      });
     }
 
-    $: if (parser) {
-      console.log("bubble");
-      const newChunk = bubble.message.slice(currentMessage.length);
-      parser.processChunk(newChunk);
-      currentMessage = bubble.message;
+    lastHeight = currentHeight;
+    lastContent = currentContent;
+  }
+
+  const observer = new MutationObserver(checkAndShake);
+  observer.observe(node, { childList: true, characterData: true, subtree: true });
+
+  return {
+    destroy() {
+      observer.disconnect();
+      stopTimer();
     }
+  };
+}
 
-    $: if (currentMessage) {
-      console.log("bubble.message");
+function bubbleZoomAnimation(node: HTMLElement) {
+  let lastContent = node.textContent;
+
+  function checkAndZoom() {
+    const currentContent = node.textContent;
+    if (currentContent !== lastContent) {
+      node.animate([
+        { transform: 'scale(1)' },
+        { transform: 'scale(1.02)' },
+        { transform: 'scale(1)' }
+      ], {
+        duration: 300,
+        easing: 'ease-in-out'
+      });
     }
+    lastContent = currentContent;
+  }
 
-    onMount(() => {
-        return () => {
-            if (parser) {
-                parser.finish();
-            }
-        };
-    });
+  const observer = new MutationObserver(checkAndZoom);
+  observer.observe(node, { childList: true, characterData: true, subtree: true });
 
-    function shake(node: HTMLElement) {
-        let lastHeight = node.offsetHeight;
-        let lastContent = node.textContent;
-
-        function checkAndShake() {
-            const currentHeight = node.offsetHeight;
-            const currentContent = node.textContent;
-
-            if (currentHeight > lastHeight || currentContent !== lastContent) {
-                node.animate([
-                    { transform: 'translate(0.3px, 0.3px) rotate(0deg)' },
-                    { transform: 'translate(-0.3px, -0.5px) rotate(-0.3deg)' },
-                    { transform: 'translate(-0.7px, 0px) rotate(0.3deg)' },
-                    { transform: 'translate(0.7px, 0.5px) rotate(0deg)' },
-                    { transform: 'translate(0.3px, -0.3px) rotate(0.3deg)' },
-                    { transform: 'translate(-0.3px, 0.5px) rotate(-0.3deg)' }
-                ], {
-                    duration: 500,
-                    easing: 'ease-in-out'
-                });
-            }
-
-            lastHeight = currentHeight;
-            lastContent = currentContent;
-            updateTimeSpan();
-        }
-
-        const observer = new MutationObserver(checkAndShake);
-        observer.observe(node, { childList: true, characterData: true, subtree: true });
-
-        return {
-            destroy() {
-                observer.disconnect();
-            }
-        };
+  return {
+    destroy() {
+      observer.disconnect();
     }
+  };
+}
 
-    function bubbleZoomAnimation(node: HTMLElement) {
-        let lastContent = node.textContent;
+function applyBothAnimations(node: HTMLElement) {
+  const shakeAction = shake(node);
+  const zoomAction = bubbleZoomAnimation(node);
 
-        function checkAndZoom() {
-            const currentContent = node.textContent;
-
-            if (currentContent !== lastContent) {
-                node.animate([
-                    { transform: 'scale(1)' },
-                    { transform: 'scale(1.02)' },
-                    { transform: 'scale(1)' }
-                ], {
-                    duration: 300,
-                    easing: 'ease-in-out'
-                });
-            }
-
-            lastContent = currentContent;
-        }
-
-        const observer = new MutationObserver(checkAndZoom);
-        observer.observe(node, { childList: true, characterData: true, subtree: true });
-
-        return {
-            destroy() {
-                observer.disconnect();
-            }
-        };
+  return {
+    destroy() {
+      shakeAction.destroy();
+      zoomAction.destroy();
     }
+  };
+}
 
-    // Function to apply both animations
-    function applyBothAnimations(node: HTMLElement) {
-        const shakeAction = shake(node);
-        const zoomAction = bubbleZoomAnimation(node);
+function useAnimation(node: HTMLElement) {
+  let animation;
+  switch (bubble.animationType) {
+    case AnimationType.Shake:
+      animation = shake(node);
+      break;
+    case AnimationType.Zoom:
+      animation = bubbleZoomAnimation(node);
+      break;
+    case AnimationType.Both:
+      animation = applyBothAnimations(node);
+      break;
+    case AnimationType.None:
+    default:
+      animation = { destroy: () => {} };
+      stopTimer();
+  }
 
-        return {
-            destroy() {
-                shakeAction.destroy();
-                zoomAction.destroy();
-            }
-        };
+  return {
+    destroy() {
+      animation.destroy();
+      stopTimer();
     }
+  };
+}
 
-    // Function to determine which animation to use
-    function useAnimation(node: HTMLElement) {
-        switch (bubble.animationType) {
-            case AnimationType.Shake:
-                return shake(node);
-            case AnimationType.Zoom:
-                return bubbleZoomAnimation(node);
-            case AnimationType.Both:
-                return applyBothAnimations(node);
-            case AnimationType.None:
-                return {}; // No animation
-            default:
-                return shake(node);
-        }
-    }
+function formatLargestTimeUnit(ms: number): string {
+  const seconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  const remainingSeconds = seconds % 60;
 
-    function formatLargestTimeUnit(ms: number): string {
-        const seconds = Math.floor(ms / 1000);
-        const minutes = Math.floor(seconds / 60);
-        const hours = Math.floor(minutes / 60);
-
-        const remainingMinutes = minutes % 60;
-        const remainingSeconds = seconds % 60;
-
-        if (hours > 0) {
-            return `${hours}h ${remainingMinutes}m ${remainingSeconds}s`;
-        } else if (minutes > 0) {
-            return `${minutes}m ${remainingSeconds}s`;
-        } else {
-            return `${seconds}s`;
-        }
-    }
-
-    const startTime: Date = new Date();
-    let timeSpan: string = "loading..";
-    
-    function updateTimeSpan(): void {
-      const endTime: Date = new Date();
-      const timeSpanCalc = endTime.getTime() - startTime.getTime();
-      if (bubbleStatsDiv){
-        bubbleStatsDiv.textContent = formatLargestTimeUnit(timeSpanCalc);
-      }
-    }
+  if (hours > 0) {
+    return `${hours}h ${remainingMinutes}m ${remainingSeconds}s`;
+  } else if (minutes > 0) {
+    return `${minutes}m ${remainingSeconds}s`;
+  } else {
+    return `${seconds}s`;
+  }
+}
 </script>
 
 <div
@@ -188,63 +222,73 @@
     </header>
     <div bind:this={bubbleContentDiv} id={bubble.pid} class="font-nunito text-left"></div>
   </div>
-  <small bind:this={bubbleStatsDiv} class="text-xs leading-5 opacity-50 self-end opacity-20 absolute bottom-[-30px] right-5 w-55 h-8 rounded"></small>
+  <div
+    bind:this={statsElement}
+    class="text-xs leading-5 opacity-50 self-end opacity-20 absolute bottom-[-30px] right-5 w-55 h-8 rounded"
+  >
+    -
+  </div>
 </div>
 
+{#if isAnimationCompleted}
+  <div class="text-xs leading-5 opacity-50 mt-2">Animation completed!</div>
+{/if}
+
 <br />
+
 <style>
-    :global(.blinking-cursor) {
-        font-weight: 100;
-        color: #2E3D48;
-        -webkit-animation: 1s blink step-end infinite;
-        -moz-animation: 1s blink step-end infinite;
-        -ms-animation: 1s blink step-end infinite;
-        -o-animation: 1s blink step-end infinite;
-        animation: 1s blink step-end infinite;
-    }
+  :global(.blinking-cursor) {
+    font-weight: 100;
+    color: #2E3D48;
+    -webkit-animation: 1s blink step-end infinite;
+    -moz-animation: 1s blink step-end infinite;
+    -ms-animation: 1s blink step-end infinite;
+    -o-animation: 1s blink step-end infinite;
+    animation: 1s blink step-end infinite;
+  }
 
-    @keyframes blink {
-        from, to {
-            color: transparent;
-        }
-        50% {
-            color: #2E3D48;
-        }
+  @keyframes blink {
+    from, to {
+      color: transparent;
     }
+    50% {
+      color: #2E3D48;
+    }
+  }
 
-    @-moz-keyframes blink {
-        from, to {
-            color: transparent;
-        }
-        50% {
-            color: #2E3D48;
-        }
+  @-moz-keyframes blink {
+    from, to {
+      color: transparent;
     }
+    50% {
+      color: #2E3D48;
+    }
+  }
 
-    @-webkit-keyframes blink {
-        from, to {
-            color: transparent;
-        }
-        50% {
-            color: #2E3D48;
-        }
+  @-webkit-keyframes blink {
+    from, to {
+      color: transparent;
     }
+    50% {
+      color: #2E3D48;
+    }
+  }
 
-    @-ms-keyframes blink {
-        from, to {
-            color: transparent;
-        }
-        50% {
-            color: #2E3D48;
-        }
+  @-ms-keyframes blink {
+    from, to {
+      color: transparent;
     }
+    50% {
+      color: #2E3D48;
+    }
+  }
 
-    @-o-keyframes blink {
-        from, to {
-            color: transparent;
-        }
-        50% {
-            color: #2E3D48;
-        }
+  @-o-keyframes blink {
+    from, to {
+      color: transparent;
     }
+    50% {
+      color: #2E3D48;
+    }
+  }
 </style>

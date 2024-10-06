@@ -2,40 +2,68 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "python",
+      "type": "debugpy",
       "request": "launch",
       "name": "server",
       "module": "uvicorn",
       "args": ["server.main:app", "--reload"],
-      "cwd": "${workspaceFolder}"
+      "cwd": "${workspaceFolder}",
+      "justMyCode": true 
     },
     {
       "type": "node",
       "request": "launch",
       "name": "ui",
       "cwd": "${workspaceFolder}/ui",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--", "--port=3333"],
-      // "runtimeExecutable": "pnpm",
-      // "runtimeArgs": ["exec", "vite", "--port=3333"],
-      "console": "integratedTerminal"
+      // "runtimeExecutable": "npm",
+      // "runtimeArgs": ["run", "dev", "--", "--port=3333"],
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["exec", "vite", "--port=3333"],
+      "sourceMaps": true,
+      "console": "integratedTerminal",
+      "skipFiles": [
+          "${workspaceFolder}/ui/node_modules/**/*.js",
+          "<node_internals>/**/*.js"
+      ],
+      "smartStep": false // << this is where the magic happens
     },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "ui2",
+      "cwd": "${workspaceFolder}/ui",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["exec", "vite", "--port=3333"],
+      "sourceMaps": true,
+      "console": "integratedTerminal",
+      "skipFiles": [
+        "${workspaceFolder}/ui/node_modules/**/*.js",
+        "<node_internals>/**/*.js",
+        "**/svelte/internal/**",
+        "**/svelte/runtime/**",
+        "**/svelte/compiler/**",
+        "**/svelte/store/**",
+        "**/svelte/transition/**",
+        "**/svelte/easing/**"
+      ],
+      "smartStep": true
+    }
     {
       "type": "chrome",
       "request": "launch",
       "name": "chrome",
       "url": "http://localhost:3333",
       "webRoot": "${workspaceFolder}/ui",
-      "sourceMaps": true,
-      "sourceMapPathOverrides": {
-        "webpack:///./src/*": "${webRoot}/src/*"
-      }
+      "sourceMaps": true
+      // "sourceMapPathOverrides": {
+      //   "webpack:///./src/*": "${webRoot}/src/*"
+      // }
     }
   ],
   "compounds": [
     {
       "name": "ui + chrome",
-      "configurations": ["ui", "chrome"]
+      "configurations": ["ui2", "chrome"]
     },
     {
       "name": "server + ui + chrome",

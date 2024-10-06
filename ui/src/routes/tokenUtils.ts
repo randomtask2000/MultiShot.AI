@@ -306,15 +306,23 @@ export async function initializeWebLLM(
     model: string,
     progressCallback?: (report: webllm.InitProgressReport) => void
 ) {
-    if (!engine) {
-        //engine = await webllm.CreateMLCEngine(
-        //     model,
-        //     {
-        //         initProgressCallback: progressCallback,
-        //         logLevel: "INFO",
-        //     }
-        // );
-        initializeWebLLMContextWindowSize(model, progressCallback);
+    let basicInit: boolean = false;
+    if (!engine)
+    {
+        if (basicInit) 
+        {
+            engine = await webllm.CreateMLCEngine(
+                model,
+                {
+                    initProgressCallback: progressCallback,
+                    logLevel: "INFO",
+                }
+            );
+        } 
+        else 
+        {
+            initializeWebLLMContextWindowSize(model, progressCallback);
+        }
     }
 }
 

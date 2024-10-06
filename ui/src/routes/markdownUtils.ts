@@ -28,81 +28,87 @@ marked.use(
 );
 
 export class StreamParser {
-  private outputElement: HTMLElement;
-  private buffer: string = '';
-  private inCodeBlock: boolean = false;
-  private currentLanguage: string = '';
-  private codeBlockComponent: CodeBlock | null = null;
-  private codeBlockContent: string = '';
+  private content: string = '';
+  private isCompleted: boolean = false;
+  private onCompleteCallback: () => void;
+  private stopTimerCallback: () => void;
 
-  constructor(outputElement: HTMLElement) {
-    this.outputElement = outputElement;
+  constructor(private container: HTMLElement, onComplete?: () => void, stopTimer?: () => void) {
+    this.onCompleteCallback = onComplete || (() => {});
+    this.stopTimerCallback = stopTimer || (() => {});
   }
 
-  private renderMarkdown(line: string): void {
-    if (line.startsWith('```')) {
-      if (this.inCodeBlock) {
-        // End of code block
-        if (this.codeBlockComponent) {
-          this.codeBlockComponent.$set({ content: this.codeBlockContent.trim() });
-          this.codeBlockComponent = null;
+  public processChunk(chunk: string): void {
+    this.content += chunk;
+    const parsedHtml = marked.parse(this.content);
+    const sanitizedHtml = this.basicSanitize(parsedHtml);
+    this.container.innerHTML = sanitizedHtml;
+
+    // Add blinking cursor
+    const cursorSpan = document.createElement('span');
+    cursorSpan.className = 'blinking-cursor';
+    cursorSpan.textContent = '▋';
+    this.container.appendChild(cursorSpan);
+  }
+
+  public finish(): void {
+    const parsedHtml = marked.parse(this.content);
+    const sanitizedHtml = this.basicSanitize(parsedHtml);
+    this.container.innerHTML = sanitizedHtml;
+    this.isCompleted = true;
+    this.onCompleteCallback();
+    this.stopTimerCallback();
+  }
+
+  public isAnimationCompleted(): boolean {
+    return this.isCompleted;
+  }
+
+  public setOnCompleteCallback(callback: () => void): void {
+    this.onCompleteCallback = callback;
+  }
+
+  public setStopTimerCallback(callback: () => void): void {
+    this.stopTimerCallback = callback;
+  }
+
+  private basicSanitize(html: string): string {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const body = doc.body;
+
+    // Remove potentially dangerous elements
+    const dangerousElements = body.querySelectorAll('script, iframe, object, embed');
+    dangerousElements.forEach(el => el.remove());
+
+    // Remove potentially dangerous attributes
+    const allElements = body.getElementsByTagName('*');
+    for (let i = 0; i < allElements.length; i++) {
+      const el = allElements[i];
+      for (let j = 0; j < el.attributes.length; j++) {
+        const attr = el.attributes[j];
+        if (attr.name.startsWith('on') || attr.name === 'href' && attr.value.toLowerCase().startsWith('javascript:')) {
+          el.removeAttribute(attr.name);
         }
-        this.inCodeBlock = false;
-        this.codeBlockContent = '';
-      } else {
-        // Start of code block
-        this.currentLanguage = line.slice(3).trim() || 'python';
-        this.inCodeBlock = true;
-        const wrapper = document.createElement('div');
-        this.outputElement.appendChild(wrapper);
-        this.codeBlockComponent = new CodeBlock({
-          target: wrapper,
-          props: {
-            content: '',
-            language: this.currentLanguage
-          }
-        });
-      }
-    } else if (this.inCodeBlock) {
-      // Inside code block
-      this.codeBlockContent += line + '\n';
-      if (this.codeBlockComponent) {
-        this.codeBlockComponent.$set({ content: this.codeBlockContent });
-      }
-    } else {
-      // Regular markdown content
-      const html = marked(line);
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = html;
-      while (tempDiv.firstChild) {
-        this.outputElement.appendChild(tempDiv.firstChild);
       }
     }
-  }
 
-  processChunk(chunk: string): void {
-    this.buffer += chunk;
-    const lines = this.buffer.split('\n');
-    while (lines.length > 1) {
-      const line = lines.shift();
-      if (line !== undefined) {
-        this.renderMarkdown(line + '');
-      }
-    }
-    this.buffer = lines[0];
+    return body.innerHTML;
   }
+}
 
-  finish(): void {
-    if (this.buffer) {
-      this.renderMarkdown(this.buffer);
-      this.buffer = '';
+export function formatCodeBlocks(html: string): string {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const codeBlocks = doc.querySelectorAll('pre code');
+
+  codeBlocks.forEach((codeBlock) => {
+    const pre = codeBlock.parentElement;
+    if (pre) {
+      pre.classList.add('language-javascript');
+      pre.classList.add('line-numbers');
     }
-    if (this.inCodeBlock) {
-      this.renderMarkdown('```');
-    }
-    this.codeBlockComponent = null;
-    this.codeBlockContent = '';
-  }
+  });
+
+  return doc.body.innerHTML;
 }
 
 export function renderMarkdownWithCodeBlock(content: string, outputElement: HTMLElement) {
