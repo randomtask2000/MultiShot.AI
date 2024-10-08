@@ -7,13 +7,10 @@
   
   export let bubble: Bubble;
   let bubbleContentDiv: HTMLElement;
-  let parser: StreamParser;
-  let currentMessage = '';
   let statsElement: HTMLElement;
   let startTime: Date;
   let elapsedTime = 0;
   let timerInterval: NodeJS.Timeout;
-  let isAnimationCompleted = false;
   let isHidden = true;
   let statsFlag: HTMLDivElement;
   let statsFlagContent = 'true';
