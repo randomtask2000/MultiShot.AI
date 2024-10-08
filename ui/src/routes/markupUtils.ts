@@ -57,7 +57,7 @@ export function renderMarkdownHistory(content: string) {
   return renderMarkdown(content);
 }
 
-export class StreamParser {
+export class StreamParser2 {
   private outputElement: HTMLElement;
   private buffer: string = '';
   private inCodeBlock: boolean = false;

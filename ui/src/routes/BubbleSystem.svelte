@@ -1,64 +1,61 @@
 <script lang="ts">
-import { fly } from 'svelte/transition';
-import { onMount, afterUpdate } from 'svelte';
-import { StreamParser } from './markdownUtils';
-import Icon from '@iconify/svelte';
-import { AnimationType, type Bubble } from './types'; // Adjust the import path as needed
-
-export let bubble: Bubble;
-let bubbleContentDiv: HTMLElement;
-let parser: StreamParser;
-let currentMessage = '';
-let statsElement: HTMLElement;
-let startTime: Date;
-let elapsedTime = 0;
-let timerInterval: NodeJS.Timeout;
-let isAnimationCompleted = false;
-
-$: if (bubbleContentDiv && !parser) {
-  parser = new StreamParser(
-    bubbleContentDiv,
-    () => {
-      isAnimationCompleted = true;
-    },
-    stopTimer
-  );
-}
-
-$: if (parser) {
-  console.log("bubble");
-  const newChunk = bubble.message.slice(currentMessage.length);
-  parser.processChunk(newChunk);
-  currentMessage = bubble.message;
+  import { fly } from 'svelte/transition';
+  import { onMount, afterUpdate, createEventDispatcher } from 'svelte';
+  import { StreamParser } from './markdownUtils';
+  import Icon from '@iconify/svelte';
+  import { AnimationType, type Bubble } from './types';
   
-  if (parser.isAnimationCompleted()) {
-    isAnimationCompleted = true;
-    stopTimer();
-  }
-} else {
-  stopTimer()
-}
+  export let bubble: Bubble;
+  let bubbleContentDiv: HTMLElement;
+  let parser: StreamParser;
+  let currentMessage = '';
+  let statsElement: HTMLElement;
+  let startTime: Date;
+  let elapsedTime = 0;
+  let timerInterval: NodeJS.Timeout;
+  let isAnimationCompleted = false;
+  let isHidden = true;
+  let statsFlag: HTMLDivElement;
+  let statsFlagContent = 'true';
 
+// Use a custom store to track the statsFlag content
+import { writable } from 'svelte/store';
+const statsFlagStore = writable('true');
 
-$: if (currentMessage) {
-  console.log("bubble.message");
-}
-
-$: if (!parser) {
+// Subscribe to changes in the store
+$: if ($statsFlagStore === 'false') {
   stopTimer();
 }
 
-// Start the timer when the component mounts
-onMount(() => {
-  startTime = new Date();
-  startTimer();
-  return () => {
-    if (parser) {
-      parser.finish();
-      stopTimer();
+function updateStatsFlag(value: string) {
+  statsFlagContent = value;
+  if (statsFlag) {
+    statsFlag.innerHTML = value;
+  }
+}
+
+  onMount(() => {
+    console.log("Component mounted");
+    startTime = new Date();
+    startTimer();
+
+    // Set up a MutationObserver to watch for changes to statsFlag
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList' || mutation.type === 'characterData') {
+          statsFlagStore.set(statsFlag.innerHTML);
+        }
+      });
+    });
+
+    if (statsFlag) {
+      observer.observe(statsFlag, { childList: true, characterData: true, subtree: true });
     }
-  };
-});
+
+    return () => {
+      observer.disconnect();
+    };
+  });
 
 function startTimer() {
   stopTimer(); // Ensure any existing timer is stopped
@@ -69,13 +66,9 @@ function startTimer() {
 }
 
 function stopTimer() {
-  console.log("stopTimer");
+  //console.log("stopTimer");
   if (timerInterval) {
     clearInterval(timerInterval);
-  }
-  if (isAnimationCompleted) {
-    console.log("Animation completed!");
-    // You can add any additional logic here that should run when the animation is completed
   }
 }
 
@@ -129,10 +122,10 @@ function bubbleZoomAnimation(node: HTMLElement) {
     if (currentContent !== lastContent) {
       node.animate([
         { transform: 'scale(1)' },
-        { transform: 'scale(1.02)' },
+        { transform: 'scale(1.10)' },
         { transform: 'scale(1)' }
       ], {
-        duration: 300,
+        duration: 800,
         easing: 'ease-in-out'
       });
     }
@@ -222,18 +215,15 @@ function formatLargestTimeUnit(ms: number): string {
     </header>
     <div bind:this={bubbleContentDiv} id={bubble.pid} class="font-nunito text-left"></div>
   </div>
+  <div hidden={isHidden} id={`${bubble.pid}-stats-flag`} bind:this={statsFlag}>true</div>
   <div
     bind:this={statsElement}
-    class="text-xs leading-5 opacity-50 self-end opacity-20 absolute bottom-[-30px] right-5 w-55 h-8 rounded"
+    id={`${bubble.pid}-stats`}
+    class="text-xs leading-5 opacity-30 self-end absolute bottom-[-30px] right-5 w-55 h-8 rounded text-gray-300"
   >
     -
   </div>
 </div>
-
-{#if isAnimationCompleted}
-  <div class="text-xs leading-5 opacity-50 mt-2">Animation completed!</div>
-{/if}
-
 <br />
 
 <style>

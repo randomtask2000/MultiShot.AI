@@ -102,6 +102,7 @@
         loadbubbleBussy = false;
         isLoadingLlmResponse = false;
         lastSelectedLlmProvider = selectedLlmProvider;
+        updateStats(loadingBubblePid);
       }
     } else {
       console.error('initProgressCallback: No LLM provider selected');
@@ -260,6 +261,17 @@ function getToken() {
     clearToken();
     isLoadingLlmResponse = false;
     userBubbleIsBusy = false;
+    // set stats
+    updateStats(aiPid);
+  }
+
+  function updateStats(aiPid: string) {
+    let stats = document.getElementById(aiPid + "-stats");
+    let statsFlag = document.getElementById(aiPid + "-stats-flag");
+    if (stats && statsFlag && statsFlag.innerHTML == "true") { 
+      statsFlag.innerHTML = "false";
+      stats.innerHTML = `${stats.innerHTML}`;
+    }
   }
 
   let chatResultOuterBinding: HTMLDivElement;

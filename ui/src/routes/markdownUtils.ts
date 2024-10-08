@@ -30,12 +30,10 @@ marked.use(
 export class StreamParser {
   private content: string = '';
   private isCompleted: boolean = false;
-  private onCompleteCallback: () => void;
-  private stopTimerCallback: () => void;
+  private onCompleteCallback: () => void = () => {};
 
-  constructor(private container: HTMLElement, onComplete?: () => void, stopTimer?: () => void) {
-    this.onCompleteCallback = onComplete || (() => {});
-    this.stopTimerCallback = stopTimer || (() => {});
+  constructor(private container: HTMLElement) {
+    //this.onCompleteCallback = onComplete || (() => {});
   }
 
   public processChunk(chunk: string): void {
@@ -57,7 +55,6 @@ export class StreamParser {
     this.container.innerHTML = sanitizedHtml;
     this.isCompleted = true;
     this.onCompleteCallback();
-    this.stopTimerCallback();
   }
 
   public isAnimationCompleted(): boolean {
@@ -66,10 +63,6 @@ export class StreamParser {
 
   public setOnCompleteCallback(callback: () => void): void {
     this.onCompleteCallback = callback;
-  }
-
-  public setStopTimerCallback(callback: () => void): void {
-    this.stopTimerCallback = callback;
   }
 
   private basicSanitize(html: string): string {
@@ -94,21 +87,6 @@ export class StreamParser {
 
     return body.innerHTML;
   }
-}
-
-export function formatCodeBlocks(html: string): string {
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  const codeBlocks = doc.querySelectorAll('pre code');
-
-  codeBlocks.forEach((codeBlock) => {
-    const pre = codeBlock.parentElement;
-    if (pre) {
-      pre.classList.add('language-javascript');
-      pre.classList.add('line-numbers');
-    }
-  });
-
-  return doc.body.innerHTML;
 }
 
 export function renderMarkdownWithCodeBlock(content: string, outputElement: HTMLElement) {
