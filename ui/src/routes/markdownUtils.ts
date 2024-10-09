@@ -38,7 +38,7 @@ export class StreamParser {
   constructor(private container: HTMLElement) {
     this.cursorElement = document.createElement('span');
     this.cursorElement.className = 'cursor';
-    this.cursorElement.textContent = '  ▋';
+    this.cursorElement.textContent = '  ▋';//'   █';//'  ▋';
 
     this.styleElement = document.createElement('style');
     this.styleElement.textContent = `

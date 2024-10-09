@@ -42,7 +42,7 @@ marked.setOptions({
 });
 
 export function renderMarkdownWithCodeBlock(content: string, outputElement: HTMLElement) {
-  const parser = new StreamParser(outputElement);
+  const parser = new StreamParser2(outputElement);
   parser.processChunk(content);
   parser.finish();
 }
