@@ -34,8 +34,14 @@ export class StreamParser {
   private cursorElement: HTMLSpanElement;
   private styleElement: HTMLStyleElement;
   private cursorInterval: number | null = null;
+  private inCodeBlock: boolean = false;
+  private codeBlockComponent: CodeBlock | null = null;
+  private codeBlockContent: string = '';
+  private currentLanguage: string = '';
+  private outputElement: HTMLElement;
 
   constructor(private container: HTMLElement) {
+    this.outputElement = container;
     this.cursorElement = document.createElement('span');
     this.cursorElement.className = 'cursor';
     this.cursorElement.textContent = '  ▋';//'   █';//'  ▋';
@@ -66,11 +72,52 @@ export class StreamParser {
     this.cursorInterval = window.setInterval(() => {
       this.cursorElement.style.visibility =
         this.cursorElement.style.visibility === 'hidden' ? 'visible' : 'hidden';
-    }, 1000);
+    }, 250);
   }
 
   public processChunk(chunk: string): void {
+    if (chunk.includes('```')) {
+      console.log('------------Code block detected');
+      if (this.inCodeBlock) {
+        // End of code block
+        if (this.codeBlockComponent) {
+          this.codeBlockComponent.$set({ content: this.codeBlockContent.trim() });
+          this.codeBlockComponent = null;
+        }
+        this.inCodeBlock = false;
+        this.codeBlockContent = '';
+      } else {
+        // Start of code block
+        this.currentLanguage = chunk.slice(3).trim() || 'python';
+        this.inCodeBlock = true;
+        const wrapper = document.createElement('div');
+        this.outputElement.appendChild(wrapper);
+        this.codeBlockComponent = new CodeBlock({
+          target: wrapper,
+          props: {
+            content: '',
+            language: this.currentLanguage
+          }
+        });
+      }
+    } else if (this.inCodeBlock) {
+      // Inside code block
+      this.codeBlockContent += chunk;
+      if (this.codeBlockComponent) {
+        this.codeBlockComponent.$set({ content: this.codeBlockContent });
+      }
+    } else {
+      // Regular markdown content
+      const html = marked(chunk);
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+      while (tempDiv.firstChild) {
+        this.outputElement.appendChild(tempDiv.firstChild);
+      }
+    } else { ...
+
     this.content += chunk;
+    
 
     // Parse and sanitize the entire content
     const parsedContent = marked.parse(this.content);
