@@ -42,7 +42,7 @@ marked.setOptions({
 });
 
 export function renderMarkdownWithCodeBlock(content: string, outputElement: HTMLElement) {
-  const parser = new StreamParser2(outputElement);
+  const parser = new StreamParserNoCursor(outputElement);
   parser.processChunk(content);
   parser.finish();
 }
@@ -57,7 +57,7 @@ export function renderMarkdownHistory(content: string) {
   return renderMarkdown(content);
 }
 
-export class StreamParser2 {
+export class StreamParserNoCursor {
   private outputElement: HTMLElement;
   private buffer: string = '';
   private inCodeBlock: boolean = false;

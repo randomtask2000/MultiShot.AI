@@ -3,6 +3,7 @@ import { marked } from 'marked';
 import { markedHighlight } from "marked-highlight";
 import hljs from 'highlight.js';
 import CodeBlock from './CodeBlock.svelte';
+import { StreamParserNoCursor } from './markupUtils';
 
 class CustomRenderer extends marked.Renderer {
   code(code: string, language: string): string {
@@ -27,6 +28,23 @@ marked.use(
   }
 );
 
+export function renderMarkdownWithCodeBlock(content: string, outputElement: HTMLElement) {
+  const parser = new StreamParserNoCursor(outputElement);
+  parser.processChunk(content);
+  parser.finish();
+}
+
+export function renderMarkdown(content: string) {
+  const tempDiv = document.createElement('div');
+  renderMarkdownWithCodeBlock(content, tempDiv);
+  return tempDiv.innerHTML;
+}
+
+export function renderMarkdownHistory(content: string) {
+  return renderMarkdown(content);
+}
+
+// StreamParser
 export class StreamParser {
   private content: string = '';
   private isCompleted: boolean = false;
@@ -39,13 +57,13 @@ export class StreamParser {
   private codeBlockContent: string = '';
   private currentLanguage: string = '';
   private outputElement: HTMLElement;
+  private contentFragments: Array<{type: 'text' | 'code', content: string, language?: string}> = [];
 
   constructor(private container: HTMLElement) {
     this.outputElement = container;
     this.cursorElement = document.createElement('span');
     this.cursorElement.className = 'cursor';
-    this.cursorElement.textContent = '  ▋';//'   █';//'  ▋';
-
+    this.cursorElement.textContent = '    ▋';//' █';//' ▋';
     this.styleElement = document.createElement('style');
     this.styleElement.textContent = `
       .cursor {
@@ -76,74 +94,145 @@ export class StreamParser {
   }
 
   public processChunk(chunk: string): void {
-    if (chunk.includes('```')) {
-      console.log('------------Code block detected');
+    // if (chunk.includes('`')) {
+    //   console.log(`found: "${chunk}"`);
+    //   //chunk = '``' + chunk;
+    // }
+    if (chunk.includes('``')) {
+      //console.log('------------Code block detected');
       if (this.inCodeBlock) {
         // End of code block
-        if (this.codeBlockComponent) {
-          this.codeBlockComponent.$set({ content: this.codeBlockContent.trim() });
-          this.codeBlockComponent = null;
-        }
+        this.contentFragments.push({
+          type: 'code',
+          content: this.codeBlockContent.trim(),
+          language: this.currentLanguage
+        });
         this.inCodeBlock = false;
         this.codeBlockContent = '';
+        this.currentLanguage = '';
       } else {
         // Start of code block
         this.currentLanguage = chunk.slice(3).trim() || 'python';
         this.inCodeBlock = true;
-        const wrapper = document.createElement('div');
-        this.outputElement.appendChild(wrapper);
-        this.codeBlockComponent = new CodeBlock({
-          target: wrapper,
-          props: {
-            content: '',
-            language: this.currentLanguage
-          }
-        });
+        // Push any accumulated regular content
+        if (this.content) {
+          this.contentFragments.push({
+            type: 'text',
+            content: this.content
+          });
+          this.content = '';
+        }
       }
     } else if (this.inCodeBlock) {
       // Inside code block
       this.codeBlockContent += chunk;
-      if (this.codeBlockComponent) {
-        this.codeBlockComponent.$set({ content: this.codeBlockContent });
-      }
     } else {
       // Regular markdown content
-      const html = marked(chunk);
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = html;
-      while (tempDiv.firstChild) {
-        this.outputElement.appendChild(tempDiv.firstChild);
-      }
-    } else { ...
-
-    this.content += chunk;
-    
-
-    // Parse and sanitize the entire content
-    const parsedContent = marked.parse(this.content);
-    const sanitizedContent = this.basicSanitize(parsedContent);
-
-    // Create a temporary element to hold the content
-    const tempElement = document.createElement('div');
-    tempElement.innerHTML = sanitizedContent;
-
-    // Find the last text node
-    const lastTextNode = this.findLastTextNode(tempElement);
-
-    if (lastTextNode && lastTextNode.parentNode) {
-      // Split the text node and insert the cursor
-      const textAfterCursor = lastTextNode.splitText(lastTextNode.length);
-      lastTextNode.parentNode.insertBefore(this.cursorElement, textAfterCursor);
-    } else {
-      // If no text node found, just append the cursor
-      tempElement.appendChild(this.cursorElement);
+      this.content += chunk.replace('`','');
     }
 
-    // Update the main container
-    this.container.innerHTML = tempElement.innerHTML;
+    this.updateDOM();
+  }
+
+  private updateDOM(): void {
+    // Clear the container
+    this.container.innerHTML = '';
+
+    // Render all content fragments
+    for (const fragment of this.contentFragments) {
+      if (fragment.type === 'text') {
+        const parsedContent = marked.parse(fragment.content);
+        const sanitizedContent = this.basicSanitize(parsedContent);
+        const tempElement = document.createElement('div');
+        tempElement.innerHTML = sanitizedContent;
+        while (tempElement.firstChild) {
+          this.container.appendChild(tempElement.firstChild);
+        }
+      } else if (fragment.type === 'code') {
+        const wrapper = document.createElement('div');
+        this.container.appendChild(wrapper);
+        new CodeBlock({
+          target: wrapper,
+          props: {
+            content: fragment.content,
+            language: fragment.language || 'python'
+          }
+        });
+      }
+    }
+
+    // Render current content (if any)
+    if (this.content || this.codeBlockContent) {
+      let currentContent = this.content;
+      if (this.inCodeBlock) {
+        const wrapper = document.createElement('div');
+        this.container.appendChild(wrapper);
+        this.codeBlockComponent = new CodeBlock({
+          target: wrapper,
+          props: {
+            content: this.codeBlockContent,
+            language: this.currentLanguage || 'python'
+          }
+        });
+        currentContent = this.codeBlockContent;
+      } else {
+        const parsedContent = marked.parse(this.content);
+        const sanitizedContent = this.basicSanitize(parsedContent);
+        const tempElement = document.createElement('div');
+        tempElement.innerHTML = sanitizedContent;
+        while (tempElement.firstChild) {
+          this.container.appendChild(tempElement.firstChild);
+        }
+      }
+
+      const lastTextNode = this.findLastTextNode(this.container);
+      if (lastTextNode && lastTextNode.parentNode) {
+        const textAfterCursor = lastTextNode.splitText(lastTextNode.length);
+        lastTextNode.parentNode.insertBefore(this.cursorElement, textAfterCursor);
+      } else {
+        this.container.appendChild(this.cursorElement);
+      }
+    } else {
+      // If there's no current content, append the cursor to the container
+      this.container.appendChild(this.cursorElement);
+    }
 
     // Scroll to the bottom to keep the cursor in view
     this.container.scrollTop = this.container.scrollHeight;
+  }
+
+  public finish(): void {
+    if (this.cursorInterval !== null) {
+      clearInterval(this.cursorInterval);
+    }
+
+    // Push any remaining content
+    if (this.inCodeBlock) {
+      // this.contentFragments.push({
+      //   type: 'code',
+      //   content: this.codeBlockContent.trim(),
+      //   language: this.currentLanguage
+      // });
+    } else if (this.content) {
+      // this.contentFragments.push({
+      //   type: 'text',
+      //   content: this.content
+      // });
+    }
+
+    this.updateDOM();
+    this.cursorElement.remove();
+    this.styleElement.remove();
+    this.isCompleted = true;
+    this.onCompleteCallback();
+  }
+
+  public isAnimationCompleted(): boolean {
+    return this.isCompleted;
+  }
+
+  public setOnCompleteCallback(callback: () => void): void {
+    this.onCompleteCallback = callback;
   }
 
   private findLastTextNode(node: Node): Text | null {
@@ -159,39 +248,12 @@ export class StreamParser {
     return null;
   }
 
-  public finish(): void {
-    if (this.cursorInterval !== null) {
-      clearInterval(this.cursorInterval);
-    }
-
-    // Parse and sanitize the final content without the cursor
-    const parsedContent = marked.parse(this.content);
-    const sanitizedContent = this.basicSanitize(parsedContent);
-
-    // Update the container with the final content (without cursor)
-    this.container.innerHTML = sanitizedContent;
-
-    this.styleElement.remove();
-    this.isCompleted = true;
-    this.onCompleteCallback();
-  }
-
-  public isAnimationCompleted(): boolean {
-    return this.isCompleted;
-  }
-
-  public setOnCompleteCallback(callback: () => void): void {
-    this.onCompleteCallback = callback;
-  }
-
   private basicSanitize(html: string): string {
     const doc = new DOMParser().parseFromString(html, 'text/html');
     const body = doc.body;
-
     // Remove potentially dangerous elements
     const dangerousElements = body.querySelectorAll('script, iframe, object, embed');
     dangerousElements.forEach(el => el.remove());
-
     // Remove potentially dangerous attributes
     const allElements = body.getElementsByTagName('*');
     for (let i = 0; i < allElements.length; i++) {
@@ -203,23 +265,6 @@ export class StreamParser {
         }
       }
     }
-
     return body.innerHTML;
   }
-}
-
-export function renderMarkdownWithCodeBlock(content: string, outputElement: HTMLElement) {
-  const parser = new StreamParser(outputElement);
-  parser.processChunk(content);
-  parser.finish();
-}
-
-export function renderMarkdown(content: string) {
-  const tempDiv = document.createElement('div');
-  renderMarkdownWithCodeBlock(content, tempDiv);
-  return tempDiv.innerHTML;
-}
-
-export function renderMarkdownHistory(content: string) {
-  return renderMarkdown(content);
 }

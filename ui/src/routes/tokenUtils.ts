@@ -248,7 +248,7 @@ async function handleWebllmProvider(
       const stream = await engine.chat.completions.create({
         messages: extractedMessages,
         stream: true,
-        temperature: 1.0,
+        temperature: 0.9,
         top_p: 1
       });
       // Create an async iterator for the stream.
