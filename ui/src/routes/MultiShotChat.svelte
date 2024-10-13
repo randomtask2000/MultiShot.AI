@@ -185,6 +185,7 @@ function restoreChat(item: ChatHistoryItem): void {
         const contentElement = document.getElementById(pid);
         if (contentElement) {
           renderMarkdownWithCodeBlock(token.content, contentElement);
+          updateStats(pid);
         }
         setTimeout(() => {
           scrollChatBottom(resultDiv, 'smooth');
