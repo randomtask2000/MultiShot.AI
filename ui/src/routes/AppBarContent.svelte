@@ -414,38 +414,51 @@
 		
 		{#if isAnimationSettingsVisible}
 			<div
-				transition:fade
-				class="absolute top-full right-0 mt-2 z-50 min-w-[200px] w-max rounded-md
-					   p-3 bg-surface-200 dark:bg-surface-600"
+			transition:fade
+			class="absolute top-full right-0 mt-2 z-50 min-w-[200px] w-max rounded-md
+			p-3 bg-surface-200 dark:bg-surface-600 grid grid-cols-2 gap-2"
 			>
-				<h3 class="mb-2 font-bold">Animation Settings</h3>
-				<div class="space-y-2">
-					<button
-						class="btn btn-sm w-full {selectedAnimation === AnimationType.None ? 'variant-filled' : 'variant-ghost'}"
-						on:click={() => handleAnimationChange(AnimationType.None)}
-					>
-						None
-					</button>
-					<button
-						class="btn btn-sm w-full {selectedAnimation === AnimationType.Shake ? 'variant-filled' : 'variant-ghost'}"
-						on:click={() => handleAnimationChange(AnimationType.Shake)}
-					>
-						Shake
-					</button>
-					<button
-						class="btn btn-sm w-full {selectedAnimation === AnimationType.Zoom ? 'variant-filled' : 'variant-ghost'}"
-						on:click={() => handleAnimationChange(AnimationType.Zoom)}
-					>
-						Zoom
-					</button>
-					<button
-						class="btn btn-sm w-full {selectedAnimation === AnimationType.Both ? 'variant-filled' : 'variant-ghost'}"
-						on:click={() => handleAnimationChange(AnimationType.Both)}
-					>
-						Both
-					</button>
-				</div>
+			<div class="col-span-2">
+				<h3 class="mb-2 font-bold">Advanced Settings</h3>
 			</div>
+			<div class="space-y-2">
+				<button
+				class="btn btn-sm w-1/3 {selectedAnimation === AnimationType.None ? 'variant-filled' : 'variant-ghost'}"
+				on:click={() => handleAnimationChange(AnimationType.None)}
+				>
+				None
+				</button>
+			</div>	
+			<div class="col-span-2">
+				<h3 class="mb-2 font-bold">Animation Settings</h3>
+			</div>
+			<div class="space-y-2">
+				<button
+				class="btn btn-sm w-1/3 {selectedAnimation === AnimationType.None ? 'variant-filled' : 'variant-ghost'}"
+				on:click={() => handleAnimationChange(AnimationType.None)}
+				>
+				None
+				</button>
+				<button
+				class="btn btn-sm w-1/3 {selectedAnimation === AnimationType.Shake ? 'variant-filled' : 'variant-ghost'}"
+				on:click={() => handleAnimationChange(AnimationType.Shake)}
+				>
+				Shake
+				</button>
+				<button
+				class="btn btn-sm w-1/3 {selectedAnimation === AnimationType.Zoom ? 'variant-filled' : 'variant-ghost'}"
+				on:click={() => handleAnimationChange(AnimationType.Zoom)}
+				>
+				Zoom
+				</button>
+				<button
+				class="btn btn-sm w-1/3 {selectedAnimation === AnimationType.Both ? 'variant-filled' : 'variant-ghost'}"
+				on:click={() => handleAnimationChange(AnimationType.Both)}
+				>
+				Both
+				</button>
+			</div>
+		</div>
 		{/if}
 	</div>
 	<!-- ends here -->
