@@ -1,7 +1,7 @@
-<!-- CodeBlock.svelte -->
 <script lang="ts">
   import { onMount } from 'svelte';
   import hljs from 'highlight.js';
+  import DOMPurify from 'dompurify';
 
   export let content: string = '';
   export let language: string = 'python';
@@ -13,8 +13,18 @@
 
   const CURSOR_CHAR = '█'; // ASCII 219
 
+  function sanitizeAndHighlight(code: string, lang: string): string {
+    try {
+      const highlighted = hljs.highlight(code, { language: lang }).value;
+      return DOMPurify.sanitize(highlighted);
+    } catch (e) {
+      console.error('Highlight.js error:', e);
+      return DOMPurify.sanitize(code);
+    }
+  }
+
   $: {
-    highlighted = hljs.highlight(content, { language }).value;
+    highlighted = sanitizeAndHighlight(content, language);
     resetCursorTimeout();
   }
 
@@ -27,7 +37,6 @@
   }
 
   onMount(() => {
-    hljs.highlightAll();
     return () => clearTimeout(cursorTimeout);
   });
 
@@ -56,7 +65,8 @@
   </div>
   <div class="overflow-x-auto code-content">
     <!--<pre class="p-2 pb-3"><code class="hljs language-{language} !bg-surface-900/95 !text-white text-xs sm:text-sm">{@html highlighted}</code><span class="cursor" class:visible={showCursor}>{CURSOR_CHAR}</span></pre>-->
-    <pre class="p-2 pb-3">{@html highlighted}<code class="hljs language-{language} !bg-surface-900/95 !text-white text-xs sm:text-sm"></code></pre>
+    <pre class="p-2 pb-3"><code class="hljs language-{language} !bg-surface-900/95 !text-white text-xs sm:text-sm">{@html highlighted}</code></pre>
+    <!-- <pre class="p-2 pb-3"><code class="language-{language}">{@html highlighted}</code></pre> -->
   </div>
 </div>
 

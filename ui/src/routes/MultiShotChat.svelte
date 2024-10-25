@@ -41,7 +41,7 @@
 
 
   $: if (selectedAnimation !== null) {
-    console.log(`&&&&&& changed bubble animation setting to: ${selectedAnimation}`);
+    //console.log(`&&&&&& changed bubble animation setting to: ${selectedAnimation}`);
     handleAnimationChange(selectedAnimation); 
   }
 
@@ -90,7 +90,7 @@
           try {
             handleSelectItem(selectedLlmProvider);
           } catch (error) {
-            console.error(`Error handling selected ${selectedLlmProvider?.model}`);
+            //console.error(`Error handling selected ${selectedLlmProvider?.model}`);
           }
           setTimeout(() => {
             if (loadingInputBubbleDiv !== null) {
@@ -105,7 +105,7 @@
         updateStats(loadingBubblePid);
       }
     } else {
-      console.error('initProgressCallback: No LLM provider selected');
+      //console.error('initProgressCallback: No LLM provider selected');
     }
   }
 

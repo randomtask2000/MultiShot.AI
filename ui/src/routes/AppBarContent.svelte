@@ -36,7 +36,7 @@
 
 	$: {
 		if (selectedAnimation) {
-			console.log('####### Selected animation changed:', JSON.stringify(selectedAnimation));
+			//console.log('####### Selected animation changed:', JSON.stringify(selectedAnimation));
 			// You can add more logic here to handle the animation change
 		}
 	}
@@ -46,10 +46,10 @@
 	// This is where we start the webllm engine with the premise that we load the first entry in the list
 	// TODO: this is a hack to get around the fact that the selectedItem is not updated when the user selects a new item
 	$: if (selectedItem !== null) {
-		console.log(`**** selectedItem is changed in AppBarContent to ${selectedItem}`);
+		//console.log(`**** selectedItem is changed in AppBarContent to ${selectedItem}`);
 	} else if (selectedItem == null && llmProviders !== null){
 		selectedItem = llmProviders[0];
-		console.log(`**** selectedItem was null and is set in AppBarContent to ${selectedItem.model}`);
+		//console.log(`**** selectedItem was null and is set in AppBarContent to ${selectedItem.model}`);
 	}
 	const DEFAULT_MODEL = 'TinyLlama-1.1B-Chat-v1.0-q4f32_1-MLC-1k';
 
@@ -95,7 +95,7 @@
 
 	export function handleSelectItem(item: LlmProvider): void {
 		try {
-			console.log("***** handleSelectItem called");
+			//console.log("***** handleSelectItem called");
 			if (
 				item !== null &&
 				item !== undefined &&
@@ -110,7 +110,7 @@
 				localwebLlm = true;
 			}
 		} catch (error) {
-			console.error(`***** Error calling 'handleSelectItem':`, error);
+			//console.error(`***** Error calling 'handleSelectItem':`, error);
 		}
 	}
 

@@ -1,13 +1,39 @@
-// markdownUtils.ts
-import { marked } from 'marked';
+import { Marked } from 'marked';
 import { markedHighlight } from "marked-highlight";
+import { mangle } from "marked-mangle";
 import hljs from 'highlight.js';
 import CodeBlock from './CodeBlock.svelte';
 import { StreamParserNoCursor } from './markupUtils';
 
+const marked = new Marked();
+
+function sanitizeHTML(html: string): string {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const body = doc.body;
+  
+  // Remove dangerous elements
+  const dangerousElements = body.querySelectorAll('script, iframe, object, embed');
+  dangerousElements.forEach(el => el.remove());
+  
+  // Clean attributes
+  const allElements = body.getElementsByTagName('*');
+  for (let i = 0; i < allElements.length; i++) {
+    const el = allElements[i];
+    for (let j = 0; j < el.attributes.length; j++) {
+      const attr = el.attributes[j];
+      if (attr.name.startsWith('on') || 
+          (attr.name === 'href' && attr.value.toLowerCase().startsWith('javascript:'))) {
+        el.removeAttribute(attr.name);
+      }
+    }
+  }
+  
+  return body.innerHTML;
+}
+
 class CustomRenderer extends marked.Renderer {
   code(code: string, language: string): string {
-    return `<pre><code data-highlighted="true" class="language-${language}">${code}</code></pre>`;
+    return sanitizeHTML(code);
   }
 }
 
@@ -15,12 +41,13 @@ const customRenderer = new CustomRenderer();
 
 marked.use(
   markedHighlight({
-    langPrefix: 'language-',
+    langPrefix: 'hljs language-',
     highlight(code, lang) {
       const language = hljs.getLanguage(lang) ? lang : 'plaintext';
       return hljs.highlight(code, { language }).value;
     }
   }),
+  mangle(),
   {
     mangle: false,
     headerIds: false,
@@ -63,7 +90,7 @@ export class StreamParser {
     this.outputElement = container;
     this.cursorElement = document.createElement('span');
     this.cursorElement.className = 'cursor';
-    this.cursorElement.textContent = '    ▋';//' █';//' ▋';
+    this.cursorElement.textContent = '    ▋';
     this.styleElement = document.createElement('style');
     this.styleElement.textContent = `
       .cursor {
@@ -94,14 +121,8 @@ export class StreamParser {
   }
 
   public processChunk(chunk: string): void {
-    // if (chunk.includes('`')) {
-    //   console.log(`found: "${chunk}"`);
-    //   //chunk = '``' + chunk;
-    // }
     if (chunk.includes('``')) {
-      //console.log('------------Code block detected');
       if (this.inCodeBlock) {
-        // End of code block
         this.contentFragments.push({
           type: 'code',
           content: this.codeBlockContent.trim(),
@@ -111,10 +132,8 @@ export class StreamParser {
         this.codeBlockContent = '';
         this.currentLanguage = '';
       } else {
-        // Start of code block
         this.currentLanguage = chunk.slice(3).trim() || 'python';
         this.inCodeBlock = true;
-        // Push any accumulated regular content
         if (this.content) {
           this.contentFragments.push({
             type: 'text',
@@ -124,10 +143,8 @@ export class StreamParser {
         }
       }
     } else if (this.inCodeBlock) {
-      // Inside code block
       this.codeBlockContent += chunk;
     } else {
-      // Regular markdown content
       this.content += chunk.replace('`','');
     }
 
@@ -135,10 +152,8 @@ export class StreamParser {
   }
 
   private updateDOM(): void {
-    // Clear the container
     this.container.innerHTML = '';
 
-    // Render all content fragments
     for (const fragment of this.contentFragments) {
       if (fragment.type === 'text') {
         const parsedContent = marked.parse(fragment.content);
@@ -161,7 +176,6 @@ export class StreamParser {
       }
     }
 
-    // Render current content (if any)
     if (this.content || this.codeBlockContent) {
       let currentContent = this.content;
       if (this.inCodeBlock) {
@@ -193,31 +207,15 @@ export class StreamParser {
         this.container.appendChild(this.cursorElement);
       }
     } else {
-      // If there's no current content, append the cursor to the container
       this.container.appendChild(this.cursorElement);
     }
 
-    // Scroll to the bottom to keep the cursor in view
     this.container.scrollTop = this.container.scrollHeight;
   }
 
   public finish(): void {
     if (this.cursorInterval !== null) {
       clearInterval(this.cursorInterval);
-    }
-
-    // Push any remaining content
-    if (this.inCodeBlock) {
-      // this.contentFragments.push({
-      //   type: 'code',
-      //   content: this.codeBlockContent.trim(),
-      //   language: this.currentLanguage
-      // });
-    } else if (this.content) {
-      // this.contentFragments.push({
-      //   type: 'text',
-      //   content: this.content
-      // });
     }
 
     this.updateDOM();
@@ -251,10 +249,8 @@ export class StreamParser {
   private basicSanitize(html: string): string {
     const doc = new DOMParser().parseFromString(html, 'text/html');
     const body = doc.body;
-    // Remove potentially dangerous elements
     const dangerousElements = body.querySelectorAll('script, iframe, object, embed');
     dangerousElements.forEach(el => el.remove());
-    // Remove potentially dangerous attributes
     const allElements = body.getElementsByTagName('*');
     for (let i = 0; i < allElements.length; i++) {
       const el = allElements[i];
