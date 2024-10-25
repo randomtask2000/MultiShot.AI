@@ -225,7 +225,6 @@ async function handleWebllmProvider(
     attempt: number
   ) {
     try {
-
       // Prune the history to the first and last elements if conditions are met.
         //   if (attempt > 1 && history.length > 2) {
         //     history = [history[0], history[history.length - 1]];
@@ -306,7 +305,7 @@ export async function initializeWebLLM(
     model: string,
     progressCallback?: (report: webllm.InitProgressReport) => void
 ) {
-    let basicInit: boolean = false;
+    let basicInit: boolean = true;
     if (!engine)
     {
         if (basicInit) 

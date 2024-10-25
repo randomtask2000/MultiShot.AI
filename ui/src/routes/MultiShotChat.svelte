@@ -249,21 +249,25 @@ function getToken() {
     const token = getToken();
     tokenHistory.push({ role: "user", content: token, llmInfo: selectedLlmProvider });
 
-    const response = await fetchAi(tokenHistory, selectedLlmProvider);
-    if (!response.body) {
-      throw new Error('Response body is null');
+    try {
+      const response = await fetchAi(tokenHistory, selectedLlmProvider);
+      if (!response.body) {
+        throw new Error('Response body is null');
+      }
+      // Add response from LLM bubble
+      let { pid: aiPid } = addBubble(selectedLlmProvider, resultDiv, "AI", "ai", selectedAnimation);
+      const content = await printResponse(resultDiv, response.body.getReader() as GenericReader, new TextDecoder('utf-8'), aiPid);
+      updateStats(aiPid);
+      tokenHistory.push({ role: "assistant", content, llmInfo: selectedLlmProvider });
+      clearToken();
+      // set stats
+      
+    } catch (error) {
+      console.error('Error fetching AI response:', error);
+      // Handle the error appropriately
     }
-    
-    // Add response from LLM bubble
-    let { pid: aiPid } = addBubble(selectedLlmProvider, resultDiv, "AI", "ai", selectedAnimation);
-    const content = await printResponse(resultDiv, response.body.getReader() as GenericReader, new TextDecoder('utf-8'), aiPid);
-    
-    tokenHistory.push({ role: "assistant", content, llmInfo: selectedLlmProvider });
-    clearToken();
     isLoadingLlmResponse = false;
     userBubbleIsBusy = false;
-    // set stats
-    updateStats(aiPid);
   }
 
   function updateStats(aiPid: string) {
