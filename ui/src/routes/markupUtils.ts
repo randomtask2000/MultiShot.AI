@@ -1,8 +1,12 @@
-import { marked } from 'marked';
+import { Marked } from 'marked';
+import { markedHighlight } from "marked-highlight";
+import { mangle } from "marked-mangle";
 import hljs from 'highlight.js';
 import CodeBlock from './CodeBlock.svelte';
 //import { scrollChatBottom } from './tokenUtils';
 //import type { GenericReader } from './tokenUtils';
+
+const marked = new Marked();
 
 class CustomRenderer extends marked.Renderer {
   codeStart(language: string): string {
@@ -20,26 +24,43 @@ class CustomRenderer extends marked.Renderer {
 
 const customRenderer = new CustomRenderer();
 
-marked.setOptions({
-  renderer: customRenderer,
-  highlight: function(code, lang) {
-    const language = lang && hljs.getLanguage(lang) ? lang : 'python';
-    return hljs.highlight(code, { language }).value;
-  },
-  langPrefix: 'language-',
-  breaks: true,
-  gfm: true
-});
+// marked.setOptions({
+//   renderer: customRenderer,
+//   highlight: function(code, lang) {
+//     const language = lang && hljs.getLanguage(lang) ? lang : 'python';
+//     return hljs.highlight(code, { language }).value;
+//   },
+//   langPrefix: 'language-',
+//   breaks: true,
+//   gfm: true
+// });
 
-marked.setOptions({
-  highlight: function(code, lang) {
-    const language = hljs.getLanguage(lang) ? lang : 'python';
-    return hljs.highlight(code, { language: language || 'python' }).value;
-  },
-  langPrefix: 'hljs language-',
-  breaks: true,
-  gfm: true
-});
+
+// marked.setOptions({
+//   highlight: function(code, lang) {
+//     const language = hljs.getLanguage(lang) ? lang : 'python';
+//     return hljs.highlight(code, { language: language || 'python' }).value;
+//   },
+//   langPrefix: 'hljs language-',
+//   breaks: true,
+//   gfm: true
+// });
+
+marked.use(
+  markedHighlight({
+    langPrefix: 'hljs language-',
+    highlight(code, lang) {
+      const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+      return hljs.highlight(code, { language }).value;
+    }
+  }),
+  mangle(),
+  {
+    mangle: false,
+    headerIds: false,
+    renderer: customRenderer
+  }
+);
 
 export function renderMarkdownWithCodeBlock(content: string, outputElement: HTMLElement) {
   const parser = new StreamParserNoCursor(outputElement);
@@ -101,7 +122,7 @@ export class StreamParserNoCursor {
       }
     } else {
       // Regular markdown content
-      const html = marked(line);
+      const html = marked.parse(line);
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = html;
       while (tempDiv.firstChild) {

@@ -6,11 +6,6 @@
   export let content: string = '';
   export let language: string = 'python';
 
-  let highlighted: string = '';
-  let copyText = 'Copy';
-  let showCursor = true;
-  let cursorTimeout: ReturnType<typeof setTimeout>;
-
   const CURSOR_CHAR = '█'; // ASCII 219
 
   function sanitizeAndHighlight(code: string, lang: string): string {
@@ -23,8 +18,41 @@
     }
   }
 
+  let highlighted: string = '';
+  let copyText = 'Copy';
+  let showCursor = true;
+  let cursorTimeout: ReturnType<typeof setTimeout>;
+  let displayLanguage: string = '';
+
+  function formatLanguageName(lang: string): string {
+    const languageMap: { [key: string]: string } = {
+      'js': 'JavaScript',
+      'ts': 'TypeScript',
+      'py': 'Python',
+      'html': 'HTML',
+      'css': 'CSS',
+      'jsx': 'React JSX',
+      'tsx': 'React TSX',
+      'java': 'Java',
+      'cpp': 'C++',
+      'c': 'C',
+      'csharp': 'C#',
+      'go': 'Go',
+      'rust': 'Rust',
+      'swift': 'Swift',
+      'php': 'PHP',
+      'ruby': 'Ruby',
+      'python': 'Python',
+      'javascript': 'JavaScript',
+      'typescript': 'TypeScript'
+    };
+
+    return languageMap[lang.toLowerCase()] || lang.charAt(0).toUpperCase() + lang.slice(1);
+  }
+
   $: {
     highlighted = sanitizeAndHighlight(content, language);
+    displayLanguage = formatLanguageName(language);
     resetCursorTimeout();
   }
 

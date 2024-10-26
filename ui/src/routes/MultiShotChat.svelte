@@ -78,7 +78,7 @@
             // updateTimespanElement(timeSpanElement);
           }
         } else {
-          loadingInputBubbleDiv.innerHTML = downloadStatus;
+          if (loadingInputBubbleDiv) {loadingInputBubbleDiv.innerHTML = downloadStatus;}
         }
         // we are finished and we report the last message
       } else if (progressPercentage === 100) {

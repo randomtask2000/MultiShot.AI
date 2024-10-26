@@ -119,9 +119,21 @@ export class StreamParser {
         this.cursorElement.style.visibility === 'hidden' ? 'visible' : 'hidden';
     }, 250);
   }
+  private isLanguageName = false;
+  private tempBuffer: string = '';
+  private isCollectingCodeBlock: boolean = false;
 
-  public processChunk(chunk: string): void {
-    if (chunk.includes('``')) {
+  private tempChunk: string = '';
+private collectingCodeBlockStart: boolean = false;
+
+public processChunk(chunk: string): void {
+  // If we're collecting a code block start, add to tempChunk and continue
+  if (this.collectingCodeBlockStart) {
+    this.tempChunk += chunk;
+    
+    // Check if we have a complete code block start pattern
+    const match = this.tempChunk.match(/^```(\w+)[\s\n]/);
+    if (match) {
       if (this.inCodeBlock) {
         this.contentFragments.push({
           type: 'code',
@@ -132,7 +144,7 @@ export class StreamParser {
         this.codeBlockContent = '';
         this.currentLanguage = '';
       } else {
-        this.currentLanguage = chunk.slice(3).trim() || 'python';
+        this.currentLanguage = match[1];
         this.inCodeBlock = true;
         if (this.content) {
           this.contentFragments.push({
@@ -142,14 +154,44 @@ export class StreamParser {
           this.content = '';
         }
       }
-    } else if (this.inCodeBlock) {
-      this.codeBlockContent += chunk;
-    } else {
-      this.content += chunk.replace('`','');
+      this.collectingCodeBlockStart = false;
+      // Process remaining content after the language identifier
+      const remainingContent = this.tempChunk.slice(match[0].length);
+      this.tempChunk = '';
+      if (remainingContent) {
+        this.processChunk(remainingContent);
+      }
+      return;
     }
-
-    this.updateDOM();
+    // If we don't have a complete pattern yet, wait for more chunks
+    return;
   }
+
+  // Start collecting if we see a backtick
+  if (chunk.includes('`')) {
+    const tickIndex = chunk.indexOf('`');
+    // Process everything before the tick normally
+    if (tickIndex > 0) {
+      this.processChunk(chunk.slice(0, tickIndex));
+    }
+    // Start collecting code block start
+    this.collectingCodeBlockStart = true;
+    this.tempChunk = chunk.slice(tickIndex);
+    return;
+  }
+
+  // Normal processing if we're not collecting code block start
+  if (this.inCodeBlock) {
+    this.codeBlockContent += chunk;
+  } else {
+    this.content += chunk.replace('`','');
+  }
+
+  this.updateDOM();
+}
+
+
+
 
   private updateDOM(): void {
     this.container.innerHTML = '';
