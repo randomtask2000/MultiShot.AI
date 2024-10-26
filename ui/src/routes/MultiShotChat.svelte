@@ -237,7 +237,7 @@ function getToken() {
  * @throws {Error} If no LLM provider is selected.
  * @throws {Error} If the response body is null.
  */
-  async function sendUserTokenAiHistory() {
+ async function sendUserTokenAiHistory() {
     if (!selectedLlmProvider) {
       console.error('sendUserTokenAiHistory: No LLM provider selected');
       return;
@@ -249,23 +249,34 @@ function getToken() {
     const token = getToken();
     tokenHistory.push({ role: "user", content: token, llmInfo: selectedLlmProvider });
 
-    try {
-      const response = await fetchAi(tokenHistory, selectedLlmProvider);
-      if (!response.body) {
-        throw new Error('Response body is null');
+    let maxAttempts = 2;
+    let attempts = 0;
+
+    while (attempts < maxAttempts) {
+      try {
+        const response = await fetchAi(tokenHistory, selectedLlmProvider);
+        if (!response.body) {
+          throw new Error(`× Response body is null. Token History is ${tokenHistory.length}`);
+        }
+        let { pid: aiPid } = addBubble(selectedLlmProvider, resultDiv, "AI", "ai", selectedAnimation);
+        const content = await printResponse(resultDiv, response.body.getReader() as GenericReader, new TextDecoder('utf-8'), aiPid);
+        updateStats(aiPid);
+        tokenHistory.push({ role: "assistant", content, llmInfo: selectedLlmProvider });
+        clearToken();
+        break; // Exit loop on success
+
+      } catch (error) {
+        
+        console.error(`× Attempt ${attempts}/${maxAttempts} failed with token history count ${tokenHistory.length}: `, error);
+        
+        if (attempts < maxAttempts) {
+          // On final attempt, keep only the last user message
+          tokenHistory = tokenHistory.slice(-1);
+        }
+        attempts++;
       }
-      // Add response from LLM bubble
-      let { pid: aiPid } = addBubble(selectedLlmProvider, resultDiv, "AI", "ai", selectedAnimation);
-      const content = await printResponse(resultDiv, response.body.getReader() as GenericReader, new TextDecoder('utf-8'), aiPid);
-      updateStats(aiPid);
-      tokenHistory.push({ role: "assistant", content, llmInfo: selectedLlmProvider });
-      clearToken();
-      // set stats
-      
-    } catch (error) {
-      console.error('Error fetching AI response:', error);
-      // Handle the error appropriately
     }
+
     isLoadingLlmResponse = false;
     userBubbleIsBusy = false;
   }
